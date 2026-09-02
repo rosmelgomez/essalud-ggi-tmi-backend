@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from src.core.config import require_env
+from src.core.tmiConfig import require_env
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker

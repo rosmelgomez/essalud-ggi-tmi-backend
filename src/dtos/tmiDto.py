@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class estandares_dto(BaseModel):
+class estandaresDto(BaseModel):
     id: int
     orden_indicador: int
     codigo_unico: str
@@ -13,7 +13,7 @@ class estandares_dto(BaseModel):
     acept: float
     aceptmenos: float
 
-class centro_dto(BaseModel):
+class centroTmiDto(BaseModel):
    id: int
    red: str
    orden: int
