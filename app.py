@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.controller import apiTmi
+from src.main.controller import apiTmi
 
 app = FastAPI(
 title="microservicio de gestion del tmi",

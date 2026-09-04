@@ -1,25 +1,23 @@
-from sqlalchemy.orm import decl_base
-from sqlalchemy.orm import decl_base
-from sqlalchemy.orm import decl_base
-from src.dtos.tmiDto import estandaresDto
-from src.db.databaseConexion import SessionLocal
+from sqlalchemy.orm import Session
+from src.main.dtos.tmiDto import estandaresDto
+from src.main.dtos.tmiDto import centroTmiDto
 from fastapi import HTTPException
 from sqlalchemy import text
 
 
-def queryEstandares(db: SessionLocal):
+def queryEstandares(db: Session):
     try:
         query = f"""
         SElECT est.*
         FROM [pentahodev_prueba].[dbo].[estandares] est
         """
         result = db.execute(text(query))
-        return result.fetchall()
+        return [dict(row) for row in result.mappings()]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryEstandaresByCentro(db: SessionLocal, codcentro:str):
+def queryEstandaresByCentro(db: Session, codcentro:str):
     try:
         query = f"""
           SElECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
@@ -28,38 +26,83 @@ def queryEstandaresByCentro(db: SessionLocal, codcentro:str):
           WHERE cen.codcentro = :codcentro
         """
         result = db.execute(text(query), {"codcentro": codcentro})
-        return result.fetchall()
+        return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryUpdateEstandares(db: SessionLocal, dto:estandaresDto):
+def queryUpdateEstandares(db: Session, dto: estandaresDto):
     try:
-        query = f"""
-        USE [pentahodev_prueba]
-        GO
-
+        query = """
         UPDATE [dbo].[estandares]
-          SET [id] = :id
-          ,[orden_indicador] = :orden_indicador
-          ,[codigo_unico] = :codigo_unico
-          ,[tipo] = :tipo
-          ,[indicador] = :indicador
-          ,[nivel_centro] = :nivel_centro
-          ,[tipo_centro] = :tipo_centro
-          ,[nivel_estandar_centro] = :nivel_estandar_centro
-          ,[estandar] = :estandar
-          ,[acept] = :acept
-          ,[aceptmenos] = :aceptmenos
+          SET [orden_indicador] = :orden_indicador
+          , [codigo_unico] = :codigo_unico
+          , [tipo] = :tipo
+          , [indicador] = :indicador
+          , [nivel_centro] = :nivel_centro
+          , [tipo_centro] = :tipo_centro
+          , [nivel_estandar_centro] = :nivel_estandar_centro
+          , [estandar] = :estandar
+          , [acept] = :acept
+          , [aceptmenos] = :aceptmenos
         WHERE id = :id
         """
 
-        result = db.execute(text(query), {"dto": dto})
+        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        result = db.execute(text(query), params)
         db.commit()
-        return result.fetchall()
+        return {"message": "Estandar actualizado correctamente", "rows_affected": result.rowcount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryDropVIstas(db: SessionLocal):
+def queryCentrosTMI(db: Session):
+    try:
+        query = f"""
+        SElECT * FROM [pentahodev_prueba].[dbo].[centros_tmi]
+        """
+        result = db.execute(text(query))
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
+    try:
+        query = f"""
+        UPDATE [dbo].[centros_tmi]
+            SET [id] = :id
+            ,[red] = :red
+            ,[orden] = :orden
+            ,[orden_tipo] = :orden_tipo
+            ,[codcentro] = :codcentro
+            ,[tipo] = :tipo
+            ,[nivel] = :nivel
+            ,[nivel_estandar] = :nivel_estandar
+            ,[centro] = :centro
+            ,[estado] = :estado
+        WHERE codcentro = :codcentro
+        """
+        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        result = db.execute(text(query), params)
+        db.commit()
+        return {"message": "Estandar actualizado correctamente", "rows_affected": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryCEConcent(db: Session):
+    try:
+        query = f"""
+        SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
+                           FROM [pentahodev_prueba].[dbo].[estandares] est
+                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Concentracion de Consultas'
+        """
+        result = db.execute(text(query))
+        db.commit()
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def queryDropVIstas(db: Session):
     try:
         query = f"""
 DROP VIEW TMI_CENTROS_CE_Concent
@@ -113,7 +156,7 @@ DROP VIEW TMI_Qx_HTCesareas_bi
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryCreacionCentrosVariables(db: SessionLocal):
+def queryCreacionCentrosVariables(db: Session):
     try:
         query = f"""
 
@@ -305,7 +348,7 @@ WHERE     (Variable IN ('Centro Quirúrgico - Cirugías sin clasificación de co
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryCreacionVistasCE(db: SessionLocal):
+def queryCreacionVistasCE(db: Session):
     try:
         query = f"""
 

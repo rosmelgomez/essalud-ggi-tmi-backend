@@ -1,7 +1,7 @@
 
 
 from sqlalchemy import Double
-from src.db.database import Base
+from src.main.db.databaseConexion import Base
 from sqlalchemy import Column, Integer, String
 
 

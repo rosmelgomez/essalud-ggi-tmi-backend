@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from src.core.tmiConfig import require_env
+from src.main.core.tmiConfig import require_env
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -49,4 +49,12 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
- 
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
