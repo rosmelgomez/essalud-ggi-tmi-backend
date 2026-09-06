@@ -6,3 +6,4 @@ python-dotenv
 mssql-python
 pyodbc
 pandas
+pyjwt
