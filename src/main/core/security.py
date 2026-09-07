@@ -12,14 +12,16 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 JWT_SECRET_BASE64 = os.getenv(
-    "JWT_SECRET_BASE64",
-    "cXViZWNhc2g1bTZuN284cDlxdXJzdHV2d3h5emFiY2Qx",
+    "APP_SECURITY_JWT_ACCESS_SECRET",
+    "",
 )
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS512")
 ACCESS_COOKIE_NAME = os.getenv("JWT_ACCESS_COOKIE_NAME", "access_token")
 
 try:
-    RAW_SECRET_KEY = base64.b64decode(JWT_SECRET_BASE64)
+    missing_padding = len(JWT_SECRET_BASE64) % 4
+    padded_secret = JWT_SECRET_BASE64 + "=" * ((4 - missing_padding) % 4) if missing_padding else JWT_SECRET_BASE64
+    RAW_SECRET_KEY = base64.b64decode(padded_secret)
 except Exception as e:
     logger.error("Error al decodificar JWT_SECRET_BASE64: %s", e)
     RAW_SECRET_KEY = JWT_SECRET_BASE64.encode("utf-8")

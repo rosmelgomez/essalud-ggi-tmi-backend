@@ -1,5 +1,11 @@
 from pydantic import BaseModel
 
+class cierreDto(BaseModel):
+    id: int
+    fecha_cierre:str
+    periodo:str
+    estado:str
+
 class estandaresDto(BaseModel):
     id: int
     orden_indicador: int
@@ -24,3 +30,14 @@ class centroTmiDto(BaseModel):
    nivel_estandar: str  
    centro: str
    estado: str 
+
+
+class historicoEstandarCentrosDto(BaseModel):
+    id:int
+    codcentro:str
+    fecha: str
+    periodo:str
+    estandar:float
+    acept:float
+    aceptmenos:float
+    centro:str
