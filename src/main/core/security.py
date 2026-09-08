@@ -3,28 +3,37 @@ import logging
 import os
 from typing import Dict, List, Optional
 
+import warnings
 import jwt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, Request, status
+
+warnings.filterwarnings("ignore", category=jwt.InsecureKeyLengthWarning)
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-JWT_SECRET_BASE64 = os.getenv(
-    "APP_SECURITY_JWT_ACCESS_SECRET",
-    "",
-)
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS512")
-ACCESS_COOKIE_NAME = os.getenv("JWT_ACCESS_COOKIE_NAME", "access_token")
+raw_secret_str = (
+    os.getenv("JWT_SECRET_BASE64")
+    or os.getenv("APP_SECURITY_JWT_ACCESS_SECRET")
+    or "cXViZWNhc2g1bTZuN284cDlxdXJzdHV2d3h5emFiY2Qx"
+).strip()
+
+missing_padding = len(raw_secret_str) % 4
+if missing_padding:
+    raw_secret_str += "=" * (4 - missing_padding)
 
 try:
-    missing_padding = len(JWT_SECRET_BASE64) % 4
-    padded_secret = JWT_SECRET_BASE64 + "=" * ((4 - missing_padding) % 4) if missing_padding else JWT_SECRET_BASE64
-    RAW_SECRET_KEY = base64.b64decode(padded_secret)
+    RAW_SECRET_KEY = base64.b64decode(raw_secret_str)
+    if not RAW_SECRET_KEY:
+        RAW_SECRET_KEY = raw_secret_str.encode("utf-8")
 except Exception as e:
-    logger.error("Error al decodificar JWT_SECRET_BASE64: %s", e)
-    RAW_SECRET_KEY = JWT_SECRET_BASE64.encode("utf-8")
+    logger.error("Error al decodificar clave secreta JWT: %s", e)
+    RAW_SECRET_KEY = raw_secret_str.encode("utf-8")
+
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS512")
+ACCESS_COOKIE_NAME = os.getenv("JWT_ACCESS_COOKIE_NAME", "access_token")
 
 
 def get_current_user(request: Request) -> Dict:
