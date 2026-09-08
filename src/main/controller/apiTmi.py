@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from src.main.core.security import get_current_user
 from src.main.db.databaseConexion import SessionLocal, get_db
-from src.main.dtos.tmiDto import centroTmiDto, estandaresDto
+from src.main.dtos.tmiDto import centroTmiDto, estandarTmiDto
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,8 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)],
 )
 
-
 @router.get("/conexion")
-def conexion(current_user: dict = Depends(get_current_user)):
+async def conexion(current_user: dict = Depends(get_current_user)):
     try:
         db = SessionLocal()
         db.execute(text("SELECT 1"))
@@ -34,15 +33,35 @@ def conexion(current_user: dict = Depends(get_current_user)):
             detail="Error al conectar con el servidor de base de datos.",
         )
 
-
-@router.get("/lista-estandar")
-async def queryEstandares(
+@router.post("/insert-estandar-centros/{periodo}/{periodoAnterior}")
+async def queryInsertEstandaresPeriodo(
+    periodo:str,
+    periodoAnterior:str,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
+):
+    try:
+        from src.main.service.tmiServ import queryInsertEstandaresPeriodoServ
+        from src.main.service.tmiServ import queryInsertCentrosTMIServ
+        queryInsertCentrosTMIServ(db, periodo,periodoAnterior)
+        queryInsertEstandaresPeriodoServ(db, periodo,periodoAnterior)
+        return {"message": "Estandar insertado correctamente"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al insertar estandar periodo: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al insertar los estándares.",
+        )
+
+@router.get("/lista-estandar/{periodo}")
+async def queryEstandares(
+    periodo:str,
+    db: Session = Depends(get_db),
 ):
     try:
         from src.main.service.tmiServ import queryEstandaresServ
-        return queryEstandaresServ(db)
+        return queryEstandaresServ(db, periodo)
     except HTTPException:
         raise
     except Exception as e:
@@ -52,16 +71,15 @@ async def queryEstandares(
             detail="Ocurrió un error al consultar la lista de estándares.",
         )
 
-
-@router.get("/lista-estandar-by-centro/{codcentro}")
+@router.get("/lista-estandar-by-centro/{codcentro}/{periodo}")
 async def queryEstandaresByCentro(
     codcentro: str,
+    periodo:str,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
 ):
     try:
         from src.main.service.tmiServ import queryEstandaresByCentroServ
-        return queryEstandaresByCentroServ(db, codcentro)
+        return queryEstandaresByCentroServ(db, codcentro, periodo)
     except HTTPException:
         raise
     except Exception as e:
@@ -71,10 +89,9 @@ async def queryEstandaresByCentro(
             detail="Ocurrió un error al consultar los estándares del centro seleccionado.",
         )
 
-
 @router.put("/update-estandar")
 async def queryUpdateEstandares(
-    dto: estandaresDto,
+    dto: estandarTmiDto,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -91,15 +108,14 @@ async def queryUpdateEstandares(
             detail="Ocurrió un error al actualizar el estándar.",
         )
 
-
-@router.get("/lista-centros")
+@router.get("/lista-centros/{periodo}")
 async def queryCentrosTMI(
+    periodo:str,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
 ):
     try:
         from src.main.service.tmiServ import queryCentrosTMIServ
-        return queryCentrosTMIServ(db)
+        return queryCentrosTMIServ(db,periodo)
     except HTTPException:
         raise
     except Exception as e:
@@ -108,7 +124,6 @@ async def queryCentrosTMI(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al consultar los centros TMI.",
         )
-
 
 @router.put("/update-centro")
 async def queryUpdateCentrosTMI(
@@ -129,11 +144,9 @@ async def queryUpdateCentrosTMI(
             detail="Ocurrió un error al actualizar el centro TMI.",
         )
 
-
 @router.get("/ce-concent")
 async def queryCEConcent(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
 ):
     try:
         from src.main.service.tmiServ import queryCEConcentServ
@@ -145,4 +158,4 @@ async def queryCEConcent(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al consultar los datos de concentración.",
-        )
+        )

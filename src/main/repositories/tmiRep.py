@@ -1,39 +1,58 @@
 from sqlalchemy.orm import Session
-from src.main.dtos.tmiDto import estandaresDto
+from src.main.dtos.tmiDto import estandarTmiDto
 from src.main.dtos.tmiDto import centroTmiDto
 from fastapi import HTTPException
 from sqlalchemy import text
 
-
-def queryEstandares(db: Session):
+# consultar estandares para el periodo actual
+def queryEstandares(db: Session, periodo:str):
     try:
         query = f"""
         SElECT est.*
-        FROM [pentahodev_prueba].[dbo].[estandares] est
+        FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+        WHERE periodo = :periodo
         """
-        result = db.execute(text(query))
+        result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryEstandaresByCentro(db: Session, codcentro:str):
+### insertar estandares para el periodo actual de periodo anterior
+def queryInsertEstandaresPeriodo(db: Session, periodo:str,periodoAnterior:str):
     try:
         query = f"""
-          SElECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-          FROM [pentahodev_prueba].[dbo].[estandares] est
-          JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-          WHERE cen.codcentro = :codcentro
+        INSERT INTO [pentahodev_prueba].[dbo].[tmi_estandar]
+        (orden_indicador, codigo_unico, tipo, indicador, nivel_centro, tipo_centro, nivel_estandar_centro, estandar, acept, aceptmenos, periodo)
+        SELECT orden_indicador, codigo_unico, tipo, indicador, nivel_centro, tipo_centro, nivel_estandar_centro, estandar, acept, aceptmenos, :periodo
+        FROM [pentahodev_prueba].[dbo].[tmi_estandar]
+        WHERE periodo = :periodoAnterior
         """
-        result = db.execute(text(query), {"codcentro": codcentro})
+        result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
+        db.commit()
         return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryUpdateEstandares(db: Session, dto: estandaresDto):
+### consultar estandares por centro
+def queryEstandaresByCentro(db: Session, codcentro:str, periodo:str):
+    try:
+        query = f"""
+          SElECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar, cen.periodo
+          FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+          JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+          WHERE cen.codcentro = :codcentro AND est.periodo = :periodo
+        """
+        result = db.execute(text(query), {"codcentro": codcentro, "periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## actualizar estandares
+def queryUpdateEstandares(db: Session, dto: estandarTmiDto):
     try:
         query = """
-        UPDATE [dbo].[estandares]
+        UPDATE [dbo].[tmi_estandar]
           SET [orden_indicador] = :orden_indicador
           , [codigo_unico] = :codigo_unico
           , [tipo] = :tipo
@@ -44,7 +63,8 @@ def queryUpdateEstandares(db: Session, dto: estandaresDto):
           , [estandar] = :estandar
           , [acept] = :acept
           , [aceptmenos] = :aceptmenos
-        WHERE id = :id
+          , [periodo]  = :periodo
+        WHERE id = :id AND periodo = :periodo
         """
 
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
@@ -54,16 +74,35 @@ def queryUpdateEstandares(db: Session, dto: estandaresDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryCentrosTMI(db: Session):
+### consultar centros_tmi 
+def queryCentrosTMI(db: Session, periodo:str):
     try:
         query = f"""
-        SElECT * FROM [pentahodev_prueba].[dbo].[centros_tmi]
+        SElECT * FROM [pentahodev_prueba].[dbo].[tmi_centro]
+        WHERE periodo = :periodo
         """
-        result = db.execute(text(query))
+        result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+### insertar centros_tmi para el periodo actual de periodo anterior
+def queryInsertCentrosTMI(db: Session, periodo:str,periodoAnterior:str):
+    try:
+        query = f"""
+        INSERT INTO [pentahodev_prueba].[dbo].[tmi_centro]
+        (red, orden, orden_tipo, codcentro, tipo, nivel, nivel_estandar, centro, periodo) 
+        SELECT red, orden, orden_tipo, codcentro, tipo, nivel, nivel_estandar, centro, :periodo
+        FROM [pentahodev_prueba].[dbo].[tmi_centro]
+        WHERE periodo = :periodoAnterior
+        """
+        result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
+        db.commit()
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+### actualizar centros_tmi 
 def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
     try:
         query = f"""
@@ -78,7 +117,8 @@ def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
             ,[nivel_estandar] = :nivel_estandar
             ,[centro] = :centro
             ,[estado] = :estado
-        WHERE codcentro = :codcentro
+            ,[periodo] = :periodo
+        WHERE codcentro = :codcentro AND periodo = :periodo
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
@@ -87,13 +127,14 @@ def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+### consulta concentracion de consultas
 def queryCEConcent(db: Session):
     try:
         query = f"""
         SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Concentracion de Consultas'
+        FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+        JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+        WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo = '202608'
         """
         result = db.execute(text(query))
         db.commit()

@@ -6,7 +6,7 @@ class cierreDto(BaseModel):
     periodo:str
     estado:str
 
-class estandaresDto(BaseModel):
+class estandarTmiDto(BaseModel):
     id: int
     orden_indicador: int
     codigo_unico: str
@@ -18,6 +18,7 @@ class estandaresDto(BaseModel):
     estandar: float
     acept: float
     aceptmenos: float
+    periodo: str
 
 class centroTmiDto(BaseModel):
    id: int
@@ -30,14 +31,4 @@ class centroTmiDto(BaseModel):
    nivel_estandar: str  
    centro: str
    estado: str 
-
-
-class historicoEstandarCentrosDto(BaseModel):
-    id:int
-    codcentro:str
-    fecha: str
-    periodo:str
-    estandar:float
-    acept:float
-    aceptmenos:float
-    centro:str
+   periodo:str

@@ -8,11 +8,12 @@ class cierre (Base):
     __tablename__ = "cierre"
     id = Column(Integer,primary_key=True)
     fecha_cierre = Column(String(50))
+    año= Column(Integer(50))
     periodo = Column(String(50))
     estado = Column(String(50))   
 
-class estandares(Base):
-    __tablename__ = "estandares"
+class tmi_estandar(Base):
+    __tablename__ = "tmi_estandar"
     id = Column(Integer,primary_key=True)
     orden_indicador = Column(Integer())
     codigo_unico = Column(String(50))
@@ -24,10 +25,11 @@ class estandares(Base):
     estandar = Column(Double())
     acept=Column(Double())
     aceptmenos= Column(Double())
+    periodo=Column(String(50))
 
 
-class centros_tmi(Base):
-    __tablename__ = "centros_tmi"
+class tmi_centro(Base):
+    __tablename__ = "tmi_centro"
     id = Column(Integer,primary_key=True)
     red = Column(String(100))
     orden = Column(Integer(50))
@@ -38,14 +40,6 @@ class centros_tmi(Base):
     nivel_estandar = Column(String(50))  
     centro = Column(String(100))
     estado = Column(String(50)) 
-    
-class hsitoricoEstandarCentros(Base):
-    __tablename__ = "hsitorico_estandar_centros"
-    id = Column(Integer,primary_key=True)
-    codcentro = Column(String(50))
-    fecha = Column(String(50))
     periodo = Column(String(50))
-    estandar = Column(Double())
-    acept = Column(Double())
-    aceptmenos = Column(Double())
-    centro = Column(String(50))
+
+

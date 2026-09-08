@@ -276,9 +276,9 @@ FROM         dbo.TMI_CENTROS_CE_Concent AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Consulta Externa - Consultantes al Establecimiento'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Concentracion de Consultas') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo= '202607') AS D ON CEN.codcentro = D.codcentro
 go
 /*--ESTE VIEW NO SIRVE
 CREATE VIEW CE_GCHProg
