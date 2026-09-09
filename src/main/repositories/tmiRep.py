@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from src.main.dtos.tmiDto import estandarTmiDto
 from src.main.dtos.tmiDto import centroTmiDto
@@ -86,6 +87,7 @@ def queryCentrosTMI(db: Session, periodo:str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+ 
 ### insertar centros_tmi para el periodo actual de periodo anterior
 def queryInsertCentrosTMI(db: Session, periodo:str,periodoAnterior:str):
     try:
@@ -127,6 +129,38 @@ def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def formarFechaTMI(fecha:str) -> str:
+    try:
+        return fecha.split('-')[0] + fecha.split('-')[1]
+    except Exception as e:
+        return ""
+
+def queryDiaEjecucion(db:Session, anio:int):
+    try:
+        query = f"""
+        SELECT dia
+        FROM [pentahodev_prueba].[dbo].[cierre]
+        WHERE año = :anio
+        """
+        result = db.execute(text(query), {"anio": anio})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def condicionEjecucion(db:Session):
+    try:
+        diaActual = datetime.now().day
+        if diaActual == queryDiaEjecucion(db, datetime.now().year):
+            queryDropVIstas(db)
+            queryCreacionCentrosVariables(db)
+            return True
+        return False
+    except Exception as e:
+        return False
+
+
+
+
 ### consulta concentracion de consultas
 def queryCEConcent(db: Session):
     try:
@@ -141,7 +175,6 @@ def queryCEConcent(db: Session):
         return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 def queryDropVIstas(db: Session):
     try:

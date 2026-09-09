@@ -7,9 +7,10 @@ from sqlalchemy import Column, Integer, String
 class cierre (Base):
     __tablename__ = "cierre"
     id = Column(Integer,primary_key=True)
-    fecha_cierre = Column(String(50))
+    dia= Column(Integer(50))
+    mes= Column(Integer(50))
     año= Column(Integer(50))
-    periodo = Column(String(50))
+    fecha_creacion = Column(DateTime())
     estado = Column(String(50))   
 
 class tmi_estandar(Base):

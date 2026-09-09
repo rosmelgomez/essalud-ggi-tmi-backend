@@ -278,7 +278,7 @@ FROM         dbo.TMI_CENTROS_CE_Concent AS CEN LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
                            FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
                            JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo= '202607') AS D ON CEN.codcentro = D.codcentro
+                           WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 go
 /*--ESTE VIEW NO SIRVE
 CREATE VIEW CE_GCHProg
@@ -350,9 +350,9 @@ LEFT OUTER JOIN
                     WHERE      (Variable IN ('Consulta Externa - Horas Médicas Programadas'))) AS B ON CEN.codcentro = B.codcentro 
 LEFT OUTER JOIN
                   (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                   FROM [pentahodev_prueba].[dbo].[estandares] est
-                   JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                   WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas') AS D ON CEN.codcentro = D.codcentro
+                   FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                   JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                   WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 go
 
 CREATE VIEW CE_Recetas
@@ -389,9 +389,9 @@ LEFT JOIN (
     WHERE Variable = 'Consulta Externa - Consultas') B ON CEN.codcentro = B.codcentro
 LEFT JOIN (
     SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-    FROM [pentahodev_prueba].[dbo].[estandares] est
-    JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-    WHERE est.indicador = 'Promedio de Recetas por Consultas') AS D ON CEN.codcentro = D.codcentro
+    FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+    JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+    WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 /*SELECT DISTINCT 
                       D.ID AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.NIVEL, D.TIPO, D.PRC_Estandar AS Estandar, D.[PRC_%Acept] AS [% Acept], CASE WHEN A.[Total] <> 0 OR
                       B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, CASE WHEN A.[202601] <> 0 OR
@@ -450,9 +450,9 @@ FROM         dbo.TMI_CENTROS_CE_RHrMedico AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Consulta Externa - Horas Médicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Rendimiento Hora Medico') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Rendimiento Hora Medico' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Em_PrioI_II
 AS
@@ -479,9 +479,9 @@ FROM         dbo.TMI_CENTROS_Em_PrioI_II AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 go                            
 CREATE VIEW Em_PrioIV_V
 AS
@@ -508,9 +508,9 @@ FROM         dbo.TMI_CENTROS_Em_PrioIV_V AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = '% Prioridad IV con respecto al Total de Emergencias') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = '% Prioridad IV con respecto al Total de Emergencias' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 WHERE     (D.nivel_estandar IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I'))
 go
 CREATE VIEW H_Estancias
@@ -540,9 +540,9 @@ FROM         dbo.TMI_CENTROS_H_Estancias AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Egresos'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Promedio de Estancia') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Promedio de Estancia' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW H_ISust
 AS
@@ -575,9 +575,9 @@ FROM         dbo.TMI_CENTROS_H_ISust AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Egresos'))) AS x ON CEN.codcentro = x.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Intervalo de Sustitución') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Intervalo de Sustitución' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW H_OCama
 AS
@@ -606,9 +606,9 @@ FROM         dbo.TMI_CENTROS_H_OCama AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Días Cama Disponible'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Porcentaje de Ocupación de Cama') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 --hay un problema acà 08.05.2026
 /*CORREGIDO 14.08.2026
@@ -678,9 +678,9 @@ FROM         dbo.TMI_CENTROS_H_RCama AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion -  Camas Hospitalarias'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Rendimiento Cama') AS D ON CEN.codcentro = D.codcentro                            
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Rendimiento Cama'AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro                            
 go
 CREATE VIEW H_TBMHosp
 AS
@@ -715,9 +715,9 @@ FROM         dbo.TMI_CENTROS_H_TBMHosp AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Defunciones antes de 48 horas'))) AS x ON CEN.codcentro = x.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_Concent
 AS
@@ -805,9 +805,9 @@ FROM         dbo.TMI_CENTROS_O_Concent AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Consultantes de Odontología'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Concentración de Sesiones Odontológicas') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_GCHOdon
 AS
@@ -832,9 +832,9 @@ FROM         dbo.TMI_CENTROS_O_GCHOdon AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Horas Odontológicas Programadas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_HrOdont
 AS
@@ -859,9 +859,9 @@ FROM         dbo.TMI_CENTROS_O_HrOdont AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Horas Odontológicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Rendimiento de Hora Odontológica') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_NTOdontS
 AS
@@ -892,9 +892,9 @@ FROM         dbo.TMI_CENTROS_O_NTOdontS AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Sesiones Odontológicas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
 go
 CREATE VIEW Qx_GCHProg
@@ -920,9 +920,9 @@ FROM         dbo.TMI_CENTROS_Qx_GCHProg AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Qx_HTCesareas
 AS
@@ -951,9 +951,9 @@ FROM         dbo.TMI_CENTROS_Qx_HTCesareas AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Obstétrico - Total de Partos'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Tasa de Cesáreas') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Tasa de Cesáreas' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go                            
 CREATE VIEW Qx_IAlta
 AS
@@ -982,9 +982,9 @@ FROM         dbo.TMI_CENTROS_Qx_IAlta AS CEN LEFT OUTER JOIN
                                                    'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento', 'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'))
                             GROUP BY Red, Centro, nivel, codcentro, Año) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
                       'JUNIN', 'LA LIBERTAD', 'LAMBAYEQUE', 'LORETO', 'MADRE DE DIOS', 'MOQUEGUA', 'MOYOBAMBA', 'PASCO', 'PIURA', 'PUNO', 'REBAGLIATI', 'SABOGAL', 'TACNA', 
                       'TARAPOTO', 'TUMBES', 'RED PRESTACIONAL ALMENARA', 'RED PRESTACIONAL REBAGLIATI', 'RED PRESTACIONAL SABOGAL'))
@@ -1018,9 +1018,9 @@ FROM         dbo.TMI_CENTROS_Qx_IMenor AS CEN LEFT OUTER JOIN
                                                    'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento', 'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'))
                             GROUP BY Red, Centro, nivel, codcentro, Año) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Porcentaje de Intervenciones Menores') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Qx_IntSusp
 AS
@@ -1045,9 +1045,9 @@ FROM         dbo.TMI_CENTROS_Qx_IntSusp AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Quirúrgico - Intervenc.Quirurgicas Programadas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 
 
 go
@@ -1078,9 +1078,9 @@ FROM         dbo.TMI_CENTROS_Qx_RendSO AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Quirúrgico -  Salas Quirúrgicas Funcionales'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[estandares] est
-                           JOIN [pentahodev_prueba].[dbo].[centros_tmi] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Rendimiento de Sala de Operaciones') AS D ON CEN.codcentro = D.codcentro
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 
 
 
