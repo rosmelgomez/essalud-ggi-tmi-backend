@@ -232,13 +232,12 @@ WHERE     (Variable IN ('Centro Quirúrgico - Cirugías sin clasificación de compl
                       'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento', 'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento', 
                       'Centro Quirúrgico -  Salas Quirúrgicas Funcionales'))
   
-  
                       
 /*2- CREACION DE VISTAS CON DATOS FUENTE*/
 CREATE VIEW CE_Concent
 AS
 SELECT DISTINCT 
-  D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], CASE WHEN A.[Total] = 0 OR
+  D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], CASE WHEN A.[Total] = 0 OR
   B.[Total] = 0 THEN 0 ELSE (A.[Total] * 1.00) / B.[Total] END AS Total, CASE WHEN A.[202601] = 0 OR
   B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END AS [202601], CASE WHEN A.[202602] = 0 OR
   B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END AS [202602], CASE WHEN A.[202603] = 0 OR
@@ -275,10 +274,10 @@ FROM         dbo.TMI_CENTROS_CE_Concent AS CEN LEFT OUTER JOIN
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Consulta Externa - Consultantes al Establecimiento'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
-                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_nivel] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_centro = cen.nivel
+                           WHERE est.indicador = 'Concentracion de Consultas' and est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 /*--ESTE VIEW NO SIRVE
 CREATE VIEW CE_GCHProg
@@ -323,7 +322,7 @@ go*/
 CREATE VIEW CE_GCHProg
 AS
 SELECT DISTINCT 
-                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria  AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
                       CASE WHEN B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, 
                       CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601], 
                       CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], 
@@ -349,16 +348,16 @@ LEFT OUTER JOIN
                     FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                     WHERE      (Variable IN ('Consulta Externa - Horas Médicas Programadas'))) AS B ON CEN.codcentro = B.codcentro 
 LEFT OUTER JOIN
-                  (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                   FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                   JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                  (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+                   FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+                   JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
                    WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 go
 
 CREATE VIEW CE_Recetas
 AS
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept],
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept],
 
     -- TOTAL
     ISNULL((ISNULL(A.[Total],0) * 1.00) / NULLIF(ISNULL(B.[Total],0),0),0) AS Total,
@@ -388,9 +387,9 @@ LEFT JOIN (
     FROM dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
     WHERE Variable = 'Consulta Externa - Consultas') B ON CEN.codcentro = B.codcentro
 LEFT JOIN (
-    SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-    FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-    JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+    SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+    JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
     WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 /*SELECT DISTINCT 
                       D.ID AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.NIVEL, D.TIPO, D.PRC_Estandar AS Estandar, D.[PRC_%Acept] AS [% Acept], CASE WHEN A.[Total] <> 0 OR
@@ -430,7 +429,7 @@ go
 CREATE VIEW CE_RHrMedico
 AS
 SELECT DISTINCT 
-                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
                       CASE WHEN B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) 
                       / B.[202601] ELSE 0 END AS [202601], CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], 
                       CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603], CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) 
@@ -449,15 +448,15 @@ FROM         dbo.TMI_CENTROS_CE_RHrMedico AS CEN LEFT OUTER JOIN
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Consulta Externa - Horas Médicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
-                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_nivel] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_centro = cen.nivel
                            WHERE est.indicador = 'Rendimiento Hora Medico' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Em_PrioI_II
 AS
 SELECT DISTINCT 
-                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
                       CASE WHEN X.[Total] <> 0 THEN ((ISNULL(A.[Total], 0)) * 1.00) / X.[Total] ELSE 0 END AS Total, CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) 
                       / X.[202601] ELSE 0 END AS [202601], CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END AS [202602], 
                       CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END AS [202603], CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) 
@@ -478,15 +477,15 @@ FROM         dbo.TMI_CENTROS_Em_PrioI_II AS CEN LEFT OUTER JOIN
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
-                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
                            WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est.periodo= '202608') AS D ON CEN.codcentro = D.codcentro
 go                            
 CREATE VIEW Em_PrioIV_V
 AS
 SELECT DISTINCT 
-                       D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                       D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
                       CASE WHEN X.[Total] <> 0 THEN ((ISNULL(A.[Total], 0)) * 1.00) / X.[Total] ELSE 0 END AS Total, CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) 
                       / X.[202601] ELSE 0 END AS [202601], CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END AS [202602], 
                       CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END AS [202603], CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) 
@@ -507,16 +506,16 @@ FROM         dbo.TMI_CENTROS_Em_PrioIV_V AS CEN LEFT OUTER JOIN
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
-                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = '% Prioridad IV con respecto al Total de Emergencias' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
-WHERE     (D.nivel_estandar IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I'))
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
+                           WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
+WHERE     (D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I'))
 go
 CREATE VIEW H_Estancias
 AS
 SELECT DISTINCT 
-                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], CASE WHEN A.[Total] <> 0 OR
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], CASE WHEN A.[Total] <> 0 OR
                       B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, CASE WHEN A.[202601] <> 0 OR
                       B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601], CASE WHEN A.[202602] <> 0 OR
                       B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], CASE WHEN A.[202603] <> 0 OR
@@ -539,15 +538,15 @@ FROM         dbo.TMI_CENTROS_H_Estancias AS CEN LEFT OUTER JOIN
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Egresos'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
-                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
-                           WHERE est.indicador = 'Promedio de Estancia' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
+                           WHERE est.indicador = 'Promedio Dia Estancia' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW H_ISust
 AS
 SELECT DISTINCT 
-                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.aceptmenos AS [% Aceptmenos], D.acept AS [% Acept],
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.aceptmenos AS [% Aceptmenos], D.acept AS [% Acept],
                       CASE WHEN x.[Total] <> 0 THEN ((isnull(A.[Total], 0) - isnull(B.[Total], 0)) * 1.00) / x.[Total] ELSE 0 END AS Total, 
                       CASE WHEN x.[202601] <> 0 THEN ((isnull(A.[202601], 0) - isnull(B.[202601], 0)) * 1.00) / x.[202601] ELSE 0 END AS [202601], 
                       CASE WHEN x.[202602] <> 0 THEN ((isnull(A.[202602], 0) - isnull(B.[202602], 0)) * 1.00) / x.[202602] ELSE 0 END AS [202602], 
@@ -574,9 +573,9 @@ FROM         dbo.TMI_CENTROS_H_ISust AS CEN LEFT OUTER JOIN
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Egresos'))) AS x ON CEN.codcentro = x.codcentro LEFT OUTER JOIN
-                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , est.aceptmenos , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
                            WHERE est.indicador = 'Intervalo de Sustitución' AND est.periodo = '202608') AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW H_OCama

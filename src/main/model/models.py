@@ -13,20 +13,68 @@ class cierre (Base):
     fecha_creacion = Column(DateTime())
     estado = Column(String(50))   
 
-class tmi_estandar(Base):
-    __tablename__ = "tmi_estandar"
+class tmi_estandar_tipo(Base):
+    __tablename__ = "tmi_estandar_tipo"
     id = Column(Integer,primary_key=True)
-    orden_indicador = Column(Integer())
-    codigo_unico = Column(String(50))
+    tipo = Column(String(50))
+    indicador = Column(String(50))
+    tipo_centro = Column(String(50))
+    anio = Column(Integer())
+    periodo_01_estandar = Column(Double())
+    periodo_02_estandar = Column(Double())
+    periodo_03_estandar = Column(Double())
+    periodo_04_estandar = Column(Double())
+    periodo_05_estandar = Column(Double())
+    periodo_06_estandar = Column(Double())
+    periodo_07_estandar = Column(Double())
+    periodo_08_estandar = Column(Double())
+    periodo_09_estandar = Column(Double())
+    periodo_10_estandar = Column(Double())
+    periodo_11_estandar = Column(Double())
+    periodo_12_estandar = Column(Double())
+    
+
+
+class tmi_estandar_nivel(Base):
+    __tablename__ = "tmi_estandar_nivel"
+    id = Column(Integer,primary_key=True)
     tipo = Column(String(50))
     indicador = Column(String(50))
     nivel_centro = Column(String(50))
-    tipo_centro = Column(String(50))
-    nivel_estandar_centro = Column(String(50))
-    estandar = Column(Double())
-    acept=Column(Double())
-    aceptmenos= Column(Double())
-    periodo=Column(String(50))
+    anio = Column(Integer())
+    periodo_01_estandar = Column(Double())
+    periodo_02_estandar = Column(Double())
+    periodo_03_estandar = Column(Double())
+    periodo_04_estandar = Column(Double())
+    periodo_05_estandar = Column(Double())
+    periodo_06_estandar = Column(Double())
+    periodo_07_estandar = Column(Double())
+    periodo_08_estandar = Column(Double())
+    periodo_09_estandar = Column(Double())
+    periodo_10_estandar = Column(Double())
+    periodo_11_estandar = Column(Double())
+    periodo_12_estandar = Column(Double())
+
+
+class tmi_estandar_categoria(Base):
+    __tablename__ = "tmi_estandar_categoria"
+    id = Column(Integer,primary_key=True)
+    tipo = Column(String(50))
+    indicador = Column(String(50))
+    categoria_centro = Column(String(50))
+    anio = Column(Integer())
+    periodo_01_estandar = Column(Double())
+    periodo_02_estandar = Column(Double())
+    periodo_03_estandar = Column(Double())
+    periodo_04_estandar = Column(Double())
+    periodo_05_estandar = Column(Double())
+    periodo_06_estandar = Column(Double())
+    periodo_07_estandar = Column(Double())
+    periodo_08_estandar = Column(Double())
+    periodo_09_estandar = Column(Double())
+    periodo_10_estandar = Column(Double())
+    periodo_11_estandar = Column(Double())
+    periodo_12_estandar = Column(Double())
 
 
 class tmi_centro(Base):

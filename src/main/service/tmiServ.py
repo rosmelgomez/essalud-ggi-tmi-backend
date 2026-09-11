@@ -1,12 +1,3 @@
-from src.main.repositories.tmiRep import queryInsertCentrosTMI
-from src.main.repositories.tmiRep import queryInsertEstandaresPeriodo
-from src.main.repositories.tmiRep import queryCEConcent
-from src.main.repositories.tmiRep import queryCentrosTMI
-from src.main.repositories.tmiRep import queryUpdateEstandares
-from src.main.repositories.tmiRep import queryEstandaresByCentro
-from src.main.repositories.tmiRep import queryEstandares
-from src.main.repositories.tmiRep import queryUpdateCentrosTMI
-
 from src.main.dtos.tmiDto import estandarTmiDto
 from src.main.dtos.tmiDto import centroTmiDto
 
@@ -15,6 +6,7 @@ from fastapi import HTTPException
 
 def queryEstandaresServ(db: Session, periodo:str):
     try:
+        from src.main.repositories.tmiRep import queryEstandares
         result = queryEstandares(db, periodo)
         return result
     except Exception as e:
@@ -22,6 +14,7 @@ def queryEstandaresServ(db: Session, periodo:str):
 
 def queryInsertEstandaresPeriodoServ(db: Session, periodo:str,periodoAnterior:str):
     try:
+        from src.main.repositories.tmiRep import queryInsertEstandaresPeriodo
         result = queryInsertEstandaresPeriodo(db, periodo,periodoAnterior)
         return result
     except Exception as e:
@@ -29,6 +22,7 @@ def queryInsertEstandaresPeriodoServ(db: Session, periodo:str,periodoAnterior:st
 
 def queryEstandaresByCentroServ(db: Session, codcentro:str, periodo:str):
     try:
+        from src.main.repositories.tmiRep import queryEstandaresByCentro
         result = queryEstandaresByCentro(db, codcentro, periodo)
         return result
     except Exception as e:
@@ -36,6 +30,7 @@ def queryEstandaresByCentroServ(db: Session, codcentro:str, periodo:str):
 
 def queryInsertCentrosTMIServ(db: Session, periodo:str,periodoAnterior:str):
     try:
+        from src.main.repositories.tmiRep import queryInsertCentrosTMI
         result = queryInsertCentrosTMI(db, periodo,periodoAnterior)
         return result
     except Exception as e:
@@ -43,6 +38,7 @@ def queryInsertCentrosTMIServ(db: Session, periodo:str,periodoAnterior:str):
         
 def queryUpdateEstandaresServ(db: Session, dto:estandarTmiDto):
     try:
+        from src.main.repositories.tmiRep import queryUpdateEstandares
         result = queryUpdateEstandares(db, dto)
         return result
     except Exception as e:
@@ -50,6 +46,7 @@ def queryUpdateEstandaresServ(db: Session, dto:estandarTmiDto):
 
 def queryCentrosTMIServ(db: Session, periodo:str):
     try:
+        from src.main.repositories.tmiRep import queryCentrosTMI
         result = queryCentrosTMI(db, periodo)
         return result
     except Exception as e:
@@ -57,14 +54,22 @@ def queryCentrosTMIServ(db: Session, periodo:str):
 
 def queryUpdateCentrosTMIServ(db: Session, dto:centroTmiDto):
     try:
+        from src.main.repositories.tmiRep import queryUpdateCentrosTMI
         result = queryUpdateCentrosTMI(db, dto)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryCEConcentServ(db: Session):
+def queryDiaEjecucionServ(db: Session, anio:int):
     try:
-        result = queryCEConcent(db)
+        from src.main.repositories.tmiRep import queryDiaEjecucion
+        result = queryDiaEjecucion(db, anio)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
+

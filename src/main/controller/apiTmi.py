@@ -144,18 +144,27 @@ async def queryUpdateCentrosTMI(
             detail="Ocurrió un error al actualizar el centro TMI.",
         )
 
-@router.get("/ce-concent")
-async def queryCEConcent(
+@router.get("/dia-ejecucion/{anio}")
+async def queryDiaEjecucion(
+    anio:int,
     db: Session = Depends(get_db),
-):
+):  
     try:
-        from src.main.service.tmiServ import queryCEConcentServ
-        return queryCEConcentServ(db)
+        from src.main.service.tmiServ import queryDiaEjecucionServ
+        return queryDiaEjecucionServ(db,anio)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Error al consultar concentrado CE: %s", e, exc_info=True)
+        logger.error("Error al consultar dia de ejecucion: %s", e, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ocurrió un error al consultar los datos de concentración.",
+            detail="Ocurrió un error al consultar el dia de ejecucion.",
         )
+
+
+
+
+
+
+
+
