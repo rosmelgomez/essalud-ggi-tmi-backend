@@ -1,5 +1,4 @@
 from src.main.dtos.tmiDto import (
-    estandarTmiDto,
     centroTmiDto,
     tmiEstandarTipoDto,
     tmiEstandarNivelDto,
@@ -11,43 +10,12 @@ from fastapi import HTTPException
 
 from typing import Optional
 
-def calcular_periodo_anterior(periodo: str) -> str:
-    try:
-        if not periodo or len(periodo) != 6:
-            return periodo
-        anio = int(periodo[:4])
-        mes = int(periodo[4:])
-        if mes == 1:
-            anio -= 1
-            mes = 12
-        else:
-            mes -= 1
-        return f"{anio}{mes:02d}"
-    except Exception:
-        return periodo
 
-def queryEstandaresServ(db: Session, periodo:str):
+#tmi_centro
+def queryCentrosTMIServ(db: Session, periodo:str):
     try:
-        from src.main.repositories.tmiRep import queryEstandares
-        result = queryEstandares(db, periodo)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-def queryInsertEstandaresPeriodoServ(db: Session, periodo: str, periodoAnterior: Optional[str] = None):
-    try:
-        from src.main.repositories.tmiRep import queryInsertEstandaresPeriodo
-        if not periodoAnterior:
-            periodoAnterior = calcular_periodo_anterior(periodo)
-        result = queryInsertEstandaresPeriodo(db, periodo, periodoAnterior)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-def queryEstandaresByCentroServ(db: Session, codcentro:str, periodo:str):
-    try:
-        from src.main.repositories.tmiRep import queryEstandaresByCentro
-        result = queryEstandaresByCentro(db, codcentro, periodo)
+        from src.main.repositories.tmiRep import queryCentrosTMI
+        result = queryCentrosTMI(db, periodo)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -61,35 +29,11 @@ def queryInsertCentrosTMIServ(db: Session, periodo: str, periodoAnterior: Option
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-        
-def queryUpdateEstandaresServ(db: Session, dto:estandarTmiDto):
-    try:
-        from src.main.repositories.tmiRep import queryUpdateEstandares
-        result = queryUpdateEstandares(db, dto)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-def queryCentrosTMIServ(db: Session, periodo:str):
-    try:
-        from src.main.repositories.tmiRep import queryCentrosTMI
-        result = queryCentrosTMI(db, periodo)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateCentrosTMIServ(db: Session, dto:centroTmiDto):
     try:
         from src.main.repositories.tmiRep import queryUpdateCentrosTMI
         result = queryUpdateCentrosTMI(db, dto)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-def queryDiaEjecucionServ(db: Session, anio:int):
-    try:
-        from src.main.repositories.tmiRep import queryDiaEjecucion
-        result = queryDiaEjecucion(db, anio)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -166,14 +110,55 @@ def queryUpdateEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryUpdateEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
+
+### consultar estandares tipo por centro
+def queryEstandaresTipoCentroServ(db: Session, codcas:str, periodo: str):
     try:
-        from src.main.repositories.tmiRep import queryUpdateEstandarCategoria
-        return queryUpdateEstandarCategoria(db, dto)
+        from src.main.repositories.tmiRep import queryEstandaresTipoCentro
+        return queryEstandaresTipoCentro(db, codcas, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+### consultar estandares nivel por centro
+def queryEstandaresNivelCentroServ(db: Session, codcas:str, periodo: str):
+    try:
+        from src.main.repositories.tmiRep import queryEstandarNivelCentro
+        return queryEstandarNivelCentro(db, codcas, periodo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+##prueba con Ce_concent
+def queryCeConcentServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryCeConcent
+        return queryCeConcent(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# procesos internos 
+def calcular_periodo_anterior(periodo: str) -> str:
+    try:
+        if not periodo or len(periodo) != 6:
+            return periodo
+        anio = int(periodo[:4])
+        mes = int(periodo[4:])
+        if mes == 1:
+            anio -= 1
+            mes = 12
+        else:
+            mes -= 1
+        return f"{anio}{mes:02d}"
+    except Exception:
+        return periodo
+
+def queryDiaEjecucionServ(db: Session, anio:int):
+    try:
+        from src.main.repositories.tmiRep import queryDiaEjecucion
+        result = queryDiaEjecucion(db, anio)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

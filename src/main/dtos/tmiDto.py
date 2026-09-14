@@ -43,19 +43,7 @@ class tmiEstandarCategoriaDto(BaseModel):
     acept: Optional[float] = None
     aceptmenos: Optional[float] = None
 
-class estandarTmiDto(BaseModel):
-    id: Optional[int] = None
-    orden_indicador: Optional[int] = None
-    codigo_unico: Optional[str] = None
-    tipo: Optional[str] = None
-    indicador: Optional[str] = None
-    nivel_centro: Optional[str] = None
-    tipo_centro: Optional[str] = None
-    nivel_estandar_centro: Optional[str] = None
-    estandar: Optional[float] = None
-    acept: Optional[float] = None
-    aceptmenos: Optional[float] = None
-    periodo: Optional[str] = None
+
 
 class centroTmiDto(BaseModel):
     id: Optional[int] = None
@@ -72,4 +60,4 @@ class centroTmiDto(BaseModel):
     anio: Optional[int] = None
     mes: Optional[int] = None
     periodo: Optional[str] = None
-
+
