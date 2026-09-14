@@ -1,37 +1,29 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
-from src.main.dtos.tmiDto import estandarTmiDto
-from src.main.dtos.tmiDto import centroTmiDto
+from src.main.dtos.tmiDto import (
+    estandarTmiDto,
+    centroTmiDto,
+    tmiEstandarTipoDto,
+    tmiEstandarNivelDto,
+    tmiEstandarCategoriaDto,
+)
 from fastapi import HTTPException
 from sqlalchemy import text
 
-# consultar estandares para el periodo actual
-def queryEstandares(db: Session, periodo:str):
-    try:
-        query = f"""
-        SElECT est.*
-        FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-        WHERE periodo = :periodo
-        """
-        result = db.execute(text(query), {"periodo": periodo})
-        return [dict(row) for row in result.mappings()]
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 ### insertar estandares para el periodo actual de periodo anterior
-def queryInsertEstandaresPeriodo(db: Session, periodo:str,periodoAnterior:str):
+def queryInsertEstandaresPeriodo(db: Session, periodo: str, periodoAnterior: str):
     try:
-        query = f"""
-        INSERT INTO [pentahodev_prueba].[dbo].[tmi_estandar]
+        query = """
+        INSERT INTO [pentahodev].[dbo].[tmi_estandar]
         (orden_indicador, codigo_unico, tipo, indicador, nivel_centro, tipo_centro, nivel_estandar_centro, estandar, acept, aceptmenos, periodo)
         SELECT orden_indicador, codigo_unico, tipo, indicador, nivel_centro, tipo_centro, nivel_estandar_centro, estandar, acept, aceptmenos, :periodo
-        FROM [pentahodev_prueba].[dbo].[tmi_estandar]
+        FROM [pentahodev].[dbo].[tmi_estandar]
         WHERE periodo = :periodoAnterior
         """
         result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
         db.commit()
-        return [dict(row) for row in result.mappings()]
+        return {"message": "Estándares insertados correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -39,9 +31,9 @@ def queryInsertEstandaresPeriodo(db: Session, periodo:str,periodoAnterior:str):
 def queryEstandaresByCentro(db: Session, codcentro:str, periodo:str):
     try:
         query = f"""
-          SElECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar, cen.periodo
-          FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-          JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+          SElECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.periodo
+          FROM [pentahodev].[dbo].[tmi_estandar] est
+          JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
           WHERE cen.codcentro = :codcentro AND est.periodo = :periodo
         """
         result = db.execute(text(query), {"codcentro": codcentro, "periodo": periodo})
@@ -75,31 +67,178 @@ def queryUpdateEstandares(db: Session, dto: estandarTmiDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-### consultar centros_tmi 
-def queryCentrosTMI(db: Session, periodo:str):
+### tmi_estandar_tipo
+def queryEstandarTipo(db: Session, periodo: str):
     try:
-        query = f"""
-        SElECT * FROM [pentahodev_prueba].[dbo].[tmi_centro]
+        query = """
+        SELECT * FROM [pentahodev].[dbo].[tmi_estandar_tipo]
         WHERE periodo = :periodo
         """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
- 
-### insertar centros_tmi para el periodo actual de periodo anterior
-def queryInsertCentrosTMI(db: Session, periodo:str,periodoAnterior:str):
+
+def queryInsertEstandarTipo(db: Session, periodo: str, periodoAnterior: str):
     try:
-        query = f"""
-        INSERT INTO [pentahodev_prueba].[dbo].[tmi_centro]
-        (red, orden, orden_tipo, codcentro, tipo, nivel, nivel_estandar, centro, periodo) 
-        SELECT red, orden, orden_tipo, codcentro, tipo, nivel, nivel_estandar, centro, :periodo
-        FROM [pentahodev_prueba].[dbo].[tmi_centro]
+        query = """
+        INSERT INTO [pentahodev].[dbo].[tmi_estandar_tipo]
+        (tipo, indicador, tipo_centro, anio, mes, periodo, estandar, acept, aceptmenos)
+        SELECT tipo, indicador, tipo_centro, CAST(SUBSTRING(:periodo, 1, 4) AS INT), CAST(SUBSTRING(:periodo, 5, 2) AS INT), :periodo, estandar, acept, aceptmenos
+        FROM [pentahodev].[dbo].[tmi_estandar_tipo]
         WHERE periodo = :periodoAnterior
         """
         result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
         db.commit()
+        return {"message": "Estándares por Tipo insertados correctamente", "rows_inserted": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
+    try:
+        query = """
+        UPDATE [dbo].[tmi_estandar_tipo]
+            SET [tipo] = :tipo
+            ,[indicador] = :indicador
+            ,[tipo_centro] = :tipo_centro
+            ,[anio] = :anio
+            ,[mes] = :mes
+            ,[periodo] = :periodo
+            ,[estandar] = :estandar
+            ,[acept] = :acept
+            ,[aceptmenos] = :aceptmenos
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND tipo_centro = :tipo_centro AND periodo = :periodo)
+        """
+        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        result = db.execute(text(query), params)
+        db.commit()
+        return {"message": "Estándar Tipo actualizado correctamente", "rows_affected": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+### tmi_estandar_nivel
+def queryEstandarNivel(db: Session, periodo: str):
+    try:
+        query = """
+        SELECT * FROM [pentahodev].[dbo].[tmi_estandar_nivel]
+        WHERE periodo = :periodo
+        """
+        result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryInsertEstandarNivel(db: Session, periodo: str, periodoAnterior: str):
+    try:
+        query = """
+        INSERT INTO [pentahodev].[dbo].[tmi_estandar_nivel]
+        (tipo, indicador, nivel_centro, anio, mes, periodo, estandar, acept, aceptmenos)
+        SELECT tipo, indicador, nivel_centro, CAST(SUBSTRING(:periodo, 1, 4) AS INT), CAST(SUBSTRING(:periodo, 5, 2) AS INT), :periodo, estandar, acept, aceptmenos
+        FROM [pentahodev].[dbo].[tmi_estandar_nivel]
+        WHERE periodo = :periodoAnterior
+        """
+        result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
+        db.commit()
+        return {"message": "Estándares por Nivel insertados correctamente", "rows_inserted": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
+    try:
+        query = """
+        UPDATE [dbo].[tmi_estandar_nivel]
+            SET [tipo] = :tipo
+            ,[indicador] = :indicador
+            ,[nivel_centro] = :nivel_centro
+            ,[anio] = :anio
+            ,[mes] = :mes
+            ,[periodo] = :periodo
+            ,[estandar] = :estandar
+            ,[acept] = :acept
+            ,[aceptmenos] = :aceptmenos
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND nivel_centro = :nivel_centro AND periodo = :periodo)
+        """
+        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        result = db.execute(text(query), params)
+        db.commit()
+        return {"message": "Estándar Nivel actualizado correctamente", "rows_affected": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+### tmi_estandar_categoria
+def queryEstandarCategoria(db: Session, periodo: str):
+    try:
+        query = """
+        SELECT * FROM [pentahodev].[dbo].[tmi_estandar_categoria]
+        WHERE periodo = :periodo
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryInsertEstandarCategoria(db: Session, periodo: str, periodoAnterior: str):
+    try:
+        query = """
+        INSERT INTO [pentahodev].[dbo].[tmi_estandar_categoria]
+        (tipo, indicador, categoria_centro, anio, mes, periodo, estandar, acept, aceptmenos)
+        SELECT tipo, indicador, categoria_centro, CAST(SUBSTRING(:periodo, 1, 4) AS INT), CAST(SUBSTRING(:periodo, 5, 2) AS INT), :periodo, estandar, acept, aceptmenos
+        FROM [pentahodev].[dbo].[tmi_estandar_categoria]
+        WHERE periodo = :periodoAnterior
+        """
+        result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
+        db.commit()
+        return {"message": "Estándares por Categoría insertados correctamente", "rows_inserted": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
+    try:
+        query = """
+        UPDATE [dbo].[tmi_estandar_categoria]
+            SET [tipo] = :tipo
+            ,[indicador] = :indicador
+            ,[categoria_centro] = :categoria_centro
+            ,[anio] = :anio
+            ,[mes] = :mes
+            ,[periodo] = :periodo
+            ,[estandar] = :estandar
+            ,[acept] = :acept
+            ,[aceptmenos] = :aceptmenos
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND categoria_centro = :categoria_centro AND periodo = :periodo)
+        """
+        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        result = db.execute(text(query), params)
+        db.commit()
+        return {"message": "Estándar Categoría actualizado correctamente", "rows_affected": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+### consultar centros_tmi 
+def queryCentrosTMI(db: Session, periodo:str):
+    try:
+        query = f"""
+        SElECT * FROM [pentahodev].[dbo].[tmi_centro]
+        WHERE periodo = :periodo
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+### insertar centros_tmi para el periodo actual de periodo anterior
+def queryInsertCentrosTMI(db: Session, periodo:str,periodoAnterior:str):
+    try:
+        query = """
+        INSERT INTO [pentahodev].[dbo].[tmi_centro]
+        (red, codred, orden, orden_tipo, codcentro, categoria, nivel, tipo, centro, estado, anio, mes, periodo) 
+        SELECT red, codred, orden, orden_tipo, codcentro, categoria, nivel, tipo, centro, estado, CAST(SUBSTRING(:periodo, 1, 4) AS INT), CAST(SUBSTRING(:periodo, 5, 2) AS INT), :periodo
+        FROM [pentahodev].[dbo].[tmi_centro]
+        WHERE periodo = :periodoAnterior
+        """
+        result = db.execute(text(query), {"periodoAnterior": periodoAnterior, "periodo": periodo})
+        db.commit()
+        return {"message": "Centros TMI insertados correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -107,24 +246,26 @@ def queryInsertCentrosTMI(db: Session, periodo:str,periodoAnterior:str):
 def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
     try:
         query = f"""
-        UPDATE [dbo].[centros_tmi]
-            SET [id] = :id
-            ,[red] = :red
+        UPDATE [dbo].[tmi_centro]
+            SET [red] = :red
+            ,[codred] = :codred
             ,[orden] = :orden
             ,[orden_tipo] = :orden_tipo
             ,[codcentro] = :codcentro
-            ,[tipo] = :tipo
+            ,[categoria] = :categoria
             ,[nivel] = :nivel
-            ,[nivel_estandar] = :nivel_estandar
+            ,[tipo] = :tipo
             ,[centro] = :centro
             ,[estado] = :estado
+            ,[anio] = :anio
+            ,[mes] = :mes
             ,[periodo] = :periodo
-        WHERE codcentro = :codcentro AND periodo = :periodo
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro AND periodo = :periodo)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
         db.commit()
-        return {"message": "Estandar actualizado correctamente", "rows_affected": result.rowcount}
+        return {"message": "Centro TMI actualizado correctamente", "rows_affected": result.rowcount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,7 +279,7 @@ def queryDiaEjecucion(db:Session, anio:int):
     try:
         query = f"""
         SELECT dia
-        FROM [pentahodev_prueba].[dbo].[cierre]
+        FROM [pentahodev].[dbo].[cierre]
         WHERE año = :anio
         """
         result = db.execute(text(query), {"anio": anio})
@@ -158,6 +299,8 @@ def condicionEjecucion(db:Session):
         return False
     except Exception as e:
         return False
+
+
 
 
 
@@ -456,8 +599,8 @@ FROM         dbo.TMI_CENTROS_CE_Concent AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Consulta Externa - Consultantes al Establecimiento'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 /*--ESTE VIEW NO SIRVE
@@ -530,8 +673,8 @@ LEFT OUTER JOIN
                     WHERE      (Variable IN ('Consulta Externa - Horas Médicas Programadas'))) AS B ON CEN.codcentro = B.codcentro 
 LEFT OUTER JOIN
                   (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                   FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                   JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                   FROM [pentahodev].[dbo].[tmi_estandar] est
+                   JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                    WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 
@@ -569,8 +712,8 @@ LEFT JOIN (
     WHERE Variable = 'Consulta Externa - Consultas') B ON CEN.codcentro = B.codcentro
 LEFT JOIN (
     SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-    FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-    JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+    FROM [pentahodev].[dbo].[tmi_estandar] est
+    JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
     WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
 /*SELECT DISTINCT 
                       D.ID AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.NIVEL, D.TIPO, D.PRC_Estandar AS Estandar, D.[PRC_%Acept] AS [% Acept], CASE WHEN A.[Total] <> 0 OR
@@ -630,8 +773,8 @@ FROM         dbo.TMI_CENTROS_CE_RHrMedico AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Consulta Externa - Horas Médicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Rendimiento Hora Medico' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Em_PrioI_II
@@ -659,8 +802,8 @@ FROM         dbo.TMI_CENTROS_Em_PrioI_II AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
 go                            
 CREATE VIEW Em_PrioIV_V
@@ -688,8 +831,8 @@ FROM         dbo.TMI_CENTROS_Em_PrioIV_V AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = '% Prioridad IV con respecto al Total de Emergencias' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 WHERE     (D.nivel_estandar IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I'))
 go
@@ -720,8 +863,8 @@ FROM         dbo.TMI_CENTROS_H_Estancias AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Egresos'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Promedio de Estancia' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW H_ISust
@@ -755,8 +898,8 @@ FROM         dbo.TMI_CENTROS_H_ISust AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Egresos'))) AS x ON CEN.codcentro = x.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Intervalo de Sustitución' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW H_OCama
@@ -786,8 +929,8 @@ FROM         dbo.TMI_CENTROS_H_OCama AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Días Cama Disponible'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 --hay un problema acà 08.05.2026
@@ -858,8 +1001,8 @@ FROM         dbo.TMI_CENTROS_H_RCama AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion -  Camas Hospitalarias'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Rendimiento Cama'AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro                            
 go
 CREATE VIEW H_TBMHosp
@@ -895,8 +1038,8 @@ FROM         dbo.TMI_CENTROS_H_TBMHosp AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Hospitalizacion - Defunciones antes de 48 horas'))) AS x ON CEN.codcentro = x.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_Concent
@@ -985,8 +1128,8 @@ FROM         dbo.TMI_CENTROS_O_Concent AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Consultantes de Odontología'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_GCHOdon
@@ -1012,8 +1155,8 @@ FROM         dbo.TMI_CENTROS_O_GCHOdon AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Horas Odontológicas Programadas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_HrOdont
@@ -1039,8 +1182,8 @@ FROM         dbo.TMI_CENTROS_O_HrOdont AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Horas Odontológicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW O_NTOdontS
@@ -1072,8 +1215,8 @@ FROM         dbo.TMI_CENTROS_O_NTOdontS AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Odontología - Sesiones Odontológicas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
 go
@@ -1100,8 +1243,8 @@ FROM         dbo.TMI_CENTROS_Qx_GCHProg AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Qx_HTCesareas
@@ -1131,8 +1274,8 @@ FROM         dbo.TMI_CENTROS_Qx_HTCesareas AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Obstétrico - Total de Partos'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Tasa de Cesáreas' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go                            
 CREATE VIEW Qx_IAlta
@@ -1162,8 +1305,8 @@ FROM         dbo.TMI_CENTROS_Qx_IAlta AS CEN LEFT OUTER JOIN
                                                    'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento', 'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'))
                             GROUP BY Red, Centro, nivel, codcentro, Año) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
                       'JUNIN', 'LA LIBERTAD', 'LAMBAYEQUE', 'LORETO', 'MADRE DE DIOS', 'MOQUEGUA', 'MOYOBAMBA', 'PASCO', 'PIURA', 'PUNO', 'REBAGLIATI', 'SABOGAL', 'TACNA', 
@@ -1198,8 +1341,8 @@ FROM         dbo.TMI_CENTROS_Qx_IMenor AS CEN LEFT OUTER JOIN
                                                    'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento', 'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'))
                             GROUP BY Red, Centro, nivel, codcentro, Año) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 go
 CREATE VIEW Qx_IntSusp
@@ -1225,8 +1368,8 @@ FROM         dbo.TMI_CENTROS_Qx_IntSusp AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Quirúrgico - Intervenc.Quirurgicas Programadas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 
 
@@ -1258,8 +1401,8 @@ FROM         dbo.TMI_CENTROS_Qx_RendSO AS CEN LEFT OUTER JOIN
                             FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
                             WHERE      (Variable IN ('Centro Quirúrgico -  Salas Quirúrgicas Funcionales'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador , est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.nivel_estandar
-                           FROM [pentahodev_prueba].[dbo].[tmi_estandar] est
-                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
+                           FROM [pentahodev].[dbo].[tmi_estandar] est
+                           JOIN [pentahodev].[dbo].[tmi_centro] cen ON est.nivel_estandar_centro = cen.nivel_estandar
                            WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
 
         """
