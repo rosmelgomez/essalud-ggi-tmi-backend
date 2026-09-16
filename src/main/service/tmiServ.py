@@ -128,14 +128,6 @@ def queryEstandaresNivelCentroServ(db: Session, codcas:str, periodo: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-##prueba con Ce_concent
-def queryCeConcentServ(db: Session, periodo:str):
-    try:
-        from src.main.repositories.tmiRep import queryCeConcent
-        return queryCeConcent(db, periodo)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 # procesos internos 
 def calcular_periodo_anterior(periodo: str) -> str:
     try:
@@ -160,6 +152,22 @@ def queryDiaEjecucionServ(db: Session, anio:int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+##prueba 
+##Ce_concent
+def queryCeConcentServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryCeConcent
+        return queryCeConcent(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+##CE_GCHProg
+def queryCE_GCHProgServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryCE_GCHProg
+        return queryCE_GCHProg(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

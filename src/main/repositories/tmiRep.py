@@ -25,10 +25,10 @@ def queryCentrosTMI(db: Session, periodo:str):
 def queryInsertCentrosTMI(db: Session, periodo_actual:str, periodo_anterior:str):
     try:
         query = """
-        INSERT INTO [pentahodev].[dbo].[tmi_centro]
+        INSERT INTO [pentahodev_prueba].[dbo].[tmi_centro]
         (red, codred, orden, orden_tipo, codcentro, categoria, nivel, tipo, centro, estado, anio, mes, periodo) 
         SELECT red, codred, orden, orden_tipo, codcentro, categoria, nivel, tipo, centro, estado, CAST(SUBSTRING(:periodo_actual, 1, 4) AS INT), CAST(SUBSTRING(:periodo_actual, 5, 2) AS INT), :periodo_actual
-        FROM [pentahodev].[dbo].[tmi_centro]
+        FROM [pentahodev_prueba].[dbo].[tmi_centro]
         WHERE periodo = :periodo_anterior
         """
         result = db.execute(text(query), {"periodo_actual": periodo_actual, "periodo_anterior": periodo_anterior})
@@ -40,7 +40,7 @@ def queryInsertCentrosTMI(db: Session, periodo_actual:str, periodo_anterior:str)
 def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
     try:
         query = f"""
-        UPDATE [dbo].[tmi_centro]
+        UPDATE [pentahodev_prueba].[dbo].[tmi_centro]
             SET [red] = :red
             ,[codred] = :codred
             ,[orden] = :orden
@@ -121,7 +121,7 @@ def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
 def queryEstandarNivel(db: Session, periodo: str):
     try:
         query = """
-        SELECT * FROM [pentahodev_prueba].[dbo].[tmi_estandar_nivel]
+        SELECT * FROM pentahodev_prueba.dbo.tmi_estandar_nivel
         WHERE periodo = :periodo
         """
         result = db.execute(text(query), {"periodo": periodo})
@@ -132,10 +132,10 @@ def queryEstandarNivel(db: Session, periodo: str):
 def queryInsertEstandarNivel(db: Session, periodo_actual: str, periodo_anterior: str):
     try:
         query = """
-        INSERT INTO [pentahodev].[dbo].[tmi_estandar_nivel]
+        INSERT INTO pentahodev_prueba.dbo.tmi_estandar_nivel
         (tipo, indicador, nivel_centro, anio, mes, periodo, estandar, acept, aceptmenos)
         SELECT tipo, indicador, nivel_centro, CAST(SUBSTRING(:periodo_actual, 1, 4) AS INT), CAST(SUBSTRING(:periodo_actual, 5, 2) AS INT), :periodo_actual, estandar, acept, aceptmenos
-        FROM [pentahodev].[dbo].[tmi_estandar_nivel]
+        FROM pentahodev_prueba.dbo.tmi_estandar_nivel
         WHERE periodo = :periodo_anterior
         """
         result = db.execute(text(query), {"periodo_anterior": periodo_anterior, "periodo_actual": periodo_actual})
@@ -147,7 +147,7 @@ def queryInsertEstandarNivel(db: Session, periodo_actual: str, periodo_anterior:
 def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
     try:
         query = """
-        UPDATE [dbo].[tmi_estandar_nivel]
+        UPDATE pentahodev_prueba.dbo.tmi_estandar_nivel
             SET [tipo] = :tipo
             ,[indicador] = :indicador
             ,[nivel_centro] = :nivel_centro
@@ -170,7 +170,7 @@ def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
 def queryEstandarCategoria(db: Session, periodo: str):
     try:
         query = """
-        SELECT * FROM [pentahodev_prueba].[dbo].[tmi_estandar_categoria]
+        SELECT * FROM pentahodev_prueba.dbo.tmi_estandar_categoria
         WHERE periodo = :periodo
         """
         result = db.execute(text(query), {"periodo": periodo})
@@ -181,10 +181,10 @@ def queryEstandarCategoria(db: Session, periodo: str):
 def queryInsertEstandarCategoria(db: Session, periodo_actual: str, periodo_anterior: str):
     try:
         query = """
-        INSERT INTO [pentahodev].[dbo].[tmi_estandar_categoria]
+        INSERT INTO pentahodev_prueba.dbo.tmi_estandar_categoria
         (tipo, indicador, categoria_centro, anio, mes, periodo, estandar, acept, aceptmenos)
         SELECT tipo, indicador, categoria_centro, CAST(SUBSTRING(:periodo_actual, 1, 4) AS INT), CAST(SUBSTRING(:periodo_actual, 5, 2) AS INT), :periodo_actual, estandar, acept, aceptmenos
-        FROM [pentahodev].[dbo].[tmi_estandar_categoria]
+        FROM pentahodev_prueba.dbo.tmi_estandar_categoria
         WHERE periodo = :periodo_anterior
         """
         result = db.execute(text(query), {"periodo_actual": periodo_actual, "periodo_anterior": periodo_anterior})
@@ -196,7 +196,7 @@ def queryInsertEstandarCategoria(db: Session, periodo_actual: str, periodo_anter
 def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
     try:
         query = """
-        UPDATE [dbo].[tmi_estandar_categoria]
+        UPDATE pentahodev_prueba.dbo.tmi_estandar_categoria
             SET [tipo] = :tipo
             ,[indicador] = :indicador
             ,[categoria_centro] = :categoria_centro
@@ -221,8 +221,8 @@ def queryEstandaresTipoCentro(db: Session, codcentro:str, periodo:str):
     try:
         query = f"""
             SELECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.periodo
-            FROM pentahodev_prueba.[dbo].[tmi_estandar_tipo] est
-            JOIN pentahodev_prueba.[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
+            FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+            JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo
             WHERE cen.codcentro = :codcentro AND est.periodo = :periodo
         """
         result = db.execute(text(query), {"codcentro": codcentro, "periodo": periodo})
@@ -235,8 +235,8 @@ def queryEstandarNivelCentro(db: Session, codcentro:str , periodo:str) :
     try:
         query = f"""
             SELECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.periodo
-            FROM pentahodev_prueba.[dbo].[tmi_estandar_nivel] est
-            JOIN pentahodev_prueba.[dbo].[tmi_centro] cen ON est.nivel_centro = cen.nivel
+            FROM pentahodev_prueba.dbo.tmi_estandar_nivel est
+            JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel
             WHERE cen.codcentro = :codcentro AND est.periodo = :periodo
         """
         result = db.execute(text(query), {"codcentro": codcentro, "periodo": periodo})
@@ -251,7 +251,7 @@ def queryDiaEjecucion(db:Session, anio:int):
     try:
         query = f"""
         SELECT dia
-        FROM pentahodev.dbo.cierre
+        FROM pentahodev_prueba.dbo.cierre
         WHERE año = :anio
         """
         result = db.execute(text(query), {"anio": anio})
@@ -285,61 +285,6 @@ def condicionEjecucion(db:Session):
         return False
     except Exception as e:
         return False
-
-##prueba con Ce_concent
-def queryCeConcent(db: Session, periodo:str):
-    try:
-        query = f"""    
-        SELECT DISTINCT 
-            D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], CASE WHEN A.[Total] = 0 OR
-            B.[Total] = 0 THEN 0 ELSE (A.[Total] * 1.00) / B.[Total] END AS Total, CASE WHEN A.[202601] = 0 OR
-            B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END AS [202601], CASE WHEN A.[202602] = 0 OR
-            B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END AS [202602], CASE WHEN A.[202603] = 0 OR
-            B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END AS [202603], CASE WHEN A.[202604] = 0 OR
-            B.[202604] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) END AS [202604], 
-            CASE WHEN A.[202605] = 0 OR
-            B.[202605] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605])
-            END AS [202605], CASE WHEN A.[202606] = 0 OR
-            B.[202606] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) 
-            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) END AS [202606], CASE WHEN A.[202607] = 0 OR
-            B.[202607] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) 
-            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) END AS [202607], CASE WHEN A.[202608] = 0 OR
-            B.[202608] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) 
-            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) END AS [202608], CASE WHEN A.[202609] = 0 OR
-            B.[202609] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) 
-            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) END AS [202609], 
-            CASE WHEN A.[202610] = 0 OR
-            B.[202610] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) 
-            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) END AS [202610], 
-            CASE WHEN A.[202611] = 0 OR
-            B.[202611] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611])
-            * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) 
-            END AS [202611], CASE WHEN A.[202612] = 0 OR
-            B.[202612] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]
-            + A.[202612]) * 1.00) 
-            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) 
-            END AS [202612]
-        FROM    pentahodev.dbo.TMI_CENTROS_CE_Concent AS CEN LEFT OUTER JOIN
-                (SELECT  Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
-                        [202609], [202610], [202611], [202612], Variable
-                FROM    pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-                WHERE   (Variable IN ('Consulta Externa - Consultas'))) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
-                (SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
-                        [202609], [202610], [202611], [202612], Variable
-                FROM    pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-                WHERE   (Variable IN ('Consulta Externa - Consultantes al Establecimiento'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
-                (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
-                FROM    [pentahodev_prueba].[dbo].[tmi_estandar_nivel] est
-                JOIN    [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_centro = cen.nivel
-                WHERE   est.indicador = 'Concentracion de Consultas' and est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
-        """
-        result = db.execute(text(query), {"periodo": periodo})
-        return [dict(row) for row in result.mappings()]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-
 
 
 ### VISTAS TMI 
@@ -401,7 +346,8 @@ def queryDropVIstas(db: Session):
 ### 2. crear vistas centros_variables
 def queryCreacionCentrosVariables(db: Session):
     try:
-        query = f"""CREATE VIEW TMI_CENTROS_CE_Concent
+        query = f"""
+CREATE VIEW TMI_CENTROS_CE_Concent
 AS
 SELECT DISTINCT Red, codcentro, Centro
 FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
@@ -1448,6 +1394,259 @@ FROM         pentahodev.dbo.TMI_CENTROS_Qx_RendSO AS CEN LEFT OUTER JOIN
         return result.fetchall()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
+### consulta de vistas
+##Ce_concent
+def queryCeConcent(db: Session, periodo:str):
+    try:
+        query = f"""    
+        SELECT DISTINCT 
+            D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], CASE WHEN A.[Total] = 0 OR
+            B.[Total] = 0 THEN 0 ELSE (A.[Total] * 1.00) / B.[Total] END AS Total, CASE WHEN A.[202601] = 0 OR
+            B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END AS [202601], CASE WHEN A.[202602] = 0 OR
+            B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END AS [202602], CASE WHEN A.[202603] = 0 OR
+            B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END AS [202603], CASE WHEN A.[202604] = 0 OR
+            B.[202604] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) END AS [202604], 
+            CASE WHEN A.[202605] = 0 OR
+            B.[202605] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605])
+            END AS [202605], CASE WHEN A.[202606] = 0 OR
+            B.[202606] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) 
+            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) END AS [202606], CASE WHEN A.[202607] = 0 OR
+            B.[202607] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) 
+            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) END AS [202607], CASE WHEN A.[202608] = 0 OR
+            B.[202608] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) 
+            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) END AS [202608], CASE WHEN A.[202609] = 0 OR
+            B.[202609] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) 
+            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) END AS [202609], 
+            CASE WHEN A.[202610] = 0 OR
+            B.[202610] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) 
+            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) END AS [202610], 
+            CASE WHEN A.[202611] = 0 OR
+            B.[202611] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611])
+            * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) 
+            END AS [202611], CASE WHEN A.[202612] = 0 OR
+            B.[202612] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]
+            + A.[202612]) * 1.00) 
+            / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) 
+            END AS [202612]
+        FROM    pentahodev.dbo.TMI_CENTROS_CE_Concent AS CEN LEFT OUTER JOIN
+                (SELECT  Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                        [202609], [202610], [202611], [202612], Variable
+                FROM    pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+                WHERE   (Variable IN ('Consulta Externa - Consultas'))) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
+                (SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                        [202609], [202610], [202611], [202612], Variable
+                FROM    pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+                WHERE   (Variable IN ('Consulta Externa - Consultantes al Establecimiento'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
+                (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                FROM    [pentahodev_prueba].[dbo].[tmi_estandar_nivel] est
+                JOIN    [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.nivel_centro = cen.nivel
+                WHERE   est.indicador = 'Concentracion de Consultas' and est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+##CE_GCHProg
+def queryGCHProg(db: Session, periodo:str):
+    try:
+        query = f"""    
+SELECT DISTINCT 
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria  AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                      CASE WHEN B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, 
+                      CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601], 
+                      CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], 
+                      CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603], 
+                      CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END AS [202604], 
+                      CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END AS [202605], 
+                      CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END AS [202606], 
+                      CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END AS [202607], 
+                      CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END AS [202608], 
+                      CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END AS [202609], 
+                      CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END AS [202610], 
+                      CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END AS [202611], 
+                      CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END AS [202612]
+FROM         pentahodev.dbo.TMI_CENTROS_CE_GCHProg AS CEN 
+LEFT OUTER JOIN
+				  (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+										   [202609], [202610], [202611], [202612], Variable
+					FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+					WHERE      (Variable IN ('Consulta Externa - Horas Médicas Efectivas'))) AS A ON CEN.codcentro = A.codcentro 
+LEFT OUTER JOIN
+                  (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                                           [202609], [202610], [202611], [202612], Variable
+                    FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+                    WHERE      (Variable IN ('Consulta Externa - Horas Médicas Programadas'))) AS B ON CEN.codcentro = B.codcentro 
+LEFT OUTER JOIN
+                  (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+                   FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+                   JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo
+                   WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## CE_Recetas
+def queryCERecetas(db: Session, periodo:str):
+    try:
+        query = f"""    
+        
+SELECT DISTINCT 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept],
+
+    -- TOTAL
+    ISNULL((ISNULL(A.[Total],0) * 1.00) / NULLIF(ISNULL(B.[Total],0),0),0) AS Total,
+
+    -- MESES INDIVIDUALES
+    ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) AS [202601],
+    ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) AS [202602],
+    ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) AS [202603],
+    ISNULL((ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0),0) AS [202604],
+    ISNULL((ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0),0) AS [202605],
+    ISNULL((ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0),0) AS [202606],
+    ISNULL((ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0),0) AS [202607],
+    ISNULL((ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0),0) AS [202608],
+    ISNULL((ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0),0) AS [202609],
+    ISNULL((ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0),0) AS [202610],
+    ISNULL((ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0),0) AS [202611],
+    ISNULL((ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0),0) AS [202612]
+
+FROM pentahodev.dbo.TMI_CENTROS_CE_Recetas CEN
+
+LEFT JOIN (
+    SELECT *
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE Variable = 'Actividades Intermedias - Recetas Despachadas de C. E') A ON CEN.codcentro = A.codcentro
+LEFT JOIN (
+    SELECT *
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE Variable = 'Consulta Externa - Consultas') B ON CEN.codcentro = B.codcentro
+LEFT JOIN (
+    SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo
+    WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## CE_RHrMedico
+def queryCERhrMedico(db: Session, periodo:str):
+    try:
+        query = f"""    
+SELECT DISTINCT 
+                D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                CASE WHEN B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) 
+                / B.[202601] ELSE 0 END AS [202601], CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], 
+                CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603], CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) 
+                / B.[202604] ELSE 0 END AS [202604], CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END AS [202605], 
+                CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END AS [202606], CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) 
+                / B.[202607] ELSE 0 END AS [202607], CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END AS [202608], 
+                CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END AS [202609], CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) 
+                / B.[202610] ELSE 0 END AS [202610], CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END AS [202611], 
+                CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END AS [202612]
+FROM         pentahodev.dbo.TMI_CENTROS_CE_RHrMedico AS CEN LEFT OUTER JOIN
+                          (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                                                   [202609], [202610], [202611], [202612], Variable
+                            FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+                            WHERE      (Variable IN ('Consulta Externa - Consultas'))) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
+                          (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                                                   [202609], [202610], [202611], [202612], Variable
+                            FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+                            WHERE      (Variable IN ('Consulta Externa - Horas Médicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+                           FROM pentahodev_prueba.dbo.tmi_estandar_nivel est
+                           JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel
+                           WHERE est.indicador = 'Rendimiento Hora Medico' AND est.periodo = :periodo ) AS D ON CEN.codcentro = D.codcentro
+            """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Em_PrioI_II
+def queryEmPrioI_II(db: Session, periodo:str):
+    try:
+        query = f"""    
+SELECT DISTINCT 
+                      D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                      CASE WHEN X.[Total] <> 0 THEN ((ISNULL(A.[Total], 0)) * 1.00) / X.[Total] ELSE 0 END AS Total, CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) 
+                      / X.[202601] ELSE 0 END AS [202601], CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END AS [202602], 
+                      CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END AS [202603], CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) 
+                      * 1.00) / X.[202604] ELSE 0 END AS [202604], CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END AS [202605], 
+                      CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END AS [202606], CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) 
+                      * 1.00) / X.[202607] ELSE 0 END AS [202607], CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END AS [202608], 
+                      CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END AS [202609], CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) 
+                      * 1.00) / X.[202610] ELSE 0 END AS [202610], CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END AS [202611], 
+                      CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END AS [202612]
+FROM         pentahodev.dbo.TMI_CENTROS_Em_PrioI_II AS CEN LEFT OUTER JOIN
+                          (SELECT     Red, Centro, nivel, codcentro, Año, SUM(Total) AS Total, SUM([202601]) AS [202601], SUM([202602]) AS [202602], SUM([202603]) AS [202603], 
+                                                   SUM([202604]) AS [202604], SUM([202605]) AS [202605], SUM([202606]) AS [202606], SUM([202607]) AS [202607], SUM([202608]) AS [202608], 
+                                                   SUM([202609]) AS [202609], SUM([202610]) AS [202610], SUM([202611]) AS [202611], SUM([202612]) AS [202612]
+                            FROM        pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+                            WHERE      (Variable IN ('Emergencia - Prioridad I', 'Emergencia - Prioridad II'))
+                            GROUP BY Red, Centro, nivel, codcentro, Año) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
+                          (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                                                   [202609], [202610], [202611], [202612], Variable
+                            FROM        pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+                            WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+                           JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo
+                           WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est.periodo= :periodo) AS D ON CEN.codcentro = D.codcentro
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Em_PrioIV_V
+def queryEmPrioIV_V(db: Session, periodo:str):
+    try:
+        query = f"""  
+SELECT DISTINCT 
+                       D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+                      CASE WHEN X.[Total] <> 0 THEN ((ISNULL(A.[Total], 0)) * 1.00) / X.[Total] ELSE 0 END AS Total, CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) 
+                      / X.[202601] ELSE 0 END AS [202601], CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END AS [202602], 
+                      CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END AS [202603], CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) 
+                      * 1.00) / X.[202604] ELSE 0 END AS [202604], CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END AS [202605], 
+                      CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END AS [202606], CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) 
+                      * 1.00) / X.[202607] ELSE 0 END AS [202607], CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END AS [202608], 
+                      CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END AS [202609], CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) 
+                      * 1.00) / X.[202610] ELSE 0 END AS [202610], CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END AS [202611], 
+                      CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END AS [202612]
+FROM         pentahodev.dbo.TMI_CENTROS_Em_PrioIV_V AS CEN LEFT OUTER JOIN
+                          (SELECT     Red, Centro, nivel, codcentro, Año, SUM(Total) AS Total, SUM([202601]) AS [202601], SUM([202602]) AS [202602], SUM([202603]) AS [202603], 
+                                                   SUM([202604]) AS [202604], SUM([202605]) AS [202605], SUM([202606]) AS [202606], SUM([202607]) AS [202607], SUM([202608]) AS [202608], 
+                                                   SUM([202609]) AS [202609], SUM([202610]) AS [202610], SUM([202611]) AS [202611], SUM([202612]) AS [202612]
+                            FROM       pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+                            WHERE      (Variable IN ('Emergencia - Prioridad IV', 'Emergencia - Prioridad V'))
+                            GROUP BY Red, Centro, nivel, codcentro, Año) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
+                          (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                                                   [202609], [202610], [202611], [202612], Variable
+                            FROM        pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+                            WHERE      (Variable IN ('Emergencia - Total de Atenciones'))) AS X ON CEN.codcentro = X.codcentro LEFT OUTER JOIN
+                          (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.categoria
+                           FROM [pentahodev_prueba].[dbo].[tmi_estandar_tipo] est
+                           JOIN [pentahodev_prueba].[dbo].[tmi_centro] cen ON est.tipo_centro = cen.tipo
+                           WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est.periodo = :periodo) AS D ON CEN.codcentro = D.codcentro
+WHERE     (D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I'))
+        """
+        result = db.execute(text(query), {"periodo": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 

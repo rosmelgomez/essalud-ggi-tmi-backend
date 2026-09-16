@@ -209,7 +209,8 @@ async def queryEstandarCentro(
         )
 
 
-## prueba con Ce_concent
+## prueba con 
+##Ce_concent
 @router.get("/lista-ce-concent/{periodo}")
 async def queryCeConcent(
     periodo: str,
@@ -226,5 +227,26 @@ async def queryCeConcent(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al consultar la lista de ce concent.",
         )
+
+##CE_GCHProg
+@router.get("/lista-ce-gchprog/{periodo}")
+async def queryCE_GCHProg(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryCE_GCHProgServ
+        return queryCE_GCHProgServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar ce gchprog: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de ce gchprog.",
+        )
+
+
+
 
 
