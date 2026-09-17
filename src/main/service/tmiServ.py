@@ -152,22 +152,179 @@ def queryDiaEjecucionServ(db: Session, anio:int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-##prueba 
-##Ce_concent
-def queryCeConcentServ(db: Session, periodo:str):
+##consultas
+##CE_Concent
+def queryCE_ConcentServ(db: Session, periodo:str):
     try:
-        from src.main.repositories.tmiRep import queryCeConcent
-        return queryCeConcent(db, periodo)
+        from src.main.repositories.tmiRep import queryCE_ConcentRep
+        return queryCE_ConcentRep(db, periodo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 ##CE_GCHProg
 def queryCE_GCHProgServ(db: Session, periodo:str):
     try:
-        from src.main.repositories.tmiRep import queryCE_GCHProg
-        return queryCE_GCHProg(db, periodo)
+        from src.main.repositories.tmiRep import queryCE_GCHProgRep
+        return queryCE_GCHProgRep(db, periodo)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+##CE_Recetas
+def queryCE_RecetasServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryCE_RecetasRep
+        return queryCE_RecetasRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## CE_RHrMedico
+def queryCE_RHrMedicoServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryCE_RHrMedicoRep
+        return queryCE_RHrMedicoRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Em_PrioI_II
+def queryEm_PrioI_IIServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryEm_PrioI_IIRep
+        return queryEm_PrioI_IIRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Em_PrioIV_V
+def queryEm_PrioIV_VServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryEm_PrioIV_VRep
+        return queryEm_PrioIV_VRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## H_Estancias
+def queryH_EstanciasServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryH_EstanciasRep
+        return queryH_EstanciasRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## H_ISust
+def queryH_ISustServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryH_ISustRep
+        return queryH_ISustRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## H_OCamas
+def queryH_OCamasServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryH_OCamasRep
+        return queryH_OCamasRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## H_RCama
+def queryH_RCamaServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryH_RCamaRep
+        return queryH_RCamaRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## H_TBMHosp
+def queryH_TBMHospServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryH_TBMHospRep
+        return queryH_TBMHospRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## O_Concent
+def queryO_ConcentServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryO_ConcentRep
+        return queryO_ConcentRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## O_GCHOdon
+def queryO_GCHOdonServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryO_GCHOdonRep
+        return queryO_GCHOdonRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## O_HrOdont
+def queryO_HrOdontServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryO_HrOdontRep
+        return queryO_HrOdontRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## O_NTOdontS
+def queryO_NTOdontSServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryO_NTOdontSRep
+        return queryO_NTOdontSRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Qx_GCHProg
+def queryQx_GCHProgServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryQx_GCHProgRep
+        return queryQx_GCHProgRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Qx_HTCesareas
+def queryQx_HTCesareasServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryQx_HTCesareasRep
+        return queryQx_HTCesareasRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Qx_IAlta
+def queryQx_IAltaServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryQx_IAltaRep
+        return queryQx_IAltaRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Qx_IMenor
+def queryQx_IMenorServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryQx_IMenorRep
+        return queryQx_IMenorRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Qx_IntSusp
+def queryQx_IntSuspServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryQx_IntSuspRep
+        return queryQx_IntSuspRep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+## Qx_RendSO
+def queryQx_RendSOServ(db: Session, periodo:str):
+    try:
+        from src.main.repositories.tmiRep import queryQx_RendSORep
+        return queryQx_RendSORep(db, periodo)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) 
+
+
+
+
+
 
 
 

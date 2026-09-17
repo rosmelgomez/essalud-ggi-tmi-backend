@@ -191,25 +191,25 @@ async def queryEstandarCentro(
 
 ### consultar estandares nivel por centro
 @router.get("/lista-estandar-nivel-centro/{codcas}/{periodo}")
-async def queryEstandarCentro(
+async def queryEstandarNivelCentro(
     codcas:str,
     periodo: str,
     db: Session = Depends(get_db),
 ):
     try:
-        from src.main.service.tmiServ import queryEstandaresTipoCentroServ
-        return queryEstandaresTipoCentroServ(db, codcas, periodo)
+        from src.main.service.tmiServ import queryEstandaresNivelCentroServ
+        return queryEstandaresNivelCentroServ(db, codcas, periodo)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Error al consultar estandar centro: %s", e, exc_info=True)
+        logger.error("Error al consultar estandar nivel centro: %s", e, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ocurrió un error al consultar la lista de estándares por centro.",
+            detail="Ocurrió un error al consultar la lista de estándares por nivel por centro.",
         )
 
 
-## prueba con 
+## consultas
 ##Ce_concent
 @router.get("/lista-ce-concent/{periodo}")
 async def queryCeConcent(
@@ -217,8 +217,8 @@ async def queryCeConcent(
     db: Session = Depends(get_db),
 ):
     try:
-        from src.main.service.tmiServ import queryCeConcentServ
-        return queryCeConcentServ(db, periodo)
+        from src.main.service.tmiServ import queryCE_ConcentServ
+        return queryCE_ConcentServ(db, periodo)
     except HTTPException:
         raise
     except Exception as e:
@@ -230,7 +230,7 @@ async def queryCeConcent(
 
 ##CE_GCHProg
 @router.get("/lista-ce-gchprog/{periodo}")
-async def queryCE_GCHProg(
+async def queryCeGCHProg(
     periodo: str,
     db: Session = Depends(get_db),
 ):
@@ -246,7 +246,345 @@ async def queryCE_GCHProg(
             detail="Ocurrió un error al consultar la lista de ce gchprog.",
         )
 
+##CE_Recetas
+@router.get("/lista-ce-recetas/{periodo}")
+async def queryCERecetas(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryCE_RecetasServ
+        return queryCE_RecetasServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar ce recetas: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de ce recetas.",
+        )
 
+## CE_RHrMedico
+@router.get("/lista-ce-rhrmedico/{periodo}")
+async def queryRHrMedico(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryCE_RHrMedicoServ
+        return queryCE_RHrMedicoServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar ce rhrmedico: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de ce rhrmedico.",
+        )
 
+## Em_PrioI_II
+@router.get("/lista-em-prio-i-ii/{periodo}")
+async def queryEmPrioI_II(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryEm_PrioI_IIServ
+        return queryEm_PrioI_IIServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar em prio i ii: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de em prio i ii.",
+        )
 
+## Em_PrioIV_V
+@router.get("/lista-em-prio-iv-v/{periodo}")
+async def queryEmPrioIV_V(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryEm_PrioIV_VServ
+        return queryEm_PrioIV_VServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar em prio iv v: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de em prio iv v.",
+        )
+
+## H_Estancias
+@router.get("/lista-h-estancias/{periodo}")
+async def queryHEstancias(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryH_EstanciasServ
+        return queryH_EstanciasServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar h estancias: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de h estancias.",
+        )
+
+## H_ISust
+@router.get("/lista-h-isust/{periodo}")
+async def queryHISust(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryH_ISustServ
+        return queryH_ISustServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar h isust: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de h isust.",
+        )
+
+## H_OCamas
+@router.get("/lista-h-ocamas/{periodo}")
+async def queryHOCamas(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryH_OCamasServ
+        return queryH_OCamasServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar h ocamass: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de h ocamass.",
+        )
+
+## H_RCama
+@router.get("/lista-h-rcama/{periodo}")
+async def queryHRcama(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryH_RCamaServ
+        return queryH_RCamaServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar h rcama: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de h rcama.",
+        )
+
+## H_TBMHosp
+@router.get("/lista-h-tbmhosp/{periodo}")
+async def queryHTBMHosp(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryH_TBMHospServ
+        return queryH_TBMHospServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar h tbmhosp: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de h tbmhosp.",
+        )   
+
+## O_Concent
+@router.get("/lista-o-concent/{periodo}")
+async def queryOConcent(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryO_ConcentServ
+        return queryO_ConcentServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar o concent: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de o concent.",
+        )
+
+## O_GCHOdon
+@router.get("/lista-o-gchodon/{periodo}")
+async def queryOGCHodon(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryO_GCHOdonServ
+        return queryO_GCHOdonServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar o gchodon: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de o gchodon.",
+        )   
+
+## O_HrOdont
+@router.get("/lista-o-hrodont/{periodo}")
+async def queryOHrOdont(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryO_HrOdontServ
+        return queryO_HrOdontServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar o hrodont: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de o hrodont.",
+        )
+
+## O_NTOdontS
+@router.get("/lista-o-ntodonts/{periodo}")
+async def queryONTodontS(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryO_NTOdontSServ
+        return queryO_NTOdontSServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar o ntodonts: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de o ntodonts.",
+        )
+
+## Qx_GCHProg
+@router.get("/lista-qx-gchprog/{periodo}")
+async def queryQxGCHProg(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryQx_GCHProgServ
+        return queryQx_GCHProgServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar qx gchprog: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de qx gchprog.",
+        )
+
+## Qx_HTCesareas
+@router.get("/lista-qx-htcesareas/{periodo}")
+async def queryQxHTCesareas(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryQx_HTCesareasServ
+        return queryQx_HTCesareasServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar qx htcesareas: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de qx htcesareas.",
+        )
+
+## Qx_IAlta
+@router.get("/lista-qx-ialta/{periodo}")
+async def queryQxIAlta(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryQx_IAltaServ
+        return queryQx_IAltaServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar qx ialta: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de qx ialta.",
+        )
+
+## Qx_IMenor
+@router.get("/lista-qx-imenor/{periodo}")
+async def queryQxIMenor(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryQx_IMenorServ
+        return queryQx_IMenorServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar qx imenor: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de qx imenor.",
+        )
+
+## Qx_IntSusp
+@router.get("/lista-qx-intsusp/{periodo}")
+async def queryQxIntSusp(
+    periodo: str,
+    db: Session = Depends(get_db),  
+):
+    try:
+        from src.main.service.tmiServ import queryQx_IntSuspServ
+        return queryQx_IntSuspServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar qx intsusp: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de qx intsusp.",
+        )
+
+## Qx_RendSO
+@router.get("/lista-qx-rendso/{periodo}")
+async def queryQxRendSO(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryQx_RendSOServ
+        return queryQx_RendSOServ(db, periodo)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar qx rendso: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de qx rendso.",
+        )
 
