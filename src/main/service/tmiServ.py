@@ -20,12 +20,12 @@ def queryCentrosTMIServ(db: Session, periodo:str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertCentrosTMIServ(db: Session, periodo: str, periodoAnterior: Optional[str] = None):
+def queryInsertCentrosTMIServ(db: Session, periodo_actual: str, periodo_anterior:str):
     try:
         from src.main.repositories.tmiRep import queryInsertCentrosTMI
-        if not periodoAnterior:
-            periodoAnterior = calcular_periodo_anterior(periodo)
-        result = queryInsertCentrosTMI(db, periodo, periodoAnterior)
+        ##if not periodo_anterior:
+            ##periodo_anterior = calcular_periodo_anterior(periodo_actual)
+        result = queryInsertCentrosTMI(db, periodo_actual, periodo_anterior)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -46,12 +46,12 @@ def queryEstandarTipoServ(db: Session, periodo: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarTipoServ(db: Session, periodo: str, periodoAnterior: Optional[str] = None):
+def queryInsertEstandarTipoServ(db: Session, periodo_actual: str, periodo_anterior: Optional[str] = None):
     try:
         from src.main.repositories.tmiRep import queryInsertEstandarTipo
-        if not periodoAnterior:
-            periodoAnterior = calcular_periodo_anterior(periodo)
-        return queryInsertEstandarTipo(db, periodo, periodoAnterior)
+        ##if not periodoAnterior:
+        ##    periodoAnterior = calcular_periodo_anterior(periodo_actual)
+        return queryInsertEstandarTipo(db, periodo_actual, periodo_anterior)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -70,12 +70,12 @@ def queryEstandarNivelServ(db: Session, periodo: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarNivelServ(db: Session, periodo: str, periodoAnterior: Optional[str] = None):
+def queryInsertEstandarNivelServ(db: Session, periodo_actual: str, periodo_anterior: Optional[str] = None):
     try:
         from src.main.repositories.tmiRep import queryInsertEstandarNivel
-        if not periodoAnterior:
-            periodoAnterior = calcular_periodo_anterior(periodo)
-        return queryInsertEstandarNivel(db, periodo, periodoAnterior)
+        ##if not periodoAnterior:
+        ##    periodoAnterior = calcular_periodo_anterior(periodo)
+        return queryInsertEstandarNivel(db, periodo_actual, periodo_anterior)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

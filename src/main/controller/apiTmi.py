@@ -25,6 +25,9 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)],
 )
 
+## insertar en bloque por periodo anterior periodoactual
+
+
 # Endpoints tmi_centro
 @router.get("/lista-centros/{periodo}")
 async def queryCentrosTMI(
@@ -62,6 +65,25 @@ async def queryUpdateCentrosTMI(
             detail="Ocurrió un error al actualizar el centro TMI.",
         )
 
+@router.get("/queryInsertCentrosTMIServ/{periodoActual}/{periodoAnterior}")
+async def queryInsertCentrosTMI(
+    periodoActual:str,
+    periodoAnterior:str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryInsertCentrosTMIServ
+        return queryInsertCentrosTMIServ(db,periodoActual,periodoAnterior)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar centros TMI: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar los centros TMI.",
+        )
+
+
 # Endpoints tmi_estandar_tipo
 @router.get("/lista-estandar-tipo/{periodo}")
 async def queryEstandarTipo(
@@ -98,6 +120,26 @@ async def queryUpdateEstandarTipo(
             detail="Ocurrió un error al actualizar el estándar tipo.",
         )
 
+@router.get("/queryInsertEstandarTipoServ/{periodoActual}/{periodoAnterior}")
+async def queryInsertEstandarTipo(
+    periodoActual:str,
+    periodoAnterior:str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryInsertEstandarTipoServ
+        return queryInsertEstandarTipoServ(db,periodoActual,periodoAnterior)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar estandar tipo: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de estándares por tipo.",
+        )
+
+
+
 # Endpoints tmi_estandar_nivel
 @router.get("/lista-estandar-nivel/{periodo}")
 async def queryEstandarNivel(
@@ -133,6 +175,26 @@ async def queryUpdateEstandarNivel(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al actualizar el estándar nivel.",
         )
+
+@router.get("/queryInsertEstandarNivelServ/{periodoActual}/{periodoAnterior}")
+async def queryInsertEstandarNivel(
+    periodoActual:str,
+    periodoAnterior:str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryInsertEstandarNivelServ
+        return queryInsertEstandarNivelServ(db,periodoActual,periodoAnterior)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar estandar nivel: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de estándares por nivel.",
+        )
+
+
 
 # Endpoints tmi_estandar_categoria
 @router.get("/lista-estandar-categoria/{periodo}")
