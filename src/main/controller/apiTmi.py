@@ -272,7 +272,7 @@ async def queryEstandarNivelCentro(
 
 
 ## consultas
-##Ce_concent
+## CE_Concent
 @router.get("/lista-ce-concent/{periodo}")
 async def queryCeConcent(
     periodo: str,
@@ -290,7 +290,7 @@ async def queryCeConcent(
             detail="Ocurrió un error al consultar la lista de ce concent.",
         )
 
-##CE_GCHProg
+## CE_GCHProg
 @router.get("/lista-ce-gchprog/{periodo}")
 async def queryCeGCHProg(
     periodo: str,
@@ -308,7 +308,7 @@ async def queryCeGCHProg(
             detail="Ocurrió un error al consultar la lista de ce gchprog.",
         )
 
-##CE_Recetas
+## CE_Recetas
 @router.get("/lista-ce-recetas/{periodo}")
 async def queryCERecetas(
     periodo: str,
