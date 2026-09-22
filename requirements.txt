@@ -7,3 +7,4 @@ mssql-python
 pyodbc
 pandas
 pyjwt
+openpyxl

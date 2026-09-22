@@ -4,6 +4,7 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -648,5 +649,32 @@ async def queryQxRendSO(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al consultar la lista de qx rendso.",
+        )
+
+
+## Generar Excel TMI (todas las vistas CE_Concent hacia abajo, por periodo)
+@router.get("/generar-excel/{periodo}")
+async def generarExcelTMI(
+    periodo: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.excelServ import generar_excel_tmi
+        buffer = generar_excel_tmi(db, periodo)
+        filename = f"TMI_Prelim_{periodo}.xlsx"
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error("Error al generar excel TMI: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al generar el Excel del TMI.",
         )
 
