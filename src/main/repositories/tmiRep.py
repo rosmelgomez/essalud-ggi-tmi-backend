@@ -255,47 +255,6 @@ def queryEstandarNivelCentro(db: Session, codcentro:str , periodo:str) :
         raise HTTPException(status_code=500, detail=str(e))
 
 
-## obtener dia de cierre
-def queryDiaEjecucion(db:Session, anio:int):
-    try:
-        query = f"""
-        SELECT dia
-        FROM pentahodev_prueba.dbo.cierre
-        WHERE año = :anio
-        """
-        result = db.execute(text(query), {"anio": anio})
-        return [dict(row) for row in result.mappings()]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# condicion de ejecucion
-def condicionEjecucion(db:Session):
-    try:
-        diaActual = datetime.now().day
-        if diaActual == queryDiaEjecucion(db, datetime.now().year):
-            now = datetime.now()
-            total_months = now.year * 12 + now.month - 1
-
-            act_months = total_months - 1
-            year_act, month_act = divmod(act_months, 12)
-            month_act += 1
-            periodo_actual = f"{year_act}{month_act:02d}"
-
-            ant_months = total_months - 2
-            year_ant, month_ant = divmod(ant_months, 12)
-            month_ant += 1
-            periodo_anterior = f"{year_ant}{month_ant:02d}"
-
-            queryInsertCentrosTMI(db, periodo_actual, periodo_anterior)
-            queryDropVIstas(db)
-            queryCreacionCentrosVariables(db)
-            queryCreacionVistasCE(db, periodo_actual)
-            return True
-        return False
-    except Exception as e:
-        return False
-
-
 ### VISTAS TMI 
 ### 1. eliminar vistas
 def queryDropVIstas(db: Session):

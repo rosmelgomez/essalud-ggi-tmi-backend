@@ -144,14 +144,6 @@ def calcular_periodo_anterior(periodo: str) -> str:
     except Exception:
         return periodo
 
-def queryDiaEjecucionServ(db: Session, anio:int):
-    try:
-        from src.main.repositories.tmiRep import queryDiaEjecucion
-        result = queryDiaEjecucion(db, anio)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 ##consultas
 ##CE_Concent
 def queryCE_ConcentServ(db: Session, periodo:str):

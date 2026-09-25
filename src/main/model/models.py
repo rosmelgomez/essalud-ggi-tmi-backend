@@ -2,16 +2,19 @@
 
 from sqlalchemy import Double
 from src.main.db.databaseConexion import Base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Date, DateTime, Integer, String
 
 class cierre (Base):
     __tablename__ = "cierre"
-    id = Column(Integer,primary_key=True)
-    dia= Column(Integer(50))
-    mes= Column(Integer(50))
-    año= Column(Integer(50))
+    id = Column(Integer, primary_key=True)
+    periodo = Column(String(6), nullable=False, unique=True)
+    fecha_cierre = Column(Date(), nullable=False)
+    estado = Column(String(20), nullable=False, default="PENDIENTE")
+    fecha_ejecucion = Column(DateTime())
+    filas_insertadas = Column(Integer())
+    mensaje = Column(String(4000))
     fecha_creacion = Column(DateTime())
-    estado = Column(String(50))   
+    usuario_modifica = Column(String(100))
 
 class tmi_estandar_tipo(Base):
     __tablename__ = "tmi_estandar_tipo"

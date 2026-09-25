@@ -1,11 +1,20 @@
+from datetime import date, datetime
 from typing import Optional
 from pydantic import BaseModel
 
 class cierreDto(BaseModel):
     id: int
-    fecha_cierre: str
     periodo: str
+    fecha_cierre: date
     estado: str
+    fecha_ejecucion: Optional[datetime] = None
+    filas_insertadas: Optional[int] = None
+    mensaje: Optional[str] = None
+    fecha_creacion: Optional[datetime] = None
+    usuario_modifica: Optional[str] = None
+
+class cierreUpdateDto(BaseModel):
+    fecha_cierre: date
 
 class tmiEstandarTipoDto(BaseModel):
     id: int
