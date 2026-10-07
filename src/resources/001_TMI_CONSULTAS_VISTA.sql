@@ -1,7 +1,7 @@
 
 /*  CE_Concent - Concentracion de Consultas*/
 
-DECLARE @Periodo CHAR(6) = '202608';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -27,7 +27,7 @@ SELECT DISTINCT Red, codcentro, Centro
 FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
 WHERE     variable IN ('Consulta Externa - Consultantes al Establecimiento'))
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+    D.id AS ORDEN, D.red, D.codcentro, D.centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
 
     -- Total dinámico: suma solo los meses 1..@Mes
     CASE WHEN (
@@ -89,7 +89,7 @@ FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
 LEFT OUTER JOIN (
-    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, cen.codcentro, cen.centro, cen.red, cen.nivel, cen.tipo, cen.categoria
     FROM pentahodev_prueba.dbo.tmi_estandar_nivel est
     JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.periodo = cen.periodo
     WHERE est.indicador = 'Concentracion de Consultas' AND est.periodo = @Periodo
@@ -98,7 +98,7 @@ LEFT OUTER JOIN (
 
 /* CE_GCHProg - Grado de Cumplimiento de Horas Programadas*/
 
-DECLARE @Periodo CHAR(6) = '202608';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202608';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -192,8 +192,8 @@ LEFT OUTER JOIN (
     WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est.periodo = @Periodo
 ) AS D ON CEN.codcentro = D.codcentro
 
+
 /*CE_Recetas - Promedio de Recetas por Consultas */
-
 DECLARE @Periodo CHAR(6) = '202608';          -- <-- único punto que cambias
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
@@ -202,23 +202,23 @@ WITH A AS (
            [202601],[202602],[202603],[202604],[202605],[202606],
            [202607],[202608],[202609],[202610],[202611],[202612], Variable
     FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable = 'Consulta Externa - Horas Médicas Efectivas'
+    WHERE Variable = 'Actividades Intermedias - Recetas Despachadas de C. E'
 ),
 B AS (
     SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
            [202601],[202602],[202603],[202604],[202605],[202606],
            [202607],[202608],[202609],[202610],[202611],[202612], Variable
     FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable = 'Consulta Externa - Horas Médicas Programadas'
+    WHERE Variable = 'Consulta Externa - Consultas'
 ),
 CEN AS (
 SELECT DISTINCT Red, codcentro, Centro
 FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-WHERE     variable IN ('Consulta Externa - Horas Médicas Efectivas')
+WHERE     variable IN ('Actividades Intermedias - Recetas Despachadas de C. E')
 UNION
 SELECT DISTINCT Red, codcentro, Centro
 FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-WHERE     variable IN ('Consulta Externa - Horas Médicas Programadas'))
+WHERE     variable IN ('Consulta Externa - Consultas'))
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
 
@@ -265,115 +265,18 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN A.[202601] = 0 OR B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END AS [202601], CASE WHEN A.[202602] = 0 OR
-  B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END AS [202602], CASE WHEN A.[202603] = 0 OR
-  B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END AS [202603], CASE WHEN A.[202604] = 0 OR
-  B.[202604] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) END AS [202604], CASE WHEN A.[202605] = 0 OR
-  B.[202605] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605]) END AS [202605], CASE WHEN A.[202606] = 0 OR
-  B.[202606] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) END AS [202606], CASE WHEN A.[202607] = 0 OR
-  B.[202607] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) END AS [202607], CASE WHEN A.[202608] = 0 OR
-  B.[202608] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) END AS [202608], CASE WHEN A.[202609] = 0 OR
-  B.[202609] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) END AS [202609], CASE WHEN A.[202610] = 0 OR
-  B.[202610] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) END AS [202610], CASE WHEN A.[202611] = 0 OR
-  B.[202611] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) END AS [202611], CASE WHEN A.[202612] = 0 OR
-  B.[202612] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]+ A.[202612]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) END AS [202612]
-
-FROM CEN
-LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
-LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
-LEFT OUTER JOIN (
-    SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
-    FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.periodo = cen.periodo
-    WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est.periodo = @Periodo
-) AS D ON CEN.codcentro = D.codcentro
-
-/* CE_RHrMedico - Rendimiento Hora Medico */
-
-DECLARE @Periodo CHAR(6) = '202608';          -- <-- único punto que cambias
-DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
-
-WITH A AS (
-    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
-           [202601],[202602],[202603],[202604],[202605],[202606],
-           [202607],[202608],[202609],[202610],[202611],[202612], Variable
-    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable = 'Consulta Externa - Horas Médicas Efectivas'
-),
-B AS (
-    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
-           [202601],[202602],[202603],[202604],[202605],[202606],
-           [202607],[202608],[202609],[202610],[202611],[202612], Variable
-    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable = 'Consulta Externa - Horas Médicas Programadas'
-),
-CEN AS (
-SELECT DISTINCT Red, codcentro, Centro
-FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-WHERE     variable IN ('Consulta Externa - Horas Médicas Efectivas')
-UNION
-SELECT DISTINCT Red, codcentro, Centro
-FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-WHERE     variable IN ('Consulta Externa - Horas Médicas Programadas'))
-SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
-
-    -- Total dinámico: suma solo los meses 1..@Mes
-    CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
-         ) <> 0
-    THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
-         ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
-         )
-    ELSE 0 END AS Total,
-    CASE WHEN A.[202601] = 0 OR B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END AS [202601], CASE WHEN A.[202602] = 0 OR
-  B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END AS [202602], CASE WHEN A.[202603] = 0 OR
-  B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END AS [202603], CASE WHEN A.[202604] = 0 OR
-  B.[202604] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) END AS [202604], CASE WHEN A.[202605] = 0 OR
-  B.[202605] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605]) END AS [202605], CASE WHEN A.[202606] = 0 OR
-  B.[202606] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) END AS [202606], CASE WHEN A.[202607] = 0 OR
-  B.[202607] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) END AS [202607], CASE WHEN A.[202608] = 0 OR
-  B.[202608] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) END AS [202608], CASE WHEN A.[202609] = 0 OR
-  B.[202609] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) END AS [202609], CASE WHEN A.[202610] = 0 OR
-  B.[202610] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) END AS [202610], CASE WHEN A.[202611] = 0 OR
-  B.[202611] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) END AS [202611], CASE WHEN A.[202612] = 0 OR
-  B.[202612] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]+ A.[202612]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) END AS [202612]
-
+    ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) AS [202601],
+    ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) AS [202602],
+    ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) AS [202603],
+    ISNULL((ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0),0) AS [202604],
+    ISNULL((ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0),0) AS [202605],
+    ISNULL((ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0),0) AS [202606],
+    ISNULL((ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0),0) AS [202607],
+    ISNULL((ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0),0) AS [202608],
+    ISNULL((ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0),0) AS [202609],
+    ISNULL((ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0),0) AS [202610],
+    ISNULL((ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0),0) AS [202611],
+    ISNULL((ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0),0) AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -388,7 +291,7 @@ LEFT OUTER JOIN (
 
 /*CE_RHrMedico - Rendimiento Hora Medico */
 
-DECLARE @Periodo CHAR(6) = '202607';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202608';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -484,18 +387,92 @@ LEFT OUTER JOIN (
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
 
+UNION ALL
+
+SELECT DISTINCT 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+
+    -- Total dinámico: suma solo los meses 1..@Mes
+    CASE WHEN (
+            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+         ) <> 0
+    THEN (
+            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+         ) * 1.00 / (
+            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+         )
+    ELSE 0 END AS Total,
+
+    CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601],
+    CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602],
+    CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603],
+    CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END AS [202604],
+    CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END AS [202605],
+    CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END AS [202606],
+    CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END AS [202607],
+    CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END AS [202608],
+    CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END AS [202609],
+    CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END AS [202610],
+    CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END AS [202611],
+    CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END AS [202612]
+    FROM CEN_TIPO AS CEN
+LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
+LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
+LEFT OUTER JOIN (
+    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.periodo = cen.periodo
+    WHERE est.indicador = 'Rendimiento Hora Medico' AND est.periodo = '202608'
+) AS D ON CEN.codcentro = D.codcentro
+WHERE D.tipo IN ('CNSR','IPO','INCOR')
+ORDER BY ORDEN;
+
 
 /* Em_PrioI_II - % Prioridad I y II con respecto al Total de Emergencias */
 
-DECLARE @Periodo CHAR(6) = '202607';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202608';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
-    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
-           [202601],[202602],[202603],[202604],[202605],[202606],
-           [202607],[202608],[202609],[202610],[202611],[202612], Variable
-    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable IN ('Emergencia - Prioridad I', 'Emergencia - Prioridad II')
+    SELECT     Red, Centro, nivel, codcentro, Año, SUM(Total) AS Total, SUM([202601]) AS [202601], SUM([202602]) AS [202602], SUM([202603]) AS [202603], 
+               SUM([202604]) AS [202604], SUM([202605]) AS [202605], SUM([202606]) AS [202606], SUM([202607]) AS [202607], SUM([202608]) AS [202608], 
+               SUM([202609]) AS [202609], SUM([202610]) AS [202610], SUM([202611]) AS [202611], SUM([202612]) AS [202612]
+               FROM        pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+               WHERE      (Variable IN ('Emergencia - Prioridad I', 'Emergencia - Prioridad II'))
+               GROUP BY Red, Centro, nivel, codcentro, Año
 ),
 X AS (
     SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
@@ -555,16 +532,18 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) 
-                      / X.[202601] ELSE 0 END AS [202601], CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END AS [202602], 
-                      CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END AS [202603], CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) 
-                      * 1.00) / X.[202604] ELSE 0 END AS [202604], CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END AS [202605], 
-                      CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END AS [202606], CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) 
-                      * 1.00) / X.[202607] ELSE 0 END AS [202607], CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END AS [202608], 
-                      CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END AS [202609], CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) 
-                      * 1.00) / X.[202610] ELSE 0 END AS [202610], CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END AS [202611], 
-                      CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END AS [202612]
-
+            CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END AS [202601], 
+            CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END AS [202602], 
+            CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END AS [202603], 
+            CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END AS [202604], 
+            CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END AS [202605], 
+            CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END AS [202606], 
+            CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END AS [202607], 
+            CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END AS [202608], 
+            CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END AS [202609], 
+            CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END AS [202610], 
+            CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END AS [202611], 
+            CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN X ON CEN.codcentro = X.codcentro
@@ -575,18 +554,17 @@ LEFT OUTER JOIN (
     WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est.periodo = @Periodo
 ) AS D ON CEN.codcentro = D.codcentro
 
-/* Em_PrioIV_V % Prioridad IV y V con respecto al Total de Emergencias -- corroborar*/
+/* Em_PrioIV_V % Prioridad IV y V con respecto al Total de Emergencias */
 
-DECLARE @Periodo CHAR(6) = '202607';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
-WITH A AS (
-    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
-           [202601],[202602],[202603],[202604],[202605],[202606],
-           [202607],[202608],[202609],[202610],[202611],[202612], Variable
-    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable IN ('Emergencia - Prioridad IV', 'Emergencia - Prioridad V')
-),
+WITH A AS (SELECT     Red, Centro, nivel, codcentro, Año, SUM(Total) AS Total, SUM([202601]) AS [202601], SUM([202602]) AS [202602], SUM([202603]) AS [202603], 
+                                                   SUM([202604]) AS [202604], SUM([202605]) AS [202605], SUM([202606]) AS [202606], SUM([202607]) AS [202607], SUM([202608]) AS [202608], 
+                                                   SUM([202609]) AS [202609], SUM([202610]) AS [202610], SUM([202611]) AS [202611], SUM([202612]) AS [202612]
+                            FROM       pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+                            WHERE      (Variable IN ('Emergencia - Prioridad IV', 'Emergencia - Prioridad V'))
+                            GROUP BY Red, Centro, nivel, codcentro, Año),
 X AS (
     SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
            [202601],[202602],[202603],[202604],[202605],[202606],
@@ -665,12 +643,9 @@ LEFT OUTER JOIN (
 WHERE D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I')
 
 
-
-
 /* H_Estancias - Promedio Dia Estancia */
 
-
-DECLARE @Periodo CHAR(6) = '202607';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202609';          -- <-- único punto que cambias
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -766,6 +741,113 @@ LEFT OUTER JOIN (
 
 /* H_ISust - Intervalo de Sustitución */
 
+DECLARE @Periodo CHAR(6) = '202609';          -- <-- único punto que cambias
+DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
+
+WITH A AS (
+    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
+           [202601],[202602],[202603],[202604],[202605],[202606],
+           [202607],[202608],[202609],[202610],[202611],[202612], Variable
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE Variable = 'Hospitalizacion - Días Cama Disponible'
+),
+B AS (
+    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
+           [202601],[202602],[202603],[202604],[202605],[202606],
+           [202607],[202608],[202609],[202610],[202611],[202612], Variable
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE Variable = 'Hospitalizacion - Pacientes Días'
+),
+x AS (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+      [202609], [202610], [202611], [202612], Variable
+      FROM      pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+      WHERE     (Variable IN ('Hospitalizacion - Egresos'))),
+CEN AS (
+SELECT DISTINCT Red, codcentro, Centro
+FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+WHERE     variable IN ('Hospitalizacion - Días Cama Disponible', 'Hospitalizacion - Pacientes Días', 'Hospitalizacion - Egresos'))
+SELECT DISTINCT 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.aceptmenos AS [%Aceptmenos], D.acept AS [% Acept], 
+
+    -- Total dinámico: suma solo los meses 1..@Mes
+    CASE WHEN (
+            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+         ) <> 0
+    THEN ((
+            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+         ) - (
+            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+         )) * 1.00 / (
+            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+         )
+    ELSE 0 END AS Total,
+    CASE WHEN x.[202601] <> 0 THEN ((isnull(A.[202601], 0) - isnull(B.[202601], 0)) * 1.00) / x.[202601] ELSE 0 END AS [202601], 
+    CASE WHEN x.[202602] <> 0 THEN ((isnull(A.[202602], 0) - isnull(B.[202602], 0)) * 1.00) / x.[202602] ELSE 0 END AS [202602], 
+    CASE WHEN x.[202603] <> 0 THEN ((isnull(A.[202603], 0) - isnull(B.[202603], 0)) * 1.00) / x.[202603] ELSE 0 END AS [202603], 
+    CASE WHEN x.[202604] <> 0 THEN ((isnull(A.[202604], 0) - isnull(B.[202604], 0)) * 1.00) / x.[202604] ELSE 0 END AS [202604], 
+    CASE WHEN x.[202605] <> 0 THEN ((isnull(A.[202605], 0) - isnull(B.[202605], 0)) * 1.00) / x.[202605] ELSE 0 END AS [202605], 
+    CASE WHEN x.[202606] <> 0 THEN ((isnull(A.[202606], 0) - isnull(B.[202606], 0)) * 1.00) / x.[202606] ELSE 0 END AS [202606], 
+    CASE WHEN x.[202607] <> 0 THEN ((isnull(A.[202607], 0) - isnull(B.[202607], 0)) * 1.00) / x.[202607] ELSE 0 END AS [202607], 
+    CASE WHEN x.[202608] <> 0 THEN ((isnull(A.[202608], 0) - isnull(B.[202608], 0)) * 1.00) / x.[202608] ELSE 0 END AS [202608], 
+    CASE WHEN x.[202609] <> 0 THEN ((isnull(A.[202609], 0) - isnull(B.[202609], 0)) * 1.00) / x.[202609] ELSE 0 END AS [202609], 
+    CASE WHEN x.[202610] <> 0 THEN ((isnull(A.[202610], 0) - isnull(B.[202610], 0)) * 1.00) / x.[202610] ELSE 0 END AS [202610], 
+    CASE WHEN x.[202611] <> 0 THEN ((isnull(A.[202611], 0) - isnull(B.[202611], 0)) * 1.00) / x.[202611] ELSE 0 END AS [202611], 
+    CASE WHEN x.[202612] <> 0 THEN ((isnull(A.[202612], 0) - isnull(B.[202612], 0)) * 1.00) / x.[202612] ELSE 0 END AS [202612]
+
+FROM CEN
+LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
+LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
+LEFT OUTER JOIN x ON CEN.codcentro = x.codcentro
+LEFT OUTER JOIN (
+    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.periodo = cen.periodo
+    WHERE est.indicador = 'Intervalo de Sustitución' AND est.periodo = @Periodo
+) AS D ON CEN.codcentro = D.codcentro
 
 
 
@@ -773,7 +855,7 @@ LEFT OUTER JOIN (
 
 /* H_OCama - Porcentaje de Ocupación de Cama */
 
-DECLARE @Periodo CHAR(6) = '202608';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202609';          -- <-- único punto que cambias
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -869,7 +951,7 @@ LEFT OUTER JOIN (
 
 
 /* H_RCama -  Rendimiento Cama */
-DECLARE @Periodo CHAR(6) = '202608';          -- <-- único punto que cambias
+DECLARE @Periodo CHAR(6) = '202607';          -- <-- único punto que cambias
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -960,8 +1042,137 @@ LEFT OUTER JOIN (
 
 /* H_TBMHosp - Tasa Neta de Mortalidad Hospitalaria*/
 
+DECLARE @Periodo CHAR(6) = '202609';          -- <-- único punto que cambias
+DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
-/* O_Concent - */
+WITH A AS (
+    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
+           [202601],[202602],[202603],[202604],[202605],[202606],
+           [202607],[202608],[202609],[202610],[202611],[202612], Variable
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE Variable = 'Hospitalizacion - Defunciones después de 48 horas'
+),
+B AS (
+    SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden,
+           [202601],[202602],[202603],[202604],[202605],[202606],
+           [202607],[202608],[202609],[202610],[202611],[202612], Variable
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE Variable = 'Hospitalizacion - Egresos'
+),
+x AS (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+      [202609], [202610], [202611], [202612], Variable
+      FROM      pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+      WHERE     (Variable IN ('Hospitalizacion - Defunciones antes de 48 horas'))),
+CEN AS (SELECT DISTINCT Red, codcentro, Centro
+FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+WHERE     variable IN ('Hospitalizacion - Defunciones después de 48 horas')
+UNION
+SELECT DISTINCT Red, codcentro, Centro
+FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+WHERE     variable IN ('Hospitalizacion - Egresos')
+UNION
+SELECT DISTINCT Red, codcentro, Centro
+FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+WHERE     variable IN ('Hospitalizacion - Defunciones antes de 48 horas'))
+SELECT DISTINCT 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.aceptmenos AS [%Aceptmenos], D.acept AS [% Acept], 
+
+    -- Total dinámico: suma solo los meses 1..@Mes
+    CASE WHEN  (
+            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+         ) - (
+            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+         )
+         <> 0
+    THEN ((
+            CASE WHEN @Mes>=1  THEN (ISNULL(A.[202601],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN (ISNULL(A.[202602],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN (ISNULL(A.[202603],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN (ISNULL(A.[202604],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN (ISNULL(A.[202605],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN (ISNULL(A.[202606],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN (ISNULL(A.[202607],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN (ISNULL(A.[202608],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN (ISNULL(A.[202609],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN (ISNULL(A.[202610],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN (ISNULL(A.[202611],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN (ISNULL(A.[202612],0))* 1.00 ELSE 0 END
+         ) / ((
+            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+         ) - (
+            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+         )))
+    ELSE 0 END AS Total,
+            CASE WHEN (isnull(B.[202601], 0) - isnull(x.[202601], 0)) <> 0 THEN ((isnull(A.[202601], 0)) * 1.00) / (isnull(B.[202601], 0) - isnull(x.[202601], 0)) ELSE 0 END AS [202601], 
+            CASE WHEN (isnull(B.[202602], 0) - isnull(x.[202602], 0)) <> 0 THEN ((isnull(A.[202602], 0)) * 1.00) / (isnull(B.[202602], 0) - isnull(x.[202602], 0)) ELSE 0 END AS [202602], 
+            CASE WHEN (isnull(B.[202603], 0) - isnull(x.[202603], 0)) <> 0 THEN ((isnull(A.[202603], 0)) * 1.00) / (isnull(B.[202603], 0) - isnull(x.[202603], 0)) ELSE 0 END AS [202603], 
+            CASE WHEN (isnull(B.[202604], 0) - isnull(x.[202604], 0)) <> 0 THEN ((isnull(A.[202604], 0)) * 1.00) / (isnull(B.[202604], 0) - isnull(x.[202604], 0)) ELSE 0 END AS [202604], 
+            CASE WHEN (isnull(B.[202605], 0) - isnull(x.[202605], 0)) <> 0 THEN ((isnull(A.[202605], 0)) * 1.00) / (isnull(B.[202605], 0) - isnull(x.[202605], 0)) ELSE 0 END AS [202605], 
+            CASE WHEN (isnull(B.[202606], 0) - isnull(x.[202606], 0)) <> 0 THEN ((isnull(A.[202606], 0)) * 1.00) / (isnull(B.[202606], 0) - isnull(x.[202606], 0)) ELSE 0 END AS [202606], 
+            CASE WHEN (isnull(B.[202607], 0) - isnull(x.[202607], 0)) <> 0 THEN ((isnull(A.[202607], 0)) * 1.00) / (isnull(B.[202607], 0) - isnull(x.[202607], 0)) ELSE 0 END AS [202607], 
+            CASE WHEN (isnull(B.[202608], 0) - isnull(x.[202608], 0)) <> 0 THEN ((isnull(A.[202608], 0)) * 1.00) / (isnull(B.[202608], 0) - isnull(x.[202608], 0)) ELSE 0 END AS [202608], 
+            CASE WHEN (isnull(B.[202609], 0) - isnull(x.[202609], 0)) <> 0 THEN ((isnull(A.[202609], 0)) * 1.00) / (isnull(B.[202609], 0) - isnull(x.[202609], 0)) ELSE 0 END AS [202609], 
+            CASE WHEN (isnull(B.[202610], 0) - isnull(x.[202610], 0)) <> 0 THEN ((isnull(A.[202610], 0)) * 1.00) / (isnull(B.[202610], 0) - isnull(x.[202610], 0)) ELSE 0 END AS [202610], 
+            CASE WHEN (isnull(B.[202611], 0) - isnull(x.[202611], 0)) <> 0 THEN ((isnull(A.[202611], 0)) * 1.00) / (isnull(B.[202611], 0) - isnull(x.[202611], 0)) ELSE 0 END AS [202611], 
+            CASE WHEN (isnull(B.[202612], 0) - isnull(x.[202612], 0)) <> 0 THEN ((isnull(A.[202612], 0)) * 1.00) / (isnull(B.[202612], 0) - isnull(x.[202612], 0)) ELSE 0 END AS [202612]
+
+FROM CEN
+LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
+LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
+LEFT OUTER JOIN x ON CEN.codcentro = x.codcentro
+LEFT OUTER JOIN (
+    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, est.aceptmenos, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.periodo = cen.periodo
+    WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est.periodo = @Periodo
+) AS D ON CEN.codcentro = D.codcentro
+
+
+/* O_Concent -  Concentración de Sesiones Odontológicas*/
 
 
 

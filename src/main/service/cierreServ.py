@@ -14,7 +14,7 @@ from src.main.service.tmiServ import calcular_periodo_anterior
 logger = logging.getLogger(__name__)
 
 # Día del mes que se usa como fecha de cierre por defecto
-CIERRE_DIA_DEFAULT = int(os.getenv("CIERRE_DIA_DEFAULT", "10"))
+CIERRE_DIA_DEFAULT = int(os.getenv("CIERRE_DIA_DEFAULT", "07"))
 # Cada cuántos minutos se revisa si hoy es la fecha de cierre
 CIERRE_INTERVALO_MINUTOS = int(os.getenv("CIERRE_INTERVALO_MINUTOS", "60"))
 
