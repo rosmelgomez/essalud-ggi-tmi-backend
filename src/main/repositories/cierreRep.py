@@ -16,7 +16,8 @@ TABLAS_CIERRE = {
     "tmi_centro": "pentahodev_prueba.dbo.tmi_centro",
     "tmi_estandar_tipo": "pentahodev_prueba.dbo.tmi_estandar_tipo",
     "tmi_estandar_nivel": "pentahodev_prueba.dbo.tmi_estandar_nivel",
-    "tmi_estandar_categoria": "pentahodev_prueba.dbo.tmi_estandar_categoria",
+    # desactivado por ahora: tmi_estandar_categoria aún no tiene datos
+    # "tmi_estandar_categoria": "pentahodev_prueba.dbo.tmi_estandar_categoria",
 }
 
 
@@ -94,20 +95,24 @@ def queryUpdateFechaCierre(db: Session, periodo: str, fecha_cierre: date, usuari
     return result.rowcount
 
 
-### tomar el cierre de hoy (solo un worker lo obtiene)
-def queryTomarCierreHoy(db: Session, hoy: date):
+### tomar los cierres cuya fecha ya llegó o ya pasó, de cualquier periodo (solo un worker los obtiene)
+### un cierre en ERROR solo se reintenta el mismo día en que falló
+def queryTomarCierresPendientes(db: Session, hoy: date):
     query = f"""
     UPDATE {CIERRE_TABLA}
        SET estado = 'EN_PROCESO',
            fecha_ejecucion = SYSDATETIME(),
            mensaje = NULL
     OUTPUT inserted.id, inserted.periodo
-     WHERE fecha_cierre = :hoy AND estado IN ('PENDIENTE', 'ERROR')
+     WHERE fecha_cierre <= :hoy
+       AND (estado = 'PENDIENTE'
+            OR (estado = 'ERROR' AND CAST(fecha_ejecucion AS DATE) = CAST(SYSDATETIME() AS DATE)))
     """
     result = db.execute(text(query), {"hoy": hoy})
     rows = [dict(row) for row in result.mappings()]
     db.commit()
-    return rows
+    # OUTPUT no garantiza orden: del más antiguo al más reciente, porque cada periodo copia del anterior
+    return sorted(rows, key=lambda row: row["periodo"].strip())
 
 
 ### finalizar cierre (EJECUTADO / ERROR)
@@ -128,3 +133,44 @@ def queryFinalizarCierre(db: Session, id_cierre: int, estado: str, filas: int | 
 def queryContarPeriodo(db: Session, tabla: str, periodo: str) -> int:
     query = f"SELECT COUNT(1) FROM {TABLAS_CIERRE[tabla]} WHERE periodo = :periodo"
     return db.execute(text(query), {"periodo": periodo}).scalar() or 0
+
+
+### filas por periodo de una tabla del cierre (hasta el periodo indicado)
+def queryConteoPorPeriodo(db: Session, tabla: str, hasta: str) -> dict[str, int]:
+    query = f"""
+    SELECT LTRIM(RTRIM(periodo)) AS periodo, COUNT(1) AS filas
+    FROM {TABLAS_CIERRE[tabla]}
+    WHERE periodo <= :hasta
+    GROUP BY LTRIM(RTRIM(periodo))
+    """
+    return {row.periodo: row.filas for row in db.execute(text(query), {"hasta": hasta})}
+
+
+### último periodo cuya fecha de cierre ya llegó
+def queryUltimoPeriodoCierre(db: Session, hoy: date) -> str | None:
+    query = f"SELECT MAX(periodo) FROM {CIERRE_TABLA} WHERE fecha_cierre <= :hoy"
+    periodo = db.execute(text(query), {"hoy": hoy}).scalar()
+    return periodo.strip() if periodo else None
+
+
+### volver a PENDIENTE un cierre (datos nuevos o datos borrados)
+def queryReabrirCierre(db: Session, id_cierre: int):
+    query = f"""
+    UPDATE {CIERRE_TABLA}
+       SET estado = 'PENDIENTE',
+           mensaje = NULL
+     WHERE id = :id AND estado IN ('EJECUTADO', 'ERROR')
+    """
+    db.execute(text(query), {"id": id_cierre})
+    db.commit()
+
+
+### actualizar las filas del periodo de un cierre ya ejecutado
+def queryActualizarFilasCierre(db: Session, id_cierre: int, filas: int):
+    query = f"""
+    UPDATE {CIERRE_TABLA}
+       SET filas_insertadas = :filas
+     WHERE id = :id AND estado = 'EJECUTADO' AND ISNULL(filas_insertadas, -1) <> :filas
+    """
+    db.execute(text(query), {"id": id_cierre, "filas": filas})
+    db.commit()

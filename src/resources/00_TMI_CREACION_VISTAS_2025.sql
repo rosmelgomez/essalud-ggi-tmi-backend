@@ -234,6 +234,8 @@ WHERE     (Variable IN ('Centro Quirúrgico - Cirugías sin clasificación de compl
   
                       
 /*2- CREACION DE VISTAS CON DATOS FUENTE*/
+
+/*Concentracion de Consultas*/
 CREATE VIEW CE_Concent
 AS
 SELECT DISTINCT 
@@ -272,46 +274,8 @@ FROM (
                            JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.periodo = cen.periodo
                            WHERE est.indicador = 'Concentracion de Consultas' and est.periodo = '202607') AS D ON CEN.codcentro = D.codcentro
 go
-/*--ESTE VIEW NO SIRVE
-CREATE VIEW CE_GCHProg
-AS
-SELECT DISTINCT 
-                      D.ID AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.NIVEL, D.TIPO, D.GCHP_Estandar AS Estandar, D.[GCHP_%Acept] AS [% Acept], 
-                      CASE WHEN A.[Total] <> 0 OR B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, 
-                      CASE WHEN A.[202601] <> 0 OR
-                      B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601], CASE WHEN A.[202602] <> 0 OR
-                      B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], CASE WHEN A.[202603] <> 0 OR
-                      B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603], CASE WHEN A.[202604] <> 0 OR
-                      B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END AS [202604], CASE WHEN A.[202605] <> 0 OR
-                      B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END AS [202605], CASE WHEN A.[202606] <> 0 OR
-                      B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END AS [202606], CASE WHEN A.[202607] <> 0 OR
-                      B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END AS [202607], CASE WHEN A.[202608] <> 0 OR
-                      B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END AS [202608], CASE WHEN A.[202609] <> 0 OR
-                      B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END AS [202609], CASE WHEN A.[202610] <> 0 OR
-                      B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END AS [202610], CASE WHEN A.[202611] <> 0 OR
-                      B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END AS [202611], CASE WHEN A.[202612] <> 0 OR
-                      B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END AS [202612]
-FROM         dbo.TMI_CENTROS_CE_GCHProg AS CEN LEFT OUTER JOIN
-                          (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
-                                                   [202609], [202610], [202611], [202612], Variable
-                            FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-                            WHERE      (Variable IN ('Consulta Externa - Horas Médicas Efectivas'))) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
-                          (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
-                                                   [202609], [202610], [202611], [202612], Variable
-                            FROM          dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
-                            WHERE      (Variable IN ('Consulta Externa - Horas Médicas Programadas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
-                          (SELECT     Red, ORDEN, ORDEN_TIPO, codcentro, TIPO, NIVEL, NIVEL_ESTANDAR, CENTRO, ESTADO, CE_Estandar, [CE_%Acept], [CE_%Aceptmenos], 
-                                                   RHM_Estandar, [RHM_%Acept], [RHM_%Aceptmenos], GCHP_Estandar, [GCHP_%Acept], [GCHP_%Aceptmenos], PRC_Estandar, [PRC_%Acept], 
-                                                   [PRC_%Aceptmenos], PE_Estandar, [PE_%Acept], [PE_%Aceptmenos], POC_Estandar, [POC_%Acept], [POC_%Aceptmenos], IS_Estandar, [IS_%Acept], 
-                                                   [IS_%Aceptmenos], RC_Estandar, [RC_%Acept], [RC_%Aceptmenos], TNMH_Estandar, [TNMH_%Acept], [TNMH_%Aceptmenos], PIM_Estandar, 
-                                                   [PIM_%Acept], [PIM_%Aceptmenos], PIAC_Estandar, [PIAC_%Acept], [PIAC_%Aceptmenos], PHQE_Estandar, [PHQE_%Acept], [PHQE_%Aceptmenos], 
-                                                   RSO_Estandar, [RSO_%Acept], [RSO_%Aceptmenos], POS_Estandar, [POS_%Acept], [POS_%Aceptmenos], TC_Estandar, [TC_%Acept], [TC_%Aceptmenos], 
-                                                   PIV_Estandar, [PIV_%Acept], [PIV_%Aceptmenos], PII_Estandar, [PII_%Acept], [PII_%Aceptmenos], CSO_Estandar, [CSO_%Acept], [CSO_%Aceptmenos], 
-                                                   RHO_Estandar, [RHO_%Acept], [RHO_%Aceptmenos], GCHO_Estandar, [GCHO_%Acept], [GCHO_%Aceptmenos], NTOS_Estandar, [NTOS_%Acept], 
-                                                   [NTOS_%Aceptmenos], ID
-                            FROM          dbo.TMI_ESTANDARES_D) AS D ON CEN.codcentro = D.codcentro
-go*/
---09.05.2026
+
+
 /*Grado de Cumplimiento de Horas Programadas*/
 CREATE VIEW CE_GCHProg
 AS
@@ -442,6 +406,7 @@ go
 /*Rendimiento Hora Medico*/
 CREATE VIEW CE_RHrMedico
 AS
+
 /*nivel*/
 SELECT DISTINCT 
                 D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
@@ -587,14 +552,15 @@ LEFT OUTER JOIN (
     WHERE est.indicador = 'Rendimiento Hora Medico' AND est.periodo = '202608'
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
-
 ORDER BY ORDEN;
 
 
 
 
 /*% Prioridad I y II con respecto al Total de Emergencias*/
-go         
+go     
+
+/* % Prioridad I y II con respecto al Total de Emergencias*/
 CREATE VIEW Em_PrioI_II
 AS
 SELECT DISTINCT 
@@ -923,52 +889,6 @@ go
 /*Concentración de Sesiones Odontológicas*/
 CREATE VIEW O_Concent
 AS
-/*SELECT DISTINCT 
-    D.ID AS ORDEN,
-    CEN.Red,
-    CEN.codcentro,
-    CEN.Centro,
-    D.NIVEL,
-    D.TIPO,
-    D.CSO_Estandar AS Estandar,
-    D.[CSO_%Acept] AS [% Acept],
-
-    -- TOTAL
-    ISNULL( (ISNULL(A.[Total],0) * 1.00) / NULLIF(ISNULL(B.[Total],0),0) , 0) AS Total,
-
-    -- MESES INDIVIDUALES
-    ISNULL( (ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0) , 0) AS [202601],
-    ISNULL( (ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0) , 0) AS [202602],
-    ISNULL( (ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0) , 0) AS [202603],
-    ISNULL( (ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0) , 0) AS [202604],
-    ISNULL( (ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0) , 0) AS [202605],
-    ISNULL( (ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0) , 0) AS [202606],
-    ISNULL( (ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0) , 0) AS [202607],
-    ISNULL( (ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0) , 0) AS [202608],
-    ISNULL( (ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0) , 0) AS [202609],
-    ISNULL( (ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0) , 0) AS [202610],
-    ISNULL( (ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0) , 0) AS [202611],
-    ISNULL( (ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0) , 0) AS [202612]
-
-FROM dbo.TMI_CENTROS_O_Concent CEN
-
-LEFT JOIN (
-    SELECT *
-    FROM dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable = 'Odontología - Sesiones Odontológicas'
-) A 
-    ON CEN.codcentro = A.codcentro
-
-LEFT JOIN (
-    SELECT *
-    FROM dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-    WHERE Variable = 'Odontología - Consultantes de Odontología'
-) B 
-    ON CEN.codcentro = B.codcentro
-
-LEFT JOIN dbo.TMI_ESTANDARES_D D
-    ON CEN.codcentro = D.codcentro*/
-
 SELECT DISTINCT 
                       D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
                       CASE WHEN A.[Total] <> 0 OR B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, 
@@ -1063,15 +983,105 @@ WHERE     Variable IN ('Odontología - Sesiones Odontológicas', 'Odontología - Ho
                           (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-                            WHERE      (Variable IN ('Odontología - Sesiones Odontológicas'))) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
+                            WHERE      Variable IN ('Odontología - Sesiones Odontológicas')) AS A ON CEN.codcentro = A.codcentro LEFT OUTER JOIN
                           (SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
                                                    [202609], [202610], [202611], [202612], Variable
                             FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
-                            WHERE      (Variable IN ('Odontología - Horas Odontológicas Efectivas'))) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
+                            WHERE     Variable IN ('Odontología - Horas Odontológicas Efectivas')) AS B ON CEN.codcentro = B.codcentro LEFT OUTER JOIN
                           (SElECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept , cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
                            FROM pentahodev_prueba.dbo.tmi_estandar_nivel est
                            JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.periodo = cen.periodo
                            WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.periodo = '202609') AS D ON CEN.codcentro = D.codcentro
+
+
+
+/*prueba*/
+
+WITH A AS (
+        SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+           [202609], [202610], [202611], [202612], Variable
+         FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+         WHERE      Variable IN ('Odontología - Sesiones Odontológicas')
+),
+B AS (
+        SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+            [202609], [202610], [202611], [202612], Variable
+         FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+         WHERE     Variable IN ('Odontología - Horas Odontológicas Efectivas')
+),
+CEN_NIVEL AS (
+    SELECT DISTINCT Red, codcentro, Centro
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+    WHERE variable IN ('Odontología - Sesiones Odontológicas', 'Odontología - Horas Odontológicas Efectivas')
+),
+CEN_TIPO AS (
+    SELECT DISTINCT Red, codcentro, Centro
+    FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+)
+SELECT DISTINCT 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+    CASE WHEN B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, 
+                      CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601], 
+                      CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], 
+                      CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603], 
+                      CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END AS [202604], 
+                      CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END AS [202605], 
+                      CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END AS [202606], 
+                      CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END AS [202607], 
+                      CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END AS [202608], 
+                      CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END AS [202609], 
+                      CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END AS [202610], 
+                      CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END AS [202611], 
+                      CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END AS [202612]
+FROM CEN_NIVEL AS CEN
+LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
+LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
+LEFT OUTER JOIN (
+    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM pentahodev_prueba.dbo.tmi_estandar_nivel est
+    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.periodo = cen.periodo
+    WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.periodo = '202608'
+) AS D ON CEN.codcentro = D.codcentro
+WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
+
+UNION ALL
+
+SELECT DISTINCT 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
+    CASE WHEN B.[Total] <> 0 THEN (A.[Total] * 1.00) / B.[Total] ELSE 0 END AS Total, 
+                      CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END AS [202601], 
+                      CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END AS [202602], 
+                      CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END AS [202603], 
+                      CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END AS [202604], 
+                      CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END AS [202605], 
+                      CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END AS [202606], 
+                      CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END AS [202607], 
+                      CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END AS [202608], 
+                      CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END AS [202609], 
+                      CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END AS [202610], 
+                      CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END AS [202611], 
+                      CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END AS [202612]
+FROM CEN_TIPO AS CEN
+LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
+LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
+LEFT OUTER JOIN (
+    SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
+    FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
+    JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.periodo = cen.periodo
+    WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.periodo = '202608'
+) AS D ON CEN.codcentro = D.codcentro
+WHERE D.tipo IN ('CNSR','IPO','INCOR')
+ORDER BY ORDEN;
+
+
+
+
+
+
+
+
+
+
 go
 
 /*Número de trabajos Odontológicos por Sesión*/

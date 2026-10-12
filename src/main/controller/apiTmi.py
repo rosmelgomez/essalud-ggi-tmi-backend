@@ -66,6 +66,44 @@ async def queryUpdateCentrosTMI(
             detail="Ocurrió un error al actualizar el centro TMI.",
         )
 
+@router.post("/create-centro")
+async def queryCreateCentroTMI(
+    dto: centroTmiDto,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
+        from src.main.service.tmiServ import queryCreateCentroTMIServ
+        return queryCreateCentroTMIServ(db, dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al agregar el centro TMI: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al agregar el centro TMI.",
+        )
+
+@router.delete("/delete-centro/{id}")
+async def queryDeleteCentroTMI(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' eliminando fila %s de tmi_centro", current_user.get("username"), id)
+        from src.main.service.tmiServ import queryDeleteFilaServ
+        return queryDeleteFilaServ(db, "tmi_centro", id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al eliminar el centro TMI: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al eliminar el centro TMI.",
+        )
+
 @router.get("/queryInsertCentrosTMIServ/{periodoActual}/{periodoAnterior}")
 async def queryInsertCentrosTMI(
     periodoActual:str,
@@ -119,6 +157,44 @@ async def queryUpdateEstandarTipo(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al actualizar el estándar tipo.",
+        )
+
+@router.post("/create-estandar-tipo")
+async def queryCreateEstandarTipo(
+    dto: tmiEstandarTipoDto,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
+        from src.main.service.tmiServ import queryCreateEstandarTipoServ
+        return queryCreateEstandarTipoServ(db, dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al agregar el estándar tipo: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al agregar el estándar tipo.",
+        )
+
+@router.delete("/delete-estandar-tipo/{id}")
+async def queryDeleteEstandarTipo(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' eliminando fila %s de tmi_estandar_tipo", current_user.get("username"), id)
+        from src.main.service.tmiServ import queryDeleteFilaServ
+        return queryDeleteFilaServ(db, "tmi_estandar_tipo", id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al eliminar el estándar tipo: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al eliminar el estándar tipo.",
         )
 
 @router.get("/queryInsertEstandarTipoServ/{periodoActual}/{periodoAnterior}")
@@ -177,6 +253,44 @@ async def queryUpdateEstandarNivel(
             detail="Ocurrió un error al actualizar el estándar nivel.",
         )
 
+@router.post("/create-estandar-nivel")
+async def queryCreateEstandarNivel(
+    dto: tmiEstandarNivelDto,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
+        from src.main.service.tmiServ import queryCreateEstandarNivelServ
+        return queryCreateEstandarNivelServ(db, dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al agregar el estándar nivel: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al agregar el estándar nivel.",
+        )
+
+@router.delete("/delete-estandar-nivel/{id}")
+async def queryDeleteEstandarNivel(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' eliminando fila %s de tmi_estandar_nivel", current_user.get("username"), id)
+        from src.main.service.tmiServ import queryDeleteFilaServ
+        return queryDeleteFilaServ(db, "tmi_estandar_nivel", id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al eliminar el estándar nivel: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al eliminar el estándar nivel.",
+        )
+
 @router.get("/queryInsertEstandarNivelServ/{periodoActual}/{periodoAnterior}")
 async def queryInsertEstandarNivel(
     periodoActual:str,
@@ -231,6 +345,44 @@ async def queryUpdateEstandarCategoria(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al actualizar el estándar categoría.",
+        )
+
+@router.post("/create-estandar-categoria")
+async def queryCreateEstandarCategoria(
+    dto: tmiEstandarCategoriaDto,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
+        from src.main.service.tmiServ import queryCreateEstandarCategoriaServ
+        return queryCreateEstandarCategoriaServ(db, dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al agregar el estándar categoría: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al agregar el estándar categoría.",
+        )
+
+@router.delete("/delete-estandar-categoria/{id}")
+async def queryDeleteEstandarCategoria(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' eliminando fila %s de tmi_estandar_categoria", current_user.get("username"), id)
+        from src.main.service.tmiServ import queryDeleteFilaServ
+        return queryDeleteFilaServ(db, "tmi_estandar_categoria", id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al eliminar el estándar categoría: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al eliminar el estándar categoría.",
         )
 
 ### consultar estandares tipo por centro
@@ -659,9 +811,9 @@ async def generarExcelTMI(
     db: Session = Depends(get_db),
 ):
     try:
-        from src.main.service.excelServ import generar_excel_tmi
+        from src.main.service.excelServ import MESES_NOMBRE, generar_excel_tmi
         buffer = generar_excel_tmi(db, periodo)
-        filename = f"TMI_Prelim_{periodo}.xlsx"
+        filename = f"TMI_Prelim_Salud_{MESES_NOMBRE[int(periodo[4:]) - 1].capitalize()}_{periodo[:4]}.xlsx"
         return StreamingResponse(
             buffer,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

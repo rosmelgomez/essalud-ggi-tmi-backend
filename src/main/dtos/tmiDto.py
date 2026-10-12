@@ -17,7 +17,7 @@ class cierreUpdateDto(BaseModel):
     fecha_cierre: date
 
 class tmiEstandarTipoDto(BaseModel):
-    id: int
+    id: Optional[int] = None
     tipo: str
     indicador: str
     tipo_centro: str
@@ -29,7 +29,7 @@ class tmiEstandarTipoDto(BaseModel):
     aceptmenos: float
 
 class tmiEstandarNivelDto(BaseModel):
-    id: int
+    id: Optional[int] = None
     tipo: str
     indicador: str
     nivel_centro: str
@@ -41,7 +41,7 @@ class tmiEstandarNivelDto(BaseModel):
     aceptmenos: float
 
 class tmiEstandarCategoriaDto(BaseModel):
-    id: int
+    id: Optional[int] = None
     tipo: str
     indicador: str
     categoria_centro: str
@@ -53,13 +53,13 @@ class tmiEstandarCategoriaDto(BaseModel):
     aceptmenos: float
 
 class centroTmiDto(BaseModel):
-    id: int
+    id: Optional[int] = None
     red: str
-    codred: str
+    codred: Optional[str] = None
     orden: str
     orden_tipo: str
     codcentro: str
-    categoria: str
+    categoria: Optional[str] = None
     nivel: str
     tipo: str
     centro:str

@@ -3,9 +3,10 @@ import contextlib
 import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from src.main.controller import apiTmi, apiCierre
+from src.main.core.security import agregar_cookie_access_token
 from src.main.service.cierreServ import tareaCierre
 
 load_dotenv()
@@ -31,6 +32,15 @@ app = FastAPI(
     redoc_url=None if is_production else "/redoc",
     openapi_url=None if is_production else "/openapi.json",
 )
+
+
+# si get_current_user regeneró el access_token con el api_token, se envía en la respuesta como cookie
+@app.middleware("http")
+async def refrescar_access_token(request: Request, call_next):
+    response = await call_next(request)
+    agregar_cookie_access_token(request, response)
+    return response
+
 
 cors_origins_env = os.getenv("CORS_ORIGINS")
 if cors_origins_env:
