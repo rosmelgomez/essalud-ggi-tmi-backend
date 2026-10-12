@@ -1,7 +1,7 @@
 
 /*  CE_Concent - Concentracion de Consultas*/
 
-DECLARE @Periodo CHAR(6) = '202609';         
+DECLARE @Periodo CHAR(6) = '202608';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -25,7 +25,8 @@ WHERE     variable IN ('Consulta Externa - Consultas')
 UNION
 SELECT DISTINCT Red, codcentro, Centro
 FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-WHERE     variable IN ('Consulta Externa - Consultantes al Establecimiento'))
+WHERE     variable IN ('Consulta Externa - Consultantes al Establecimiento')
+)
 SELECT DISTINCT 
     D.id AS ORDEN, D.red AS Red, D.codcentro, D.centro AS Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
 
@@ -297,7 +298,7 @@ LEFT OUTER JOIN (
 
 /*CE_RHrMedico - Rendimiento Hora Medico */
 
-DECLARE @Periodo CHAR(6) = '202607';          
+DECLARE @Periodo CHAR(6) = '202608';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
