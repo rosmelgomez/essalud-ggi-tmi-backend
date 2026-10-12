@@ -297,7 +297,7 @@ LEFT OUTER JOIN (
 
 /*CE_RHrMedico - Rendimiento Hora Medico */
 
-DECLARE @Periodo CHAR(6) = '202608';          
+DECLARE @Periodo CHAR(6) = '202607';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
