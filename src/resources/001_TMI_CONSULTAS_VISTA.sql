@@ -1076,7 +1076,7 @@ LEFT OUTER JOIN (
 
 /* H_TBMHosp - Tasa Neta de Mortalidad Hospitalaria*/
 
-DECLARE @Periodo CHAR(6) = '202609';          FV
+DECLARE @Periodo CHAR(6) = '202609';    
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -1661,36 +1661,28 @@ WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
 
 /* Qx_GCHProg - Porcentaje de Horas Quirúrgicas Efectivas*/
 
-
 DECLARE @Periodo CHAR(6) = '202609';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
-           SELECT     Red, Centro, nivel, codcentro, Año, SUM(Total) AS Total, SUM([202601]) AS [202601], SUM([202602]) AS [202602], SUM([202603]) AS [202603], 
-           SUM([202604]) AS [202604], SUM([202605]) AS [202605], SUM([202606]) AS [202606], SUM([202607]) AS [202607], SUM([202608]) AS [202608], 
-           SUM([202609]) AS [202609], SUM([202610]) AS [202610], SUM([202611]) AS [202611], SUM([202612]) AS [202612]
-           FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-           WHERE  Variable IN ('Odontología - Trabajos Odontológicos', 'Odontología - Diagnóstico por imágenes', 'Odontología - Procedimientos Especiales')
-           GROUP BY Red, Centro, nivel, codcentro, Año),
+      SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+                             [202609], [202610], [202611], [202612], Variable
+      FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+      WHERE     Variable IN ('Centro Quirúrgico - Horas Uso de Sala')
+),
 B AS (
-           SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
-           [202609], [202610], [202611], [202612], Variable
-           FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
-           WHERE  Variable IN ('Odontología - Sesiones Odontológicas')
+      SELECT     Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
+      [202609], [202610], [202611], [202612], Variable
+      FROM          pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026 AS CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026_1
+      WHERE      Variable IN ('Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas')
 ),
 CEN AS (
-       SELECT DISTINCT Red, codcentro, Centro
-       FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-       WHERE     variable IN ('Odontología - Trabajos Odontológicos', 'Odontología - Diagnóstico por imágenes', 'Odontología - Procedimientos Especiales')
-       UNION
-       SELECT DISTINCT Red, codcentro, Centro
-       FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-       WHERE     variable IN ('Odontología - Sesiones Odontológicas')
+      SELECT DISTINCT Red, codcentro, Centro
+      FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
+      WHERE     Variable IN ('Centro Quirúrgico - Horas Uso de Sala', 'Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas')
 )
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept], 
-
-    -- Total dinámico: suma solo los meses 1..@Mes
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -1733,7 +1725,6 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    -- meses posteriores a @Periodo en 0
     CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
     CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
     CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
@@ -1754,7 +1745,7 @@ LEFT OUTER JOIN (
     SELECT cen.id, est.tipo AS tipo_indicador, est.indicador, est.estandar, est.acept, cen.codcentro, cen.centro, cen.nivel, cen.tipo, cen.categoria
     FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
     JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.periodo = cen.periodo
-    WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est.periodo = @Periodo
+    WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est.periodo = @Periodo
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* Qx_HTCesareas - Tasa de Cesáreas*/
@@ -1855,7 +1846,6 @@ LEFT OUTER JOIN (
 
 
 /* Qx_IAlta - Porcentaje de Intervenciones de Alta Complejidad*/
-
 
 DECLARE @Periodo CHAR(6) = '202609';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
@@ -2055,7 +2045,6 @@ LEFT OUTER JOIN (
 ) AS D ON CEN.codcentro = D.codcentro
 
 
-
 /* Qx_IntSusp - Porcentaje de Operaciones Suspendidas*/
 
 DECLARE @Periodo CHAR(6) = '202609';          
@@ -2154,7 +2143,7 @@ LEFT OUTER JOIN (
 
 /* Qx_RendSO - Rendimiento de Sala de Operaciones*/
 
-DECLARE @Periodo CHAR(6) = '202608';          
+DECLARE @Periodo CHAR(6) = '202609';          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 
 WITH A AS (
@@ -2182,8 +2171,6 @@ WHERE     Variable IN ('Centro Quirúrgico - Cirugías sin clasificación de com
 )
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.acept AS [% Acept],
-
-    -- Total dinámico: numerador acumulado 1..@Mes / promedio mensual del denominador (stock)
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -2211,20 +2198,7 @@ SELECT DISTINCT
             CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
             CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
             CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
-         ) * 1.00 * (
-            CASE WHEN @Mes>=1  AND B.[202601] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=2  AND B.[202602] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=3  AND B.[202603] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=4  AND B.[202604] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=5  AND B.[202605] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=6  AND B.[202606] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=7  AND B.[202607] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=8  AND B.[202608] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=9  AND B.[202609] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=10 AND B.[202610] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=11 AND B.[202611] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=12 AND B.[202612] > 0 THEN 1 ELSE 0 END
-         ) / (
+         ) * 1.00  / (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
             CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
