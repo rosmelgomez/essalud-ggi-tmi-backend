@@ -1,5 +1,3 @@
-
-
 /*  CE_Concent - Concentracion de Consultas*/
 
 DECLARE @Periodo CHAR(6) = '202608';         
@@ -72,8 +70,6 @@ SELECT DISTINCT
         )
         ELSE 0 
     END AS Total,
-
-    -- Acumulados mensuales protegidos contra NULL y división por cero
     CASE WHEN @Mes >= 1  THEN CASE WHEN A.[202601] = 0 OR B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END ELSE 0 END AS [202601],
     CASE WHEN @Mes >= 2  THEN CASE WHEN A.[202602] = 0 OR B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END ELSE 0 END AS [202602],
     CASE WHEN @Mes >= 3  THEN CASE WHEN A.[202603] = 0 OR B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END ELSE 0 END AS [202603],
@@ -89,37 +85,35 @@ SELECT DISTINCT
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
-LEFT OUTER JOIN (
-    SELECT 
+LEFT OUTER JOIN (        
+        SELECT 
         cen.id, 
         est.tipo AS tipo_indicador, 
         est.indicador, 
-        -- Extracción real del valor del estándar según el mes seleccionado
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_nivel.estandar_01
+            WHEN 2  THEN est_nivel.estandar_02
+            WHEN 3  THEN est_nivel.estandar_03
+            WHEN 4  THEN est_nivel.estandar_04
+            WHEN 5  THEN est_nivel.estandar_05
+            WHEN 6  THEN est_nivel.estandar_06
+            WHEN 7  THEN est_nivel.estandar_07
+            WHEN 8  THEN est_nivel.estandar_08
+            WHEN 9  THEN est_nivel.estandar_09
+            WHEN 10 THEN est_nivel.estandar_10
+            WHEN 11 THEN est_nivel.estandar_11
+            WHEN 12 THEN est_nivel.estandar_12
         END AS estandar,
-        
-
         cen.codcentro, 
         cen.centro, 
         cen.red, 
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.anio = cen.anio
-    WHERE est.indicador = 'Concentracion de Consultas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar 
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    WHERE est.indicador = 'Concentracion de Consultas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 ORDER BY ORDEN asc;
 
@@ -155,8 +149,6 @@ CEN AS (
 )
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*0.95 AS [% Acept],
-
-    -- Total dinámico: suma solo los meses 1..@Mes
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -199,7 +191,6 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    -- meses posteriores a @Periodo en 0
     CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
     CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
     CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
@@ -217,24 +208,24 @@ FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
 LEFT OUTER JOIN (
-    SELECT 
+         
+        SELECT 
         cen.id, 
         est.tipo AS tipo_indicador, 
         est.indicador, 
-        -- Extracción real del valor del estándar según el mes seleccionado
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -242,9 +233,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 
@@ -279,8 +271,6 @@ CEN AS (
 )
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*1.1 AS [% Acept], 
-
-    -- Total dinámico: suma solo los meses 1..@Mes
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -323,7 +313,6 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    -- meses posteriores a @Periodo en 0
     CASE WHEN @Mes >= 1  THEN ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) ELSE 0 END AS [202601],
     CASE WHEN @Mes >= 2  THEN ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) ELSE 0 END AS [202602],
     CASE WHEN @Mes >= 3  THEN ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) ELSE 0 END AS [202603],
@@ -345,20 +334,19 @@ LEFT OUTER JOIN (
         cen.id, 
         est.tipo AS tipo_indicador, 
         est.indicador, 
-        -- Extracción real del valor del estándar según el mes seleccionado
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -366,11 +354,11 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
-
 
 
 /*CE_RHrMedico - Rendimiento Hora Medico */
@@ -404,8 +392,6 @@ CEN_TIPO AS (
 )
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar *0.9  AS [% Acept], 
-
-    -- Total dinámico: suma solo los meses 1..@Mes
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -448,7 +434,6 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    -- meses posteriores a @Periodo en 0
     CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
     CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
     CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
@@ -471,18 +456,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_nivel.estandar_01
+            WHEN 2  THEN est_nivel.estandar_02
+            WHEN 3  THEN est_nivel.estandar_03
+            WHEN 4  THEN est_nivel.estandar_04
+            WHEN 5  THEN est_nivel.estandar_05
+            WHEN 6  THEN est_nivel.estandar_06
+            WHEN 7  THEN est_nivel.estandar_07
+            WHEN 8  THEN est_nivel.estandar_08
+            WHEN 9  THEN est_nivel.estandar_09
+            WHEN 10 THEN est_nivel.estandar_10
+            WHEN 11 THEN est_nivel.estandar_11
+            WHEN 12 THEN est_nivel.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -490,9 +475,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento Hora Medico' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Hora Medico' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
 
@@ -500,8 +486,6 @@ UNION ALL
 
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar *0.9 AS [% Acept], 
-
-    -- Total dinámico: suma solo los meses 1..@Mes
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -544,7 +528,6 @@ SELECT DISTINCT
             CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    -- meses posteriores a @Periodo en 0
     CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
     CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
     CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
@@ -567,18 +550,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -586,9 +569,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento Hora Medico' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Hora Medico' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
 ORDER BY ORDEN;
@@ -686,18 +670,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -705,9 +689,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
  ) AS D ON CEN.codcentro = D.codcentro
 
 
@@ -802,18 +787,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -821,9 +806,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I')
 
@@ -922,18 +908,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -941,9 +927,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Promedio Dia Estancia' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Promedio Dia Estancia' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* H_ISust - Intervalo de Sustitución */
@@ -1057,18 +1044,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1076,9 +1063,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Intervalo de Sustitución' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Intervalo de Sustitución' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* H_OCama - Porcentaje de Ocupación de Cama */
@@ -1176,18 +1164,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1195,9 +1183,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* H_RCama -  Rendimiento Cama */
@@ -1253,20 +1242,7 @@ SELECT DISTINCT
             CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
             CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
             CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
-         ) * 1.00 * (
-            CASE WHEN @Mes>=1  AND B.[202601] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=2  AND B.[202602] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=3  AND B.[202603] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=4  AND B.[202604] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=5  AND B.[202605] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=6  AND B.[202606] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=7  AND B.[202607] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=8  AND B.[202608] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=9  AND B.[202609] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=10 AND B.[202610] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=11 AND B.[202611] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=12 AND B.[202612] > 0 THEN 1 ELSE 0 END
-         ) / (
+         ) * 1.00  / (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
             CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
@@ -1303,18 +1279,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1322,9 +1298,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento Cama' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* H_TBMHosp - Tasa Neta de Mortalidad Hospitalaria*/
@@ -1460,18 +1437,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1479,9 +1456,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo 
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* O_Concent -  Concentración de Sesiones Odontológicas*/
@@ -1575,18 +1553,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_nivel.estandar_01
+            WHEN 2  THEN est_nivel.estandar_02
+            WHEN 3  THEN est_nivel.estandar_03
+            WHEN 4  THEN est_nivel.estandar_04
+            WHEN 5  THEN est_nivel.estandar_05
+            WHEN 6  THEN est_nivel.estandar_06
+            WHEN 7  THEN est_nivel.estandar_07
+            WHEN 8  THEN est_nivel.estandar_08
+            WHEN 9  THEN est_nivel.estandar_09
+            WHEN 10 THEN est_nivel.estandar_10
+            WHEN 11 THEN est_nivel.estandar_11
+            WHEN 12 THEN est_nivel.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1594,9 +1572,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.anio = cen.anio
-    WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* O_GCHOdon - Grado de Cumplimiento de Hora Odontólogo */
@@ -1689,18 +1668,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1708,14 +1687,15 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* O_HrOdont - Rendimiento de Hora Odontológica */
 
-DECLARE @Periodo CHAR(6) = '202609';         
+DECLARE @Periodo CHAR(6) = '202608';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -1805,18 +1785,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_nivel.estandar_01
+            WHEN 2  THEN est_nivel.estandar_02
+            WHEN 3  THEN est_nivel.estandar_03
+            WHEN 4  THEN est_nivel.estandar_04
+            WHEN 5  THEN est_nivel.estandar_05
+            WHEN 6  THEN est_nivel.estandar_06
+            WHEN 7  THEN est_nivel.estandar_07
+            WHEN 8  THEN est_nivel.estandar_08
+            WHEN 9  THEN est_nivel.estandar_09
+            WHEN 10 THEN est_nivel.estandar_10
+            WHEN 11 THEN est_nivel.estandar_11
+            WHEN 12 THEN est_nivel.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1824,9 +1804,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
 
@@ -1897,18 +1878,18 @@ SELECT
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1916,9 +1897,10 @@ SELECT
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
 ORDER BY ORDEN;
@@ -2015,18 +1997,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2034,9 +2016,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar =  est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
 
@@ -2129,18 +2112,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2148,9 +2131,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* Qx_HTCesareas - Tasa de Cesáreas*/
@@ -2246,18 +2230,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2265,9 +2249,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Tasa de Cesáreas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Tasa de Cesáreas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* Qx_IAlta - Porcentaje de Intervenciones de Alta Complejidad*/
@@ -2365,18 +2350,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2384,9 +2369,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
                       'JUNIN', 'LA LIBERTAD', 'LAMBAYEQUE', 'LORETO', 'MADRE DE DIOS', 'MOQUEGUA', 'MOYOBAMBA', 'PASCO', 'PIURA', 'PUNO', 'REBAGLIATI', 'SABOGAL', 'TACNA', 
@@ -2488,18 +2474,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2507,13 +2493,13 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* Qx_IntSusp - Porcentaje de Operaciones Suspendidas*/
-
 
 DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
@@ -2624,9 +2610,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 /* Qx_RendSO - Rendimiento de Sala de Operaciones*/
@@ -2724,18 +2711,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2743,9 +2730,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
 

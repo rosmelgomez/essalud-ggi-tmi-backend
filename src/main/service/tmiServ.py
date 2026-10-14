@@ -1,5 +1,6 @@
 from src.main.dtos.tmiDto import (
     centroTmiDto,
+    tmiEstandarDto,
     tmiEstandarTipoDto,
     tmiEstandarNivelDto,
     tmiEstandarCategoriaDto,
@@ -13,20 +14,18 @@ from datetime import date
 
 
 #tmi_centro
-def queryCentrosTMIServ(db: Session, periodo:str):
+def queryCentrosTMIServ(db: Session, anio: int):
     try:
         from src.main.repositories.tmiRep import queryCentrosTMI
-        result = queryCentrosTMI(db, periodo)
+        result = queryCentrosTMI(db, anio)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertCentrosTMIServ(db: Session, periodo_actual: str, periodo_anterior:str):
+def queryInsertCentrosTMIServ(db: Session, centro: centroTmiDto):
     try:
         from src.main.repositories.tmiRep import queryInsertCentrosTMI
-        ##if not periodo_anterior:
-            ##periodo_anterior = calcular_periodo_anterior(periodo_actual)
-        result = queryInsertCentrosTMI(db, periodo_actual, periodo_anterior)
+        result = queryInsertCentrosTMI(db, centro)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -40,11 +39,35 @@ def queryUpdateCentrosTMIServ(db: Session, dto:centroTmiDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# tmi_estandar
+def queryEstandarServ(db: Session):
+    try:
+        from src.main.repositories.tmiRep import queryEstandar
+        return queryEstandar(db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryInsertEstandarServ(db: Session, dto: tmiEstandarDto):
+    try:
+        from src.main.repositories.tmiRep import queryInsertEstandar
+        return queryInsertEstandar(db, dto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryUpdateEstandarServ(db: Session, dto: tmiEstandarDto):
+    validarFilaEditable(db, "tmi_estandar", dto)
+    try:
+        from src.main.repositories.tmiRep import queryUpdateEstandar
+        return queryUpdateEstandar(db, dto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # tmi_estandar_tipo
-def queryEstandarTipoServ(db: Session, periodo: str):
+def queryEstandarTipoServ(db: Session, anio: int):
     try:
         from src.main.repositories.tmiRep import queryEstandarTipo
-        return queryEstandarTipo(db, periodo)
+        return queryEstandarTipo(db, anio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -66,10 +89,10 @@ def queryUpdateEstandarTipoServ(db: Session, dto: tmiEstandarTipoDto):
         raise HTTPException(status_code=500, detail=str(e))
 
 # tmi_estandar_nivel
-def queryEstandarNivelServ(db: Session, periodo: str):
+def queryEstandarNivelServ(db: Session, anio: int):
     try:
         from src.main.repositories.tmiRep import queryEstandarNivel
-        return queryEstandarNivel(db, periodo)
+        return queryEstandarNivel(db, anio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

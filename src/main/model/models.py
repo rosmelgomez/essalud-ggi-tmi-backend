@@ -1,6 +1,6 @@
 
 
-from sqlalchemy import Boolean, Double
+from sqlalchemy import Boolean, Double, ForeignKey
 from src.main.db.databaseConexion import Base
 from sqlalchemy import Column, Date, DateTime, Integer, String
 
@@ -21,14 +21,31 @@ class tmi_estandar(Base):
     id = Column(Integer,primary_key=True)
     tipo = Column(String(50))
     indicador = Column(String(50))
-    ##anio = Column(Integer())
+    fecha_creacion = Column(DateTime())
+    fecha_modificacion = Column(DateTime())
 
-    
+class tmi_estandar_evaluacion(Base):
+    __tablename__ = "tmi_estandar_evaluacion"
+    id = Column(Integer,primary_key=True)
+    id_estandar = Column(Integer(), ForeignKey("tmi_estandar.id"))
+    anio = Column(Integer())
+    evaluacion_01 = Column(Integer())
+    evaluacion_02 = Column(String(6))
+    evaluacion_03 = Column(String(6))
+    evaluacion_04 = Column(String(6))
+    evaluacion_05 = Column(String(6))
+    evaluacion_06 = Column(String(6))
+    evaluacion_07 = Column(String(6))
+    evaluacion_08 = Column(String(6))
+    evaluacion_09 = Column(String(6))
+    evaluacion_10 = Column(String(6))
+    evaluacion_11 = Column(String(6))
+    evaluacion_12 = Column(String(6))
 
 class tmi_estandar_tipo(Base):
     __tablename__ = "tmi_estandar_tipo"
     id = Column(Integer,primary_key=True)
-    id_estandar = Column(Integer())
+    id_estandar = Column(Integer(), ForeignKey("tmi_estandar.id"))
     tipo_centro = Column(String(50))
     anio = Column(Integer())
     estandar_01 = Column(Double())
@@ -44,11 +61,10 @@ class tmi_estandar_tipo(Base):
     estandar_11 = Column(Double())
     estandar_12 = Column(Double())
 
-
 class tmi_estandar_nivel(Base):
     __tablename__ = "tmi_estandar_nivel"
     id = Column(Integer,primary_key=True)
-    id_estandar = Column(Integer())
+    id_estandar = Column(Integer(), ForeignKey("tmi_estandar.id"))
     nivel_centro = Column(String(50))
     anio = Column(Integer())
     estandar_01 = Column(Double())
@@ -63,7 +79,6 @@ class tmi_estandar_nivel(Base):
     estandar_10 = Column(Double())
     estandar_11 = Column(Double())
     estandar_12 = Column(Double())
-
 
 class tmi_estandar_categoria(Base):
     __tablename__ = "tmi_estandar_categoria"
@@ -83,7 +98,6 @@ class tmi_estandar_categoria(Base):
     estandar_10 = Column(Double())
     estandar_11 = Column(Double())
     estandar_12 = Column(Double())
-
 
 class tmi_centro(Base):
     __tablename__ = "tmi_centro"
