@@ -8,7 +8,6 @@ from src.main.dtos.tmiDto import (
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
 from typing import Optional
 from datetime import date
 
@@ -39,6 +38,14 @@ def queryUpdateCentrosTMIServ(db: Session, dto:centroTmiDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteCentrosTMIServ(db: Session, id:int):
+    try:
+        from src.main.repositories.tmiRep import queryDeleteCentrosTMI
+        result = queryDeleteCentrosTMI(db, id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # tmi_estandar
 def queryEstandarServ(db: Session):
     try:
@@ -62,6 +69,13 @@ def queryUpdateEstandarServ(db: Session, dto: tmiEstandarDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteEstandarServ(db: Session, id: int):
+    try:
+        from src.main.repositories.tmiRep import queryDeleteEstandar
+        return queryDeleteEstandar(db, id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # tmi_estandar_tipo
 def queryEstandarTipoServ(db: Session, anio: int):
@@ -71,12 +85,10 @@ def queryEstandarTipoServ(db: Session, anio: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarTipoServ(db: Session, periodo_actual: str, periodo_anterior: Optional[str] = None):
+def queryInsertEstandarTipoServ(db: Session, dto:tmiEstandarTipoDto):
     try:
         from src.main.repositories.tmiRep import queryInsertEstandarTipo
-        ##if not periodoAnterior:
-        ##    periodoAnterior = calcular_periodo_anterior(periodo_actual)
-        return queryInsertEstandarTipo(db, periodo_actual, periodo_anterior)
+        return queryInsertEstandarTipo(db, dto)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -88,6 +100,14 @@ def queryUpdateEstandarTipoServ(db: Session, dto: tmiEstandarTipoDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteEstandarTipoServ(db: Session, id: int):
+    try:
+        from src.main.repositories.tmiRep import queryDeleteEstandarTipo
+        return queryDeleteEstandarTipo(db, id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # tmi_estandar_nivel
 def queryEstandarNivelServ(db: Session, anio: int):
     try:
@@ -96,12 +116,10 @@ def queryEstandarNivelServ(db: Session, anio: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarNivelServ(db: Session, periodo_actual: str, periodo_anterior: Optional[str] = None):
+def queryInsertEstandarNivelServ(db: Session, dto: tmiEstandarNivelDto):
     try:
         from src.main.repositories.tmiRep import queryInsertEstandarNivel
-        ##if not periodoAnterior:
-        ##    periodoAnterior = calcular_periodo_anterior(periodo)
-        return queryInsertEstandarNivel(db, periodo_actual, periodo_anterior)
+        return queryInsertEstandarNivel(db, dto)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -113,6 +131,14 @@ def queryUpdateEstandarNivelServ(db: Session, dto: tmiEstandarNivelDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteEstandarNivelServ(db: Session, id: int):
+    try:
+        from src.main.repositories.tmiRep import queryDeleteEstandarNivel
+        return queryDeleteEstandarNivel(db, id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # tmi_estandar_categoria
 def queryEstandarCategoriaServ(db: Session, periodo: str):
     try:
@@ -121,12 +147,10 @@ def queryEstandarCategoriaServ(db: Session, periodo: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarCategoriaServ(db: Session, periodo: str, periodoAnterior: Optional[str] = None):
+def queryInsertEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
     try:
         from src.main.repositories.tmiRep import queryInsertEstandarCategoria
-        if not periodoAnterior:
-            periodoAnterior = calcular_periodo_anterior(periodo)
-        return queryInsertEstandarCategoria(db, periodo, periodoAnterior)
+        return queryInsertEstandarCategoria(db, dto)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,22 +162,13 @@ def queryUpdateEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-### consultar estandares tipo por centro
-def queryEstandaresTipoCentroServ(db: Session, codcas:str, periodo: str):
+def queryDeleteEstandarCategoriaServ(db: Session, id: int):
     try:
-        from src.main.repositories.tmiRep import queryEstandaresTipoCentro
-        return queryEstandaresTipoCentro(db, codcas, periodo)
+        from src.main.repositories.tmiRep import queryDeleteEstandarCategoria
+        return queryDeleteEstandarCategoria(db, id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-### consultar estandares nivel por centro
-def queryEstandaresNivelCentroServ(db: Session, codcas:str, periodo: str):
-    try:
-        from src.main.repositories.tmiRep import queryEstandarNivelCentro
-        return queryEstandarNivelCentro(db, codcas, periodo)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 ### alta de filas (centros y estándares)
@@ -168,7 +183,6 @@ def queryCreateEstandarNivelServ(db: Session, dto: tmiEstandarNivelDto):
 
 def queryCreateEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
     return _crearFila(db, "tmi_estandar_categoria", dto)
-
 
 def _crearFila(db: Session, tabla: str, dto):
     from src.main.repositories.tmiRep import queryCreateFila
@@ -261,6 +275,7 @@ def calcular_periodo_anterior(periodo: str) -> str:
         return f"{anio}{mes:02d}"
     except Exception:
         return periodo
+
 
 ##consultas
 ##CE_Concent

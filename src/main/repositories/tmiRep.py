@@ -14,8 +14,8 @@ from sqlalchemy import text
 def queryCentrosTMI(db: Session, anio:int):
     try:
         query = f"""
-        SElECT * FROM [pentahodev_prueba_01].[dbo].[tmi_centro]
-        WHERE periodo = :anio
+        SElECT * FROM pentahodev_prueba_01.dbo.tmi_centro 
+        WHERE anio = :anio
         """
         result = db.execute(text(query), {"anio": anio})
         return [dict(row) for row in result.mappings()]
@@ -70,6 +70,19 @@ def queryUpdateCentrosTMI(db: Session, dto:centroTmiDto):
         return {"message": "Centro TMI actualizado correctamente", "rows_affected": result.rowcount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+def queryDeleteCentrosTMI(db: Session, id:int):
+    try:
+        query = f"""
+        DELETE FROM pentahodev_prueba_01.dbo.tmi_centro
+        WHERE id = :id
+        """
+        result = db.execute(text(query), {"id": id})
+        db.commit()
+        return {"message": "Centro TMI eliminado correctamente", "rows_deleted": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 ### tmi_estandar
 def queryEstandar(db: Session ):
@@ -130,7 +143,7 @@ def queryDeleteEstandar(db: Session, id: int):
 def queryEstandarTipo(db: Session, anio: int):
     try:
         query = """
-        SELECT est_t.id, est.tipo, est.indicador, est_t.tipo_centro, est_t.anio, est_t.estandar_01, est_t.estandar_02, est_t.estandar_03, est_t.estandar_04,est_t.estandar_05, 
+        SELECT est_t.id, est_t.id_estandar, est.tipo, est.indicador, est_t.tipo_centro, est_t.anio, est_t.estandar_01, est_t.estandar_02, est_t.estandar_03, est_t.estandar_04,est_t.estandar_05, 
         est_t.estandar_06, est_t.estandar_07, est_t.estandar_08, est_t.estandar_09, est_t.estandar_10, est_t.estandar_11, est_t.estandar_12
         FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_t
         JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_t.id_estandar = est.id
@@ -159,8 +172,8 @@ def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
     try:
         query = """
         UPDATE dbo.tmi_estandar_tipo
-            SET tipo = :tipo
-            ,indicador = :indicador
+            SET 
+            id_estandar = :id_estandar
             ,tipo_centro = :tipo_centro
             ,anio = :anio
             ,estandar_01 = :estandar_01
@@ -185,6 +198,17 @@ def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteEstandarTipo(db: Session, id: int):
+    try:
+        query = """
+        DELETE FROM dbo.tmi_estandar_tipo
+        WHERE id = :id
+        """
+        result = db.execute(text(query), {"id": id})
+        db.commit()
+        return {"message": "Estándar Tipo eliminado correctamente", "rows_deleted": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 ### tmi_estandar_nivel
 def queryEstandarNivel(db: Session, anio: int):
@@ -201,19 +225,15 @@ def queryEstandarNivel(db: Session, anio: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarNivel(db: Session, periodo_actual: str, periodo_anterior: str):
+def queryInsertEstandarNivel(db: Session, estardar_nivel: tmiEstandarNivelDto):
     try:
-        anio = periodo_actual[0:4]
-        mes = periodo_actual[4:6]
-
         query = """
         INSERT INTO pentahodev_prueba.dbo.tmi_estandar_nivel
-        (tipo ,indicador ,nivel_centro ,anio ,mes ,periodo ,estandar ,acept ,aceptmenos)
-        SELECT tipo ,indicador ,nivel_centro ,:anio ,:mes ,:periodo_actual ,estandar ,acept ,aceptmenos
-        FROM pentahodev_prueba.dbo.tmi_estandar_nivel
-        WHERE periodo = :periodo_anterior
+        (id_estandar, nivel_centro ,anio, estandar_01 ,estandar_02 ,estandar_03 ,estandar_04 ,estandar_05 ,estandar_06 ,estandar_07 ,estandar_08 ,estandar_09 ,estandar_10 ,estandar_11 ,estandar_12)
+        VALUES (:id_estandar ,:nivel_centro ,:anio ,:estandar_01 ,:estandar_02 ,:estandar_03 ,:estandar_04 ,:estandar_05 ,:estandar_06 ,:estandar_07 ,:estandar_08 ,:estandar_09 ,:estandar_10 ,:estandar_11 ,:estandar_12)
         """
-        result = db.execute(text(query), {"periodo_anterior": periodo_anterior, "periodo_actual": periodo_actual, "anio": anio, "mes": mes})
+        params = estardar_nivel.model_dump() if hasattr(estardar_nivel, "model_dump") else estardar_nivel.dict()
+        result = db.execute(text(query), params)
         db.commit()
         return {"message": "Estándares por Nivel insertados correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
@@ -223,12 +243,10 @@ def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
     try:
         query = """
         UPDATE pentahodev_prueba.dbo.tmi_estandar_nivel
-            SET tipo = :tipo
-            ,indicador = :indicador
+            SET 
+             id_estandar = :id_estandar
             ,nivel_centro = :nivel_centro
             ,anio = :anio
-            ,mes = :mes
-            ,periodo = :periodo
             ,estandar_01 = :estandar_01
             ,estandar_02 = :estandar_02
             ,estandar_03 = :estandar_03
@@ -251,6 +269,19 @@ def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteEstandarNivel(db: Session, id: int):
+    try:
+        query = """
+        DELETE FROM pentahodev_prueba.dbo.tmi_estandar_nivel
+        WHERE id = :id
+        """
+        result = db.execute(text(query), {"id": id})
+        db.commit()
+        return {"message": "Estándar Nivel eliminado correctamente", "rows_deleted": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 ### tmi_estandar_categoria
 def queryEstandarCategoria(db: Session, periodo: str):
     try:
@@ -263,16 +294,15 @@ def queryEstandarCategoria(db: Session, periodo: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandarCategoria(db: Session, periodo_actual: str, periodo_anterior: str):
+def queryInsertEstandarCategoria(db: Session, estandar_categoria: tmiEstandarCategoriaDto):
     try:
         query = """
         INSERT INTO pentahodev_prueba.dbo.tmi_estandar_categoria
-        (tipo, indicador, categoria_centro, anio, mes, periodo, estandar, acept, aceptmenos)
-        SELECT tipo, indicador, categoria_centro, CAST(SUBSTRING(:periodo_actual, 1, 4) AS INT), CAST(SUBSTRING(:periodo_actual, 5, 2) AS INT), :periodo_actual, estandar, acept, aceptmenos
-        FROM pentahodev_prueba.dbo.tmi_estandar_categoria
-        WHERE periodo = :periodo_anterior
+        (id_estandar, categoria_centro, anio, estandar_01, estandar_02, estandar_03, estandar_04, estandar_05, estandar_06, estandar_07, estandar_08, estandar_09, estandar_10, estandar_11, estandar_12)
+        VALUES (:id_estandar, :categoria_centro, :anio, :estandar_01, :estandar_02, :estandar_03, :estandar_04, :estandar_05, :estandar_06, :estandar_07, :estandar_08, :estandar_09, :estandar_10, :estandar_11, :estandar_12)
         """
-        result = db.execute(text(query), {"periodo_actual": periodo_actual, "periodo_anterior": periodo_anterior})
+        params = estandar_categoria.model_dump() if hasattr(estandar_categoria, "model_dump") else estandar_categoria.dict()
+        result = db.execute(text(query), params)
         db.commit()
         return {"message": "Estándares por Categoría insertados correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
@@ -283,20 +313,39 @@ def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
         query = """
         UPDATE pentahodev_prueba.dbo.tmi_estandar_categoria
             SET [tipo] = :tipo
-            ,[indicador] = :indicador
-            ,[categoria_centro] = :categoria_centro
-            ,[anio] = :anio
-            ,[mes] = :mes
-            ,[periodo] = :periodo
-            ,[estandar] = :estandar
-            ,[acept] = :acept
-            ,[aceptmenos] = :aceptmenos
+            ,id_indicador = :indicador
+            ,categoria_centro = :categoria_centro
+            ,anio = :anio
+            ,estandar_01 = :estandar_01
+            ,estandar_02 = :estandar_02
+            ,estandar_03 = :estandar_03
+            ,estandar_04 = :estandar_04
+            ,estandar_05 = :estandar_05
+            ,estandar_06 = :estandar_06
+            ,estandar_07 = :estandar_07
+            ,estandar_08 = :estandar_08
+            ,estandar_09 = :estandar_09
+            ,estandar_10 = :estandar_10
+            ,estandar_11 = :estandar_11
+            ,estandar_12 = :estandar_12
         WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND categoria_centro = :categoria_centro AND periodo = :periodo)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Estándar Categoría actualizado correctamente", "rows_affected": result.rowcount}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryDeleteEstandarCategoria(db: Session, id: int):
+    try:
+        query = """
+        DELETE FROM pentahodev_prueba.dbo.tmi_estandar_categoria
+        WHERE id = :id
+        """
+        result = db.execute(text(query), {"id": id})
+        db.commit()
+        return {"message": "Estándar Categoría eliminado correctamente", "rows_deleted": result.rowcount}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -355,33 +404,6 @@ def queryCreateFila(db: Session, tabla: str, params: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-### consultar estandares tipo por centro
-def queryEstandaresTipoCentro(db: Session, codcentro:str, periodo:str):
-    try:
-        query = f"""
-            SELECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.periodo
-            FROM pentahodev_prueba.dbo.tmi_estandar_tipo est
-            JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo
-            WHERE cen.codcentro = :codcentro AND est.periodo = :periodo
-        """
-        result = db.execute(text(query), {"codcentro": codcentro, "periodo": periodo})
-        return [dict(row) for row in result.mappings()]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-### consultar estandares nivel por centro
-def queryEstandarNivelCentro(db: Session, codcentro:str , periodo:str) :
-    try:
-        query = f"""
-            SELECT est.*, cen.codcentro, cen.centro, cen.tipo, cen.nivel, cen.periodo
-            FROM pentahodev_prueba.dbo.tmi_estandar_nivel est
-            JOIN pentahodev_prueba.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel
-            WHERE cen.codcentro = :codcentro AND est.periodo = :periodo
-        """
-        result = db.execute(text(query), {"codcentro": codcentro, "periodo": periodo})
-        return [dict(row) for row in result.mappings()]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 ### consulta de vistas
@@ -1147,7 +1169,7 @@ FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
 WHERE     (Variable IN ('Emergencia - Prioridad IV', 'Emergencia - Prioridad V', 'Emergencia - Total de Atenciones'))
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar* 0.9 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.2 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
@@ -1485,18 +1507,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1504,9 +1526,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Intervalo de Sustitución' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Intervalo de Sustitución' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -1612,18 +1635,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1631,9 +1654,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -1697,20 +1721,7 @@ SELECT DISTINCT
             CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
             CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
             CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
-         ) * 1.00 * (
-            CASE WHEN @Mes>=1  AND B.[202601] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=2  AND B.[202602] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=3  AND B.[202603] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=4  AND B.[202604] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=5  AND B.[202605] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=6  AND B.[202606] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=7  AND B.[202607] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=8  AND B.[202608] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=9  AND B.[202609] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=10 AND B.[202610] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=11 AND B.[202611] > 0 THEN 1 ELSE 0 END +
-            CASE WHEN @Mes>=12 AND B.[202612] > 0 THEN 1 ELSE 0 END
-         ) / (
+         ) * 1.00  / (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
             CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
@@ -1747,18 +1758,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1766,9 +1777,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento Cama' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -1912,18 +1924,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1931,9 +1943,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo 
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -2035,18 +2048,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_nivel.estandar_01
+            WHEN 2  THEN est_nivel.estandar_02
+            WHEN 3  THEN est_nivel.estandar_03
+            WHEN 4  THEN est_nivel.estandar_04
+            WHEN 5  THEN est_nivel.estandar_05
+            WHEN 6  THEN est_nivel.estandar_06
+            WHEN 7  THEN est_nivel.estandar_07
+            WHEN 8  THEN est_nivel.estandar_08
+            WHEN 9  THEN est_nivel.estandar_09
+            WHEN 10 THEN est_nivel.estandar_10
+            WHEN 11 THEN est_nivel.estandar_11
+            WHEN 12 THEN est_nivel.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2054,9 +2067,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.anio = cen.anio
-    WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -2157,18 +2171,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2176,9 +2190,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -2281,18 +2296,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_nivel.estandar_01
+            WHEN 2  THEN est_nivel.estandar_02
+            WHEN 3  THEN est_nivel.estandar_03
+            WHEN 4  THEN est_nivel.estandar_04
+            WHEN 5  THEN est_nivel.estandar_05
+            WHEN 6  THEN est_nivel.estandar_06
+            WHEN 7  THEN est_nivel.estandar_07
+            WHEN 8  THEN est_nivel.estandar_08
+            WHEN 9  THEN est_nivel.estandar_09
+            WHEN 10 THEN est_nivel.estandar_10
+            WHEN 11 THEN est_nivel.estandar_11
+            WHEN 12 THEN est_nivel.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2300,9 +2315,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.nivel_centro = cen.nivel AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
 
@@ -2373,18 +2389,18 @@ SELECT
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2392,9 +2408,10 @@ SELECT
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento de Hora Odontológica' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
 ORDER BY ORDEN;
@@ -2499,18 +2516,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2518,9 +2535,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar =  est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
 """
@@ -2556,7 +2574,7 @@ CEN AS (
       WHERE     Variable IN ('Centro Quirúrgico - Horas Uso de Sala', 'Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.90 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar - 0.1 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -2621,18 +2639,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2640,9 +2658,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -2746,18 +2765,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2765,9 +2784,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Tasa de Cesáreas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Tasa de Cesáreas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -2873,18 +2893,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2892,9 +2912,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
                       'JUNIN', 'LA LIBERTAD', 'LAMBAYEQUE', 'LORETO', 'MADRE DE DIOS', 'MOQUEGUA', 'MOYOBAMBA', 'PASCO', 'PIURA', 'PUNO', 'REBAGLIATI', 'SABOGAL', 'TACNA', 
@@ -3004,18 +3025,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -3023,9 +3044,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -3128,18 +3150,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -3147,9 +3169,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})
@@ -3255,18 +3278,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -3274,9 +3297,10 @@ LEFT OUTER JOIN (
         cen.nivel, 
         cen.tipo, 
         cen.categoria
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est.tipo_centro = cen.tipo AND est.anio = cen.anio
-    WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est.anio = @Anio
+    FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
+    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 """
         result = db.execute(text(query), {"periodo": periodo})

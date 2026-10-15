@@ -27,18 +27,17 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)],
 )
 
-## insertar en bloque por periodo anterior periodoactual
 
 
 # Endpoints tmi_centro
-@router.get("/lista-centros/{periodo}")
+@router.get("/lista-centros/{anio}")
 async def queryCentrosTMI(
-    periodo:str,
+    anio:int,
     db: Session = Depends(get_db),
 ):
     try:
         from src.main.service.tmiServ import queryCentrosTMIServ
-        return queryCentrosTMIServ(db,periodo)
+        return queryCentrosTMIServ(db,anio)
     except HTTPException:
         raise
     except Exception as e:
@@ -105,23 +104,6 @@ async def queryDeleteCentroTMI(
             detail="Ocurrió un error al eliminar el centro TMI.",
         )
 
-@router.get("/queryInsertCentrosTMIServ/{periodoActual}/{periodoAnterior}")
-async def queryInsertCentrosTMI(
-    periodoActual:str,
-    periodoAnterior:str,
-    db: Session = Depends(get_db),
-):
-    try:
-        from src.main.service.tmiServ import queryInsertCentrosTMIServ
-        return queryInsertCentrosTMIServ(db,periodoActual,periodoAnterior)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("Error al consultar centros TMI: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ocurrió un error al consultar los centros TMI.",
-        )
 
 # Endpoints tmi_estandar
 @router.get("/lista-estandar")
@@ -330,14 +312,14 @@ async def queryDeleteEstandarNivel(
 
 
 # Endpoints tmi_estandar_categoria
-@router.get("/lista-estandar-categoria/{periodo}")
+@router.get("/lista-estandar-categoria/{anio}")
 async def queryEstandarCategoria(
-    periodo: str,
+    anio: int,
     db: Session = Depends(get_db),
 ):
     try:
         from src.main.service.tmiServ import queryEstandarCategoriaServ
-        return queryEstandarCategoriaServ(db, periodo)
+        return queryEstandarCategoriaServ(db, anio)
     except HTTPException:
         raise
     except Exception as e:
@@ -401,44 +383,6 @@ async def queryDeleteEstandarCategoria(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al eliminar el estándar categoría.",
-        )
-
-### consultar estandares tipo por centro
-@router.get("/lista-estandar-tipo-centro/{codcas}/{periodo}")
-async def queryEstandarCentro(
-    codcas:str,
-    periodo: str,
-    db: Session = Depends(get_db),
-):
-    try:
-        from src.main.service.tmiServ import queryEstandaresTipoCentroServ
-        return queryEstandaresTipoCentroServ(db, codcas, periodo)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("Error al consultar estandar centro: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ocurrió un error al consultar la lista de estándares por centro.",
-        )
-
-### consultar estandares nivel por centro
-@router.get("/lista-estandar-nivel-centro/{codcas}/{periodo}")
-async def queryEstandarNivelCentro(
-    codcas:str,
-    periodo: str,
-    db: Session = Depends(get_db),
-):
-    try:
-        from src.main.service.tmiServ import queryEstandaresNivelCentroServ
-        return queryEstandaresNivelCentroServ(db, codcas, periodo)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("Error al consultar estandar nivel centro: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ocurrió un error al consultar la lista de estándares por nivel por centro.",
         )
 
 
