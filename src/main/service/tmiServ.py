@@ -45,6 +45,7 @@ def queryDeleteCentrosTMIServ(db: Session, id:int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # tmi_estandar
 def queryEstandarServ(db: Session):
     try:
@@ -166,58 +167,6 @@ def queryDeleteEstandarCategoriaServ(db: Session, id: int):
 
 
 
-### alta de filas (centros y estándares)
-def queryCreateCentroTMIServ(db: Session, dto: centroTmiDto):
-    return _crearFila(db, "tmi_centro", dto)
-
-def queryCreateEstandarTipoServ(db: Session, dto: tmiEstandarTipoDto):
-    return _crearFila(db, "tmi_estandar_tipo", dto)
-
-def queryCreateEstandarNivelServ(db: Session, dto: tmiEstandarNivelDto):
-    return _crearFila(db, "tmi_estandar_nivel", dto)
-
-def queryCreateEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
-    return _crearFila(db, "tmi_estandar_categoria", dto)
-
-def _crearFila(db: Session, tabla: str, dto):
-    from src.main.repositories.tmiRep import queryCreateFila
-    validarFilaEditable(db, tabla, dto)
-    params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
-    result = queryCreateFila(db, tabla, params)
-    _actualizarFilasCierres(db)
-    return result
-
-
-### eliminación de filas (centros y estándares)
-TABLAS_FILAS = ("tmi_centro", "tmi_estandar_tipo", "tmi_estandar_nivel", "tmi_estandar_categoria")
-
-
-def queryDeleteFilaServ(db: Session, tabla: str, id: int):
-    from src.main.repositories.tmiRep import queryContarFilasPeriodo, queryDeleteFila, queryPeriodoDeFila
-    if tabla not in TABLAS_FILAS:
-        raise HTTPException(status_code=400, detail=f"Tabla no permitida: {tabla}.")
-    periodo = queryPeriodoDeFila(db, tabla, id)
-    if periodo is None:
-        raise HTTPException(status_code=404, detail=f"No existe la fila con id {id}.")
-    minimo = periodo_minimo_editable()
-    if periodo < minimo:
-        raise HTTPException(status_code=400, detail=f"La fila es del periodo {periodo}, que ya no se puede modificar; el mínimo permitido es {minimo}.")
-    # si el periodo queda vacío, el cierre lo volvería a generar copiando el periodo anterior
-    if queryContarFilasPeriodo(db, tabla, periodo) <= 1:
-        raise HTTPException(status_code=400, detail=f"No se puede eliminar la última fila del periodo {periodo}.")
-    result = queryDeleteFila(db, tabla, id)
-    _actualizarFilasCierres(db)
-    return result
-
-
-def _actualizarFilasCierres(db: Session):
-    """Mantiene filas_insertadas de los cierres al día después de agregar filas."""
-    try:
-        from src.main.service.cierreServ import _actualizarFilasCierres as actualizar
-        actualizar(db)
-    except Exception:
-        db.rollback()
-
 
 # procesos internos 
 def periodo_minimo_editable(hoy: Optional[date] = None) -> str:
@@ -226,34 +175,6 @@ def periodo_minimo_editable(hoy: Optional[date] = None) -> str:
     hoy = hoy or date.today()
     return calcular_periodo_anterior(f"{hoy.year}{hoy.month:02d}")
 
-
-def validarFilaEditable(db: Session, tabla: str, dto):
-    """Valida el periodo de una fila nueva o modificada; lanza 400 si no se permite."""
-    from src.main.repositories.tmiRep import CLAVES_TABLA, queryContarFilasPeriodo, queryExisteFilaPeriodo, queryPeriodoDeFila
-
-    periodo = str(dto.periodo or "").strip()
-    if len(periodo) != 6 or not periodo.isdigit() or not 1 <= int(periodo[4:]) <= 12:
-        raise HTTPException(status_code=400, detail=f"Periodo inválido: '{periodo}'.")
-    minimo = periodo_minimo_editable()
-    if periodo < minimo:
-        raise HTTPException(status_code=400, detail=f"El periodo {periodo} ya no se puede modificar; el mínimo permitido es {minimo}.")
-    if dto.id is not None:
-        periodo_actual = queryPeriodoDeFila(db, tabla, dto.id)
-        if periodo_actual is None:
-            raise HTTPException(status_code=404, detail=f"No existe la fila con id {dto.id}.")
-        if periodo_actual < minimo:
-            raise HTTPException(status_code=400, detail=f"La fila es del periodo {periodo_actual}, que ya no se puede modificar; el mínimo permitido es {minimo}.")
-    else:
-        # un periodo sin filas se genera en su cierre copiando el anterior; si se agrega una fila antes, el cierre lo omitiría
-        if queryContarFilasPeriodo(db, tabla, periodo) == 0:
-            raise HTTPException(status_code=400, detail=f"El periodo {periodo} aún no tiene filas; se genera en su fecha de cierre copiando el periodo anterior.")
-    # anio y mes siempre según el periodo
-    dto.anio, dto.mes = int(periodo[:4]), int(periodo[4:])
-    dto.periodo = periodo
-    params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
-    if queryExisteFilaPeriodo(db, tabla, params, dto.id):
-        claves = ", ".join(f"{c}={params.get(c)}" for c in CLAVES_TABLA[tabla])
-        raise HTTPException(status_code=400, detail=f"Ya existe una fila con {claves} en el periodo {periodo}.")
 
 
 def calcular_periodo_anterior(periodo: str) -> str:

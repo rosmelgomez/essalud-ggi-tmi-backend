@@ -1099,7 +1099,7 @@ CEN AS (
     WHERE     variable IN ('Hospitalizacion - Días Cama Disponible')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar * 0.95 AS [% Aceptmenos], D.estandar * 1.05 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar - 0.05 AS [% Aceptmenos], D.estandar + 0.05 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +

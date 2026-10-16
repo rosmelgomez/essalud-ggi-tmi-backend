@@ -355,44 +355,8 @@ def queryDeleteEstandarCategoria(db: Session, id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-### alta de filas (centros y estándares)
-# columnas que identifican una fila dentro de su periodo (para no duplicarla)
-CLAVES_TABLA = {
-    "tmi_centro": ["codcentro"],
-    "tmi_estandar": ["id_estandar"],
-    "tmi_estandar_tipo": ["indicador", "tipo_centro"],
-    "tmi_estandar_nivel": ["indicador", "nivel_centro"],
-    "tmi_estandar_categoria": ["indicador", "categoria_centro"],
-}
 
-COLUMNAS_TABLA = {
-    "tmi_centro": ["red", "codred", "orden", "orden_tipo", "codcentro", "categoria", "nivel", "tipo", "centro", "estado", "anio", "mes", "periodo"],
-    "tmi_estandar_tipo": ["tipo", "indicador", "tipo_centro", "anio", "mes", "periodo", "estandar", "acept", "aceptmenos"],
-    "tmi_estandar_nivel": ["tipo", "indicador", "nivel_centro", "anio", "mes", "periodo", "estandar", "acept", "aceptmenos"],
-    "tmi_estandar_categoria": ["tipo", "indicador", "categoria_centro", "anio", "mes", "periodo", "estandar", "acept", "aceptmenos"],
-}
-
-
-def queryPeriodoDeFila(db: Session, tabla: str, id: int):
-    query = f"SELECT periodo FROM pentahodev_prueba.dbo.{tabla} WHERE id = :id"
-    periodo = db.execute(text(query), {"id": id}).scalar()
-    return str(periodo).strip() if periodo is not None else None
-
-
-def queryContarFilasPeriodo(db: Session, tabla: str, periodo: str) -> int:
-    query = f"SELECT COUNT(*) FROM pentahodev_prueba.dbo.{tabla} WHERE periodo = :periodo"
-    return db.execute(text(query), {"periodo": periodo}).scalar() or 0
-
-
-def queryExisteFilaPeriodo(db: Session, tabla: str, params: dict, excluir_id=None) -> bool:
-    condiciones = " AND ".join(f"{c} = :{c}" for c in CLAVES_TABLA[tabla])
-    query = f"""
-    SELECT COUNT(*) FROM pentahodev_prueba.dbo.{tabla}
-    WHERE periodo = :periodo AND {condiciones} AND (:excluir_id IS NULL OR id <> :excluir_id)
-    """
-    return db.execute(text(query), {**params, "excluir_id": excluir_id}).scalar() > 0
-
-
+#### insertar centros y estándares
 def queryCreateFila(db: Session, tabla: str, params: dict):
     try:
         columnas = COLUMNAS_TABLA[tabla]
@@ -408,6 +372,16 @@ def queryCreateFila(db: Session, tabla: str, params: dict):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def queryDeleteFila(db: Session, tabla: str, id: int):
+    try:
+        query = f"DELETE FROM pentahodev_prueba_01.dbo.{tabla} WHERE id = :id"
+        result = db.execute(text(query), {"id": id})
+        db.commit()
+        return {"message": "Fila eliminada correctamente", "rows_affected": result.rowcount}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -1575,7 +1549,7 @@ CEN AS (
     WHERE     variable IN ('Hospitalizacion - Días Cama Disponible')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar * 0.95 AS [% Aceptmenos], D.estandar * 1.05 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar - 0.05 AS [% Aceptmenos], D.estandar + 0.05 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -3314,12 +3288,6 @@ LEFT OUTER JOIN (
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def queryDeleteFila(db: Session, tabla: str, id: int):
-    try:
-        query = f"DELETE FROM pentahodev_prueba_01.dbo.{tabla} WHERE id = :id"
-        result = db.execute(text(query), {"id": id})
-        db.commit()
-        return {"message": "Fila eliminada correctamente", "rows_affected": result.rowcount}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+
+
+
