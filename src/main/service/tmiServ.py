@@ -30,7 +30,6 @@ def queryInsertCentrosTMIServ(db: Session, centro: centroTmiDto):
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateCentrosTMIServ(db: Session, dto:centroTmiDto):
-    validarFilaEditable(db, "tmi_centro", dto)
     try:
         from src.main.repositories.tmiRep import queryUpdateCentrosTMI
         result = queryUpdateCentrosTMI(db, dto)
@@ -62,7 +61,6 @@ def queryInsertEstandarServ(db: Session, dto: tmiEstandarDto):
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateEstandarServ(db: Session, dto: tmiEstandarDto):
-    validarFilaEditable(db, "tmi_estandar", dto)
     try:
         from src.main.repositories.tmiRep import queryUpdateEstandar
         return queryUpdateEstandar(db, dto)
@@ -93,7 +91,6 @@ def queryInsertEstandarTipoServ(db: Session, dto:tmiEstandarTipoDto):
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateEstandarTipoServ(db: Session, dto: tmiEstandarTipoDto):
-    validarFilaEditable(db, "tmi_estandar_tipo", dto)
     try:
         from src.main.repositories.tmiRep import queryUpdateEstandarTipo
         return queryUpdateEstandarTipo(db, dto)
@@ -124,7 +121,6 @@ def queryInsertEstandarNivelServ(db: Session, dto: tmiEstandarNivelDto):
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateEstandarNivelServ(db: Session, dto: tmiEstandarNivelDto):
-    validarFilaEditable(db, "tmi_estandar_nivel", dto)
     try:
         from src.main.repositories.tmiRep import queryUpdateEstandarNivel
         return queryUpdateEstandarNivel(db, dto)
@@ -140,10 +136,10 @@ def queryDeleteEstandarNivelServ(db: Session, id: int):
 
 
 # tmi_estandar_categoria
-def queryEstandarCategoriaServ(db: Session, periodo: str):
+def queryEstandarCategoriaServ(db: Session, anio: int):
     try:
         from src.main.repositories.tmiRep import queryEstandarCategoria
-        return queryEstandarCategoria(db, periodo)
+        return queryEstandarCategoria(db, anio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -155,7 +151,6 @@ def queryInsertEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateEstandarCategoriaServ(db: Session, dto: tmiEstandarCategoriaDto):
-    validarFilaEditable(db, "tmi_estandar_categoria", dto)
     try:
         from src.main.repositories.tmiRep import queryUpdateEstandarCategoria
         return queryUpdateEstandarCategoria(db, dto)

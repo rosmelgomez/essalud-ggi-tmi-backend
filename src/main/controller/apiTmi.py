@@ -73,9 +73,9 @@ async def queryCreateCentroTMI(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
-        from src.main.service.tmiServ import queryCreateCentroTMIServ
-        return queryCreateCentroTMIServ(db, dto)
+        logger.info("Usuario '%s' agregando centro en año %s", current_user.get("username"), dto.anio)
+        from src.main.service.tmiServ import queryInsertCentrosTMIServ
+        return queryInsertCentrosTMIServ(db, dto)
     except HTTPException:
         raise
     except Exception as e:
@@ -93,8 +93,8 @@ async def queryDeleteCentroTMI(
 ):
     try:
         logger.info("Usuario '%s' eliminando fila %s de tmi_centro", current_user.get("username"), id)
-        from src.main.service.tmiServ import queryDeleteFilaServ
-        return queryDeleteFilaServ(db, "tmi_centro", id)
+        from src.main.service.tmiServ import queryDeleteCentrosTMIServ
+        return queryDeleteCentrosTMIServ(db, id)
     except HTTPException:
         raise
     except Exception as e:
@@ -129,9 +129,9 @@ async def queryCreateEstandar(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
-        from src.main.service.tmiServ import queryCreateEstandarServ
-        return queryCreateEstandarServ(db, dto)
+        logger.info("Usuario '%s' agregando estándar: %s - %s", current_user.get("username"), dto.tipo, dto.indicador)
+        from src.main.service.tmiServ import queryInsertEstandarServ
+        return queryInsertEstandarServ(db, dto)
     except HTTPException:
         raise
     except Exception as e:
@@ -148,6 +148,7 @@ async def queryUpdateEstandar(
     current_user: dict = Depends(get_current_user),
 ):
     try:
+        logger.info("Usuario '%s' actualizando estándar ID %s", current_user.get("username"), dto.id)
         from src.main.service.tmiServ import queryUpdateEstandarServ
         return queryUpdateEstandarServ(db, dto)
     except HTTPException:
@@ -157,6 +158,25 @@ async def queryUpdateEstandar(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ocurrió un error al actualizar el estándar.",
+        )
+
+@router.delete("/delete-estandar/{id}")
+async def queryDeleteEstandar(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' eliminando fila %s de tmi_estandar", current_user.get("username"), id)
+        from src.main.service.tmiServ import queryDeleteEstandarServ
+        return queryDeleteEstandarServ(db, id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al eliminar el estándar: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al eliminar el estándar.",
         )
 
 
@@ -203,9 +223,9 @@ async def queryCreateEstandarTipo(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
-        from src.main.service.tmiServ import queryCreateEstandarTipoServ
-        return queryCreateEstandarTipoServ(db, dto)
+        logger.info("Usuario '%s' agregando fila en año %s", current_user.get("username"), dto.anio)
+        from src.main.service.tmiServ import queryInsertEstandarTipoServ
+        return queryInsertEstandarTipoServ(db, dto)
     except HTTPException:
         raise
     except Exception as e:
@@ -223,8 +243,8 @@ async def queryDeleteEstandarTipo(
 ):
     try:
         logger.info("Usuario '%s' eliminando fila %s de tmi_estandar_tipo", current_user.get("username"), id)
-        from src.main.service.tmiServ import queryDeleteFilaServ
-        return queryDeleteFilaServ(db, "tmi_estandar_tipo", id)
+        from src.main.service.tmiServ import queryDeleteEstandarTipoServ
+        return queryDeleteEstandarTipoServ(db, id)
     except HTTPException:
         raise
     except Exception as e:
@@ -279,9 +299,9 @@ async def queryCreateEstandarNivel(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
-        from src.main.service.tmiServ import queryCreateEstandarNivelServ
-        return queryCreateEstandarNivelServ(db, dto)
+        logger.info("Usuario '%s' agregando fila en año %s", current_user.get("username"), dto.anio)
+        from src.main.service.tmiServ import queryInsertEstandarNivelServ
+        return queryInsertEstandarNivelServ(db, dto)
     except HTTPException:
         raise
     except Exception as e:
@@ -299,8 +319,8 @@ async def queryDeleteEstandarNivel(
 ):
     try:
         logger.info("Usuario '%s' eliminando fila %s de tmi_estandar_nivel", current_user.get("username"), id)
-        from src.main.service.tmiServ import queryDeleteFilaServ
-        return queryDeleteFilaServ(db, "tmi_estandar_nivel", id)
+        from src.main.service.tmiServ import queryDeleteEstandarNivelServ
+        return queryDeleteEstandarNivelServ(db, id)
     except HTTPException:
         raise
     except Exception as e:
@@ -354,9 +374,9 @@ async def queryCreateEstandarCategoria(
     current_user: dict = Depends(get_current_user),
 ):
     try:
-        logger.info("Usuario '%s' agregando fila en periodo %s", current_user.get("username"), dto.periodo)
-        from src.main.service.tmiServ import queryCreateEstandarCategoriaServ
-        return queryCreateEstandarCategoriaServ(db, dto)
+        logger.info("Usuario '%s' agregando fila en año %s", current_user.get("username"), dto.anio)
+        from src.main.service.tmiServ import queryInsertEstandarCategoriaServ
+        return queryInsertEstandarCategoriaServ(db, dto)
     except HTTPException:
         raise
     except Exception as e:
@@ -374,8 +394,8 @@ async def queryDeleteEstandarCategoria(
 ):
     try:
         logger.info("Usuario '%s' eliminando fila %s de tmi_estandar_categoria", current_user.get("username"), id)
-        from src.main.service.tmiServ import queryDeleteFilaServ
-        return queryDeleteFilaServ(db, "tmi_estandar_categoria", id)
+        from src.main.service.tmiServ import queryDeleteEstandarCategoriaServ
+        return queryDeleteEstandarCategoriaServ(db, id)
     except HTTPException:
         raise
     except Exception as e:

@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from src.main.dtos.tmiDto import (
     centroTmiDto,
+    tmiEstandarDto,
     tmiEstandarTipoDto,
     tmiEstandarNivelDto,
     tmiEstandarCategoriaDto,
@@ -30,7 +31,8 @@ INSERT INTO pentahodev_prueba_01.dbo.tmi_centro
 VALUES 
 (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,:anio, :flag_01, :flag_02, :flag_03, :flag_04, :flag_05, :flag_06, :flag_07, :flag_08, :flag_09, :flag_10, :flag_11, :flag_12)
         """
-        result = db.execute(text(query), {"centro": centro})
+        params = centro.model_dump() if hasattr(centro, "model_dump") else centro.dict()
+        result = db.execute(text(query), params)
         db.commit()
         return {"message": "Centros TMI insertados correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
@@ -95,12 +97,12 @@ def queryEstandar(db: Session ):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertEstandar(db: Session, estandar: tmiEstandarTipoDto):
+def queryInsertEstandar(db: Session, estandar: tmiEstandarDto):
     try:
         query = """
         INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar
         (tipo ,indicador ,fecha_creacion ,fecha_modificacion)
-        VALUES (:tipo ,:indicador ,:fecha_creacion ,:fecha_modificacion)
+        VALUES (:tipo ,:indicador ,COALESCE(:fecha_creacion, GETDATE()) ,COALESCE(:fecha_modificacion, GETDATE()))
         """
         params = estandar.model_dump() if hasattr(estandar, "model_dump") else estandar.dict()
         result = db.execute(text(query), params)
@@ -109,14 +111,14 @@ def queryInsertEstandar(db: Session, estandar: tmiEstandarTipoDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryUpdateEstandar(db: Session, dto: tmiEstandarTipoDto):
+def queryUpdateEstandar(db: Session, dto: tmiEstandarDto):
     try:
         query = """
-        UPDATE dbo.tmi_estandar
+        UPDATE pentahodev_prueba_01.dbo.tmi_estandar
             SET tipo = :tipo
             ,indicador = :indicador
-            ,fecha_creacion = :fecha_creacion
-            ,fecha_modificacion = :fecha_modificacion
+            ,fecha_creacion = COALESCE(:fecha_creacion, fecha_creacion)
+            ,fecha_modificacion = COALESCE(:fecha_modificacion, GETDATE())
         WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND indicador = :indicador)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
@@ -129,7 +131,7 @@ def queryUpdateEstandar(db: Session, dto: tmiEstandarTipoDto):
 def queryDeleteEstandar(db: Session, id: int):
     try:
         query = """
-        DELETE FROM dbo.tmi_estandar
+        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar
         WHERE id = :id
         """
         result = db.execute(text(query), {"id": id})
@@ -158,8 +160,8 @@ def queryInsertEstandarTipo(db: Session, estandar_tipo: tmiEstandarTipoDto):
     try:
         query = """
         INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_tipo
-        (tipo ,indicador ,tipo_centro ,anio ,estandar_01 ,estandar_02 ,estandar_03 ,estandar_04 ,estandar_05 ,estandar_06 ,estandar_07 ,estandar_08 ,estandar_09 ,estandar_10 ,estandar_11 ,estandar_12)
-        VALUES (:tipo ,:indicador ,:tipo_centro ,:anio ,:estandar_01 ,:estandar_02 ,:estandar_03 ,:estandar_04 ,:estandar_05 ,:estandar_06 ,:estandar_07 ,:estandar_08 ,:estandar_09 ,:estandar_10 ,:estandar_11 ,:estandar_12)
+        (id_estandar ,tipo_centro ,anio ,estandar_01 ,estandar_02 ,estandar_03 ,estandar_04 ,estandar_05 ,estandar_06 ,estandar_07 ,estandar_08 ,estandar_09 ,estandar_10 ,estandar_11 ,estandar_12)
+        VALUES (:id_estandar ,:tipo_centro ,:anio ,:estandar_01 ,:estandar_02 ,:estandar_03 ,:estandar_04 ,:estandar_05 ,:estandar_06 ,:estandar_07 ,:estandar_08 ,:estandar_09 ,:estandar_10 ,:estandar_11 ,:estandar_12)
         """
         params = estandar_tipo.model_dump() if hasattr(estandar_tipo, "model_dump") else estandar_tipo.dict()
         result = db.execute(text(query), params)
@@ -171,7 +173,7 @@ def queryInsertEstandarTipo(db: Session, estandar_tipo: tmiEstandarTipoDto):
 def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
     try:
         query = """
-        UPDATE dbo.tmi_estandar_tipo
+        UPDATE pentahodev_prueba_01.dbo.tmi_estandar_tipo
             SET 
             id_estandar = :id_estandar
             ,tipo_centro = :tipo_centro
@@ -201,7 +203,7 @@ def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
 def queryDeleteEstandarTipo(db: Session, id: int):
     try:
         query = """
-        DELETE FROM dbo.tmi_estandar_tipo
+        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo
         WHERE id = :id
         """
         result = db.execute(text(query), {"id": id})
@@ -214,7 +216,7 @@ def queryDeleteEstandarTipo(db: Session, id: int):
 def queryEstandarNivel(db: Session, anio: int):
     try:
         query = """
-        SELECT est_n.id, est.tipo, est.indicador, est_n.nivel_centro, est_n.anio, est_n.estandar_01, est_n.estandar_02, est_n.estandar_03, est_n.estandar_04,est_n.estandar_05, 
+        SELECT est_n.id, est_n.id_estandar, est.tipo, est.indicador, est_n.nivel_centro, est_n.anio, est_n.estandar_01, est_n.estandar_02, est_n.estandar_03, est_n.estandar_04,est_n.estandar_05, 
         est_n.estandar_06, est_n.estandar_07, est_n.estandar_08, est_n.estandar_09, est_n.estandar_10, est_n.estandar_11, est_n.estandar_12
         FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_n
         JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_n.id_estandar = est.id
@@ -228,7 +230,7 @@ def queryEstandarNivel(db: Session, anio: int):
 def queryInsertEstandarNivel(db: Session, estardar_nivel: tmiEstandarNivelDto):
     try:
         query = """
-        INSERT INTO pentahodev_prueba.dbo.tmi_estandar_nivel
+        INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_nivel
         (id_estandar, nivel_centro ,anio, estandar_01 ,estandar_02 ,estandar_03 ,estandar_04 ,estandar_05 ,estandar_06 ,estandar_07 ,estandar_08 ,estandar_09 ,estandar_10 ,estandar_11 ,estandar_12)
         VALUES (:id_estandar ,:nivel_centro ,:anio ,:estandar_01 ,:estandar_02 ,:estandar_03 ,:estandar_04 ,:estandar_05 ,:estandar_06 ,:estandar_07 ,:estandar_08 ,:estandar_09 ,:estandar_10 ,:estandar_11 ,:estandar_12)
         """
@@ -242,7 +244,7 @@ def queryInsertEstandarNivel(db: Session, estardar_nivel: tmiEstandarNivelDto):
 def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
     try:
         query = """
-        UPDATE pentahodev_prueba.dbo.tmi_estandar_nivel
+        UPDATE pentahodev_prueba_01.dbo.tmi_estandar_nivel
             SET 
              id_estandar = :id_estandar
             ,nivel_centro = :nivel_centro
@@ -260,7 +262,7 @@ def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
             ,estandar_11 = :estandar_11
             ,estandar_12 = :estandar_12
 
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND nivel_centro = :nivel_centro AND periodo = :periodo)
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND nivel_centro = :nivel_centro AND anio = :anio)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
@@ -272,7 +274,7 @@ def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
 def queryDeleteEstandarNivel(db: Session, id: int):
     try:
         query = """
-        DELETE FROM pentahodev_prueba.dbo.tmi_estandar_nivel
+        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel
         WHERE id = :id
         """
         result = db.execute(text(query), {"id": id})
@@ -283,13 +285,16 @@ def queryDeleteEstandarNivel(db: Session, id: int):
 
 
 ### tmi_estandar_categoria
-def queryEstandarCategoria(db: Session, periodo: str):
+def queryEstandarCategoria(db: Session, anio: int):
     try:
         query = """
-        SELECT * FROM pentahodev_prueba.dbo.tmi_estandar_categoria
-        WHERE periodo = :periodo
+        SELECT est_c.id, est_c.id_estandar, est.tipo, est.indicador, est_c.categoria_centro, est_c.anio, est_c.estandar_01, est_c.estandar_02, est_c.estandar_03, est_c.estandar_04, est_c.estandar_05, 
+        est_c.estandar_06, est_c.estandar_07, est_c.estandar_08, est_c.estandar_09, est_c.estandar_10, est_c.estandar_11, est_c.estandar_12
+        FROM pentahodev_prueba_01.dbo.tmi_estandar_categoria est_c
+        JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_c.id_estandar = est.id
+        WHERE anio = :anio
         """
-        result = db.execute(text(query), {"periodo": periodo})
+        result = db.execute(text(query), {"anio": anio})
         return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -297,7 +302,7 @@ def queryEstandarCategoria(db: Session, periodo: str):
 def queryInsertEstandarCategoria(db: Session, estandar_categoria: tmiEstandarCategoriaDto):
     try:
         query = """
-        INSERT INTO pentahodev_prueba.dbo.tmi_estandar_categoria
+        INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_categoria
         (id_estandar, categoria_centro, anio, estandar_01, estandar_02, estandar_03, estandar_04, estandar_05, estandar_06, estandar_07, estandar_08, estandar_09, estandar_10, estandar_11, estandar_12)
         VALUES (:id_estandar, :categoria_centro, :anio, :estandar_01, :estandar_02, :estandar_03, :estandar_04, :estandar_05, :estandar_06, :estandar_07, :estandar_08, :estandar_09, :estandar_10, :estandar_11, :estandar_12)
         """
@@ -311,9 +316,9 @@ def queryInsertEstandarCategoria(db: Session, estandar_categoria: tmiEstandarCat
 def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
     try:
         query = """
-        UPDATE pentahodev_prueba.dbo.tmi_estandar_categoria
-            SET [tipo] = :tipo
-            ,id_indicador = :indicador
+        UPDATE pentahodev_prueba_01.dbo.tmi_estandar_categoria
+            SET 
+            id_estandar = :id_estandar
             ,categoria_centro = :categoria_centro
             ,anio = :anio
             ,estandar_01 = :estandar_01
@@ -328,7 +333,7 @@ def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
             ,estandar_10 = :estandar_10
             ,estandar_11 = :estandar_11
             ,estandar_12 = :estandar_12
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND categoria_centro = :categoria_centro AND periodo = :periodo)
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND categoria_centro = :categoria_centro AND anio = :anio)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
@@ -340,7 +345,7 @@ def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
 def queryDeleteEstandarCategoria(db: Session, id: int):
     try:
         query = """
-        DELETE FROM pentahodev_prueba.dbo.tmi_estandar_categoria
+        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar_categoria
         WHERE id = :id
         """
         result = db.execute(text(query), {"id": id})
