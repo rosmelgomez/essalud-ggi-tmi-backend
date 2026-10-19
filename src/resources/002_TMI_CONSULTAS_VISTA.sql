@@ -28,60 +28,59 @@ SELECT DISTINCT
 
     CASE 
         WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
         ) > 0
         THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
         ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
         )
         ELSE 0 
     END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN A.[202601] = 0 OR B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN A.[202602] = 0 OR B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN A.[202603] = 0 OR B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN A.[202604] = 0 OR B.[202604] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN A.[202605] = 0 OR B.[202605] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605]) END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN A.[202606] = 0 OR B.[202606] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN A.[202607] = 0 OR B.[202607] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN A.[202608] = 0 OR B.[202608] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN A.[202609] = 0 OR B.[202609] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN A.[202610] = 0 OR B.[202610] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN A.[202611] = 0 OR B.[202611] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN A.[202612] = 0 OR B.[202612] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]+ A.[202612]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN A.[202601] = 0 OR B.[202601] = 0 THEN 0 ELSE (A.[202601] * 1.00) / B.[202601] END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN A.[202602] = 0 OR B.[202602] = 0 THEN 0 ELSE ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN A.[202603] = 0 OR B.[202603] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN A.[202604] = 0 OR B.[202604] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN A.[202605] = 0 OR B.[202605] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605]) END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN A.[202606] = 0 OR B.[202606] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN A.[202607] = 0 OR B.[202607] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN A.[202608] = 0 OR B.[202608] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN A.[202609] = 0 OR B.[202609] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN A.[202610] = 0 OR B.[202610] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN A.[202611] = 0 OR B.[202611] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN A.[202612] = 0 OR B.[202612] = 0 THEN 0 ELSE ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611] + A.[202612]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) END ELSE 0 END AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -109,10 +108,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar 
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar 
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Concentracion de Consultas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 ORDER BY ORDEN asc;
@@ -150,65 +153,64 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*0.95 AS [% Acept],
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
 LEFT OUTER JOIN (
-         
         SELECT 
         cen.id, 
         est.tipo AS tipo_indicador, 
@@ -232,10 +234,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -272,59 +278,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*1.1 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN ISNULL((ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0),0) ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN ISNULL((ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0),0) ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN ISNULL((ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0),0) ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN ISNULL((ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0),0) ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN ISNULL((ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0),0) ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN ISNULL((ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0),0) ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN ISNULL((ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0),0) ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN ISNULL((ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0),0) ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN ISNULL((ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0),0) ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL((ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0),0) ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL((ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0),0) ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL((ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0),0) ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL((ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0),0) ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL((ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0),0) ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL((ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0),0) ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL((ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0),0) ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL((ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0),0) ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL((ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0),0) ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -353,10 +359,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -393,59 +403,59 @@ CEN_TIPO AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar *0.9  AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN_NIVEL AS CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -474,10 +484,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
     JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Rendimiento Hora Medico' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
@@ -487,59 +501,59 @@ UNION ALL
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar *0.9 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
-         ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
-         )
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
+         ) * 1.00 / 
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
+        
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
     FROM CEN_TIPO AS CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -568,10 +582,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Rendimiento Hora Medico' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
@@ -607,59 +625,59 @@ WHERE     (Variable IN ('Emergencia - Prioridad I', 'Emergencia - Prioridad II',
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.9 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(X.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(X.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(X.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(X.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(X.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(X.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(X.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(X.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(X.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(X.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(X.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(X.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(X.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(X.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(X.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(X.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(X.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(X.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(X.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(X.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(X.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(X.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(X.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(X.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(X.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(X.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(X.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(X.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(X.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(X.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(X.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(X.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(X.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(X.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(X.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(X.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(X.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(X.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -688,15 +706,19 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
  ) AS D ON CEN.codcentro = D.codcentro
 
 
-/* Em_PrioIV_V % Prioridad IV y V con respecto al Total de Emergencias */
+/* Em_PrioIV_V - % Prioridad IV y V con respecto al Total de Emergencias */
 
 DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
@@ -724,59 +746,59 @@ WHERE     (Variable IN ('Emergencia - Prioridad IV', 'Emergencia - Prioridad V',
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar* 0.9 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(X.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(X.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(X.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(X.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(X.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(X.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(X.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(X.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(X.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(X.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(X.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(X.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(X.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(X.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(X.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(X.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(X.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(X.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(X.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(X.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(X.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(X.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(X.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(X.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(X.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(X.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(X.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(X.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(X.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(X.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(X.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(X.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(X.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(X.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(X.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(X.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(X.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(X.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -805,10 +827,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I')
@@ -845,59 +871,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.2 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -926,10 +952,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Promedio Dia Estancia' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -967,72 +997,72 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.2 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(x.[202612],0) ELSE 0 END
          ) <> 0
     THEN ((
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) - (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(x.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN x.[202601] <> 0 THEN ((isnull(A.[202601], 0) - isnull(B.[202601], 0)) * 1.00) / x.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN x.[202602] <> 0 THEN ((isnull(A.[202602], 0) - isnull(B.[202602], 0)) * 1.00) / x.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN x.[202603] <> 0 THEN ((isnull(A.[202603], 0) - isnull(B.[202603], 0)) * 1.00) / x.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN x.[202604] <> 0 THEN ((isnull(A.[202604], 0) - isnull(B.[202604], 0)) * 1.00) / x.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN x.[202605] <> 0 THEN ((isnull(A.[202605], 0) - isnull(B.[202605], 0)) * 1.00) / x.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN x.[202606] <> 0 THEN ((isnull(A.[202606], 0) - isnull(B.[202606], 0)) * 1.00) / x.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN x.[202607] <> 0 THEN ((isnull(A.[202607], 0) - isnull(B.[202607], 0)) * 1.00) / x.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN x.[202608] <> 0 THEN ((isnull(A.[202608], 0) - isnull(B.[202608], 0)) * 1.00) / x.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN x.[202609] <> 0 THEN ((isnull(A.[202609], 0) - isnull(B.[202609], 0)) * 1.00) / x.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN x.[202610] <> 0 THEN ((isnull(A.[202610], 0) - isnull(B.[202610], 0)) * 1.00) / x.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN x.[202611] <> 0 THEN ((isnull(A.[202611], 0) - isnull(B.[202611], 0)) * 1.00) / x.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN x.[202612] <> 0 THEN ((isnull(A.[202612], 0) - isnull(B.[202612], 0)) * 1.00) / x.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN CASE WHEN x.[202601] <> 0 THEN ((isnull(A.[202601], 0) - isnull(B.[202601], 0)) * 1.00) / x.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN CASE WHEN x.[202602] <> 0 THEN ((isnull(A.[202602], 0) - isnull(B.[202602], 0)) * 1.00) / x.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN CASE WHEN x.[202603] <> 0 THEN ((isnull(A.[202603], 0) - isnull(B.[202603], 0)) * 1.00) / x.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN CASE WHEN x.[202604] <> 0 THEN ((isnull(A.[202604], 0) - isnull(B.[202604], 0)) * 1.00) / x.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN CASE WHEN x.[202605] <> 0 THEN ((isnull(A.[202605], 0) - isnull(B.[202605], 0)) * 1.00) / x.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN CASE WHEN x.[202606] <> 0 THEN ((isnull(A.[202606], 0) - isnull(B.[202606], 0)) * 1.00) / x.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN CASE WHEN x.[202607] <> 0 THEN ((isnull(A.[202607], 0) - isnull(B.[202607], 0)) * 1.00) / x.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN CASE WHEN x.[202608] <> 0 THEN ((isnull(A.[202608], 0) - isnull(B.[202608], 0)) * 1.00) / x.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN CASE WHEN x.[202609] <> 0 THEN ((isnull(A.[202609], 0) - isnull(B.[202609], 0)) * 1.00) / x.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN CASE WHEN x.[202610] <> 0 THEN ((isnull(A.[202610], 0) - isnull(B.[202610], 0)) * 1.00) / x.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN CASE WHEN x.[202611] <> 0 THEN ((isnull(A.[202611], 0) - isnull(B.[202611], 0)) * 1.00) / x.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN CASE WHEN x.[202612] <> 0 THEN ((isnull(A.[202612], 0) - isnull(B.[202612], 0)) * 1.00) / x.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -1062,10 +1092,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Intervalo de Sustitución' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1101,59 +1135,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar - 0.05 AS [% Aceptmenos], D.estandar + 0.05 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -1182,10 +1216,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1216,59 +1254,59 @@ WHERE     (Variable IN ('Hospitalizacion - Egresos', 'Hospitalizacion -  Camas H
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar * 0.8 AS [% Acept],
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00  / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -1297,10 +1335,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Rendimiento Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1346,86 +1388,86 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar * 1.1 AS [% Acept], 
     CASE WHEN  (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) - (
-            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(x.[202612],0) ELSE 0 END
          )
          <> 0
     THEN ((
-            CASE WHEN @Mes>=1  THEN (ISNULL(A.[202601],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN (ISNULL(A.[202602],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN (ISNULL(A.[202603],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN (ISNULL(A.[202604],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN (ISNULL(A.[202605],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN (ISNULL(A.[202606],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN (ISNULL(A.[202607],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN (ISNULL(A.[202608],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN (ISNULL(A.[202609],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN (ISNULL(A.[202610],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN (ISNULL(A.[202611],0))* 1.00 ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN (ISNULL(A.[202612],0))* 1.00 ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN (ISNULL(A.[202601],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN (ISNULL(A.[202602],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN (ISNULL(A.[202603],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN (ISNULL(A.[202604],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN (ISNULL(A.[202605],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN (ISNULL(A.[202606],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN (ISNULL(A.[202607],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN (ISNULL(A.[202608],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN (ISNULL(A.[202609],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN (ISNULL(A.[202610],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN (ISNULL(A.[202611],0))* 1.00 ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN (ISNULL(A.[202612],0))* 1.00 ELSE 0 END
          ) / ((
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) - (
-            CASE WHEN @Mes>=1  THEN ISNULL(x.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(x.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(x.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(x.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(x.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(x.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(x.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(x.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(x.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(x.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(x.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(x.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(x.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(x.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(x.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(x.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(x.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(x.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(x.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(x.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(x.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(x.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(x.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(x.[202612],0) ELSE 0 END
          )))
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN (isnull(B.[202601], 0) - isnull(x.[202601], 0)) <> 0 THEN ((isnull(A.[202601], 0)) * 1.00) / (isnull(B.[202601], 0) - isnull(x.[202601], 0)) ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN (isnull(B.[202602], 0) - isnull(x.[202602], 0)) <> 0 THEN ((isnull(A.[202602], 0)) * 1.00) / (isnull(B.[202602], 0) - isnull(x.[202602], 0)) ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN (isnull(B.[202603], 0) - isnull(x.[202603], 0)) <> 0 THEN ((isnull(A.[202603], 0)) * 1.00) / (isnull(B.[202603], 0) - isnull(x.[202603], 0)) ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN (isnull(B.[202604], 0) - isnull(x.[202604], 0)) <> 0 THEN ((isnull(A.[202604], 0)) * 1.00) / (isnull(B.[202604], 0) - isnull(x.[202604], 0)) ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN (isnull(B.[202605], 0) - isnull(x.[202605], 0)) <> 0 THEN ((isnull(A.[202605], 0)) * 1.00) / (isnull(B.[202605], 0) - isnull(x.[202605], 0)) ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN (isnull(B.[202606], 0) - isnull(x.[202606], 0)) <> 0 THEN ((isnull(A.[202606], 0)) * 1.00) / (isnull(B.[202606], 0) - isnull(x.[202606], 0)) ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN (isnull(B.[202607], 0) - isnull(x.[202607], 0)) <> 0 THEN ((isnull(A.[202607], 0)) * 1.00) / (isnull(B.[202607], 0) - isnull(x.[202607], 0)) ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN (isnull(B.[202608], 0) - isnull(x.[202608], 0)) <> 0 THEN ((isnull(A.[202608], 0)) * 1.00) / (isnull(B.[202608], 0) - isnull(x.[202608], 0)) ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN (isnull(B.[202609], 0) - isnull(x.[202609], 0)) <> 0 THEN ((isnull(A.[202609], 0)) * 1.00) / (isnull(B.[202609], 0) - isnull(x.[202609], 0)) ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN (isnull(B.[202610], 0) - isnull(x.[202610], 0)) <> 0 THEN ((isnull(A.[202610], 0)) * 1.00) / (isnull(B.[202610], 0) - isnull(x.[202610], 0)) ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN (isnull(B.[202611], 0) - isnull(x.[202611], 0)) <> 0 THEN ((isnull(A.[202611], 0)) * 1.00) / (isnull(B.[202611], 0) - isnull(x.[202611], 0)) ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN (isnull(B.[202612], 0) - isnull(x.[202612], 0)) <> 0 THEN ((isnull(A.[202612], 0)) * 1.00) / (isnull(B.[202612], 0) - isnull(x.[202612], 0)) ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL)THEN CASE WHEN (isnull(B.[202601], 0) - isnull(x.[202601], 0)) <> 0 THEN ((isnull(A.[202601], 0)) * 1.00) / (isnull(B.[202601], 0) - isnull(x.[202601], 0)) ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL)THEN CASE WHEN (isnull(B.[202602], 0) - isnull(x.[202602], 0)) <> 0 THEN ((isnull(A.[202602], 0)) * 1.00) / (isnull(B.[202602], 0) - isnull(x.[202602], 0)) ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL)THEN CASE WHEN (isnull(B.[202603], 0) - isnull(x.[202603], 0)) <> 0 THEN ((isnull(A.[202603], 0)) * 1.00) / (isnull(B.[202603], 0) - isnull(x.[202603], 0)) ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL)THEN CASE WHEN (isnull(B.[202604], 0) - isnull(x.[202604], 0)) <> 0 THEN ((isnull(A.[202604], 0)) * 1.00) / (isnull(B.[202604], 0) - isnull(x.[202604], 0)) ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL)THEN CASE WHEN (isnull(B.[202605], 0) - isnull(x.[202605], 0)) <> 0 THEN ((isnull(A.[202605], 0)) * 1.00) / (isnull(B.[202605], 0) - isnull(x.[202605], 0)) ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL)THEN CASE WHEN (isnull(B.[202606], 0) - isnull(x.[202606], 0)) <> 0 THEN ((isnull(A.[202606], 0)) * 1.00) / (isnull(B.[202606], 0) - isnull(x.[202606], 0)) ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL)THEN CASE WHEN (isnull(B.[202607], 0) - isnull(x.[202607], 0)) <> 0 THEN ((isnull(A.[202607], 0)) * 1.00) / (isnull(B.[202607], 0) - isnull(x.[202607], 0)) ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL)THEN CASE WHEN (isnull(B.[202608], 0) - isnull(x.[202608], 0)) <> 0 THEN ((isnull(A.[202608], 0)) * 1.00) / (isnull(B.[202608], 0) - isnull(x.[202608], 0)) ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL)THEN CASE WHEN (isnull(B.[202609], 0) - isnull(x.[202609], 0)) <> 0 THEN ((isnull(A.[202609], 0)) * 1.00) / (isnull(B.[202609], 0) - isnull(x.[202609], 0)) ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL)THEN CASE WHEN (isnull(B.[202610], 0) - isnull(x.[202610], 0)) <> 0 THEN ((isnull(A.[202610], 0)) * 1.00) / (isnull(B.[202610], 0) - isnull(x.[202610], 0)) ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL)THEN CASE WHEN (isnull(B.[202611], 0) - isnull(x.[202611], 0)) <> 0 THEN ((isnull(A.[202611], 0)) * 1.00) / (isnull(B.[202611], 0) - isnull(x.[202611], 0)) ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL)THEN CASE WHEN (isnull(B.[202612], 0) - isnull(x.[202612], 0)) <> 0 THEN ((isnull(A.[202612], 0)) * 1.00) / (isnull(B.[202612], 0) - isnull(x.[202612], 0)) ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -1455,14 +1497,18 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo 
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
-/* O_Concent -  Concentración de Sesiones Odontológicas*/
+/* O_Concent - Concentración de Sesiones Odontológicas*/
 
 DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
@@ -1490,59 +1536,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, D.red AS Red, D.codcentro, D.centro AS Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.1 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN A.[202601] <> 0 OR B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN A.[202602] <> 0 OR B.[202602] <> 0 THEN ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN A.[202603] <> 0 OR B.[202603] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN A.[202604] <> 0 OR B.[202604] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN A.[202605] <> 0 OR B.[202605] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605]) ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN A.[202606] <> 0 OR B.[202606] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN A.[202607] <> 0 OR B.[202607] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN A.[202608] <> 0 OR B.[202608] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN A.[202609] <> 0 OR B.[202609] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN A.[202610] <> 0 OR B.[202610] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN A.[202611] <> 0 OR B.[202611] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN A.[202612] <> 0 OR B.[202612] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611] + A.[202612]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN A.[202601] <> 0 OR B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN A.[202602] <> 0 OR B.[202602] <> 0 THEN ((A.[202601] + A.[202602]) * 1.00) / (B.[202601] + B.[202602]) ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN A.[202603] <> 0 OR B.[202603] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603]) * 1.00) / (B.[202601] + B.[202602] + B.[202603]) ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN A.[202604] <> 0 OR B.[202604] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604]) ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN A.[202605] <> 0 OR B.[202605] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605]) ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN A.[202606] <> 0 OR B.[202606] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606]) ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN A.[202607] <> 0 OR B.[202607] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607]) ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN A.[202608] <> 0 OR B.[202608] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608]) ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN A.[202609] <> 0 OR B.[202609] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609]) ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN A.[202610] <> 0 OR B.[202610] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610]) ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN A.[202611] <> 0 OR B.[202611] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611]) ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN A.[202612] <> 0 OR B.[202612] <> 0 THEN ((A.[202601] + A.[202602] + A.[202603] + A.[202604] + A.[202605] + A.[202606] + A.[202607] + A.[202608] + A.[202609] + A.[202610] + A.[202611] + A.[202612]) * 1.00) / (B.[202601] + B.[202602] + B.[202603] + B.[202604] + B.[202605] + B.[202606] + B.[202607] + B.[202608] + B.[202609] + B.[202610] + B.[202611] + B.[202612]) ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -1571,10 +1617,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1606,59 +1656,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.95 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-            CASE WHEN ( CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
-            CASE WHEN ( CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
-            CASE WHEN ( CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
-            CASE WHEN ( CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
-            CASE WHEN ( CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
-            CASE WHEN ( CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
-            CASE WHEN ( CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
-            CASE WHEN ( CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
-            CASE WHEN ( CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
-            CASE WHEN ( CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
-            CASE WHEN ( CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
-            CASE WHEN ( CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
+            CASE WHEN ( CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
+            CASE WHEN ( CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
+            CASE WHEN ( CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
+            CASE WHEN ( CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
+            CASE WHEN ( CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
+            CASE WHEN ( CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
+            CASE WHEN ( CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
+            CASE WHEN ( CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
+            CASE WHEN ( CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
+            CASE WHEN ( CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL)  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
+            CASE WHEN ( CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL)  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
+            CASE WHEN ( CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL)  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -1686,10 +1736,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1723,59 +1777,59 @@ CEN_TIPO AS (
 SELECT DISTINCT
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.9 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 FROM CEN_NIVEL AS CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -1803,10 +1857,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel AND est_nivel.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
@@ -1816,59 +1874,59 @@ UNION ALL
 SELECT DISTINCT
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.9 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (A.[202601] * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (A.[202602] * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (A.[202603] * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (A.[202604] * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (A.[202605] * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (A.[202606] * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (A.[202607] * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (A.[202608] * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (A.[202609] * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (A.[202610] * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (A.[202611] * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (A.[202612] * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 FROM CEN_TIPO AS CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -1896,10 +1954,14 @@ SELECT
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
@@ -1935,59 +1997,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.9 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-            CASE WHEN ( CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
-            CASE WHEN ( CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
-            CASE WHEN ( CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
-            CASE WHEN ( CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
-            CASE WHEN ( CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
-            CASE WHEN ( CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
-            CASE WHEN ( CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
-            CASE WHEN ( CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
-            CASE WHEN ( CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
-            CASE WHEN ( CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
-            CASE WHEN ( CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
-            CASE WHEN ( CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
+            CASE WHEN ( CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
+            CASE WHEN ( CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
+            CASE WHEN ( CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
+            CASE WHEN ( CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
+            CASE WHEN ( CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
+            CASE WHEN ( CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
+            CASE WHEN ( CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
+            CASE WHEN ( CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
+            CASE WHEN ( CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
+            CASE WHEN ( CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL)  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
+            CASE WHEN ( CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL)  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
+            CASE WHEN ( CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL)  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -2015,10 +2077,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar =  est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar =  est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
@@ -2049,59 +2115,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.90 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (ISNULL(A.[202604], 0) * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (ISNULL(A.[202605], 0) * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (ISNULL(A.[202606], 0) * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (ISNULL(A.[202607], 0) * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (ISNULL(A.[202608], 0) * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (ISNULL(A.[202609], 0) * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (ISNULL(A.[202610], 0) * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (ISNULL(A.[202611], 0) * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (ISNULL(A.[202612], 0) * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (ISNULL(A.[202604], 0) * 1.00) / B.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (ISNULL(A.[202605], 0) * 1.00) / B.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (ISNULL(A.[202606], 0) * 1.00) / B.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (ISNULL(A.[202607], 0) * 1.00) / B.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (ISNULL(A.[202608], 0) * 1.00) / B.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (ISNULL(A.[202609], 0) * 1.00) / B.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (ISNULL(A.[202610], 0) * 1.00) / B.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (ISNULL(A.[202611], 0) * 1.00) / B.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (ISNULL(A.[202612], 0) * 1.00) / B.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -2130,10 +2196,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2167,59 +2237,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.1 AS [% Acept],
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE NULL END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 AND A.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE NULL END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 AND A.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE NULL END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 AND A.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE NULL END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 AND A.[202604] <> 0 THEN (ISNULL(A.[202604], 0) * 1.00) / B.[202604] ELSE NULL END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 AND A.[202605] <> 0 THEN (ISNULL(A.[202605], 0) * 1.00) / B.[202605] ELSE NULL END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 AND A.[202606] <> 0 THEN (ISNULL(A.[202606], 0) * 1.00) / B.[202606] ELSE NULL END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 AND A.[202607] <> 0 THEN (ISNULL(A.[202607], 0) * 1.00) / B.[202607] ELSE NULL END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 AND A.[202608] <> 0 THEN (ISNULL(A.[202608], 0) * 1.00) / B.[202608] ELSE NULL END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 AND A.[202609] <> 0 THEN (ISNULL(A.[202609], 0) * 1.00) / B.[202609] ELSE NULL END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 AND A.[202610] <> 0 THEN (ISNULL(A.[202610], 0) * 1.00) / B.[202610] ELSE NULL END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 AND A.[202611] <> 0 THEN (ISNULL(A.[202611], 0) * 1.00) / B.[202611] ELSE NULL END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 AND A.[202612] <> 0 THEN (ISNULL(A.[202612], 0) * 1.00) / B.[202612] ELSE NULL END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 AND A.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE NULL END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 AND A.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE NULL END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 AND A.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE NULL END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 AND A.[202604] <> 0 THEN (ISNULL(A.[202604], 0) * 1.00) / B.[202604] ELSE NULL END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 AND A.[202605] <> 0 THEN (ISNULL(A.[202605], 0) * 1.00) / B.[202605] ELSE NULL END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 AND A.[202606] <> 0 THEN (ISNULL(A.[202606], 0) * 1.00) / B.[202606] ELSE NULL END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 AND A.[202607] <> 0 THEN (ISNULL(A.[202607], 0) * 1.00) / B.[202607] ELSE NULL END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 AND A.[202608] <> 0 THEN (ISNULL(A.[202608], 0) * 1.00) / B.[202608] ELSE NULL END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 AND A.[202609] <> 0 THEN (ISNULL(A.[202609], 0) * 1.00) / B.[202609] ELSE NULL END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 AND A.[202610] <> 0 THEN (ISNULL(A.[202610], 0) * 1.00) / B.[202610] ELSE NULL END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 AND A.[202611] <> 0 THEN (ISNULL(A.[202611], 0) * 1.00) / B.[202611] ELSE NULL END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 AND A.[202612] <> 0 THEN (ISNULL(A.[202612], 0) * 1.00) / B.[202612] ELSE NULL END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -2248,10 +2318,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Tasa de Cesáreas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2288,59 +2362,59 @@ WHERE     Variable IN ('Centro Quirúrgico - A-Cirugía Mayor de Alta Complejida
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.8 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-            CASE WHEN ( CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
-            CASE WHEN ( CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
-            CASE WHEN ( CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
-            CASE WHEN ( CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
-            CASE WHEN ( CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
-            CASE WHEN ( CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
-            CASE WHEN ( CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
-            CASE WHEN ( CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
-            CASE WHEN ( CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
-            CASE WHEN ( CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
-            CASE WHEN ( CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
-            CASE WHEN ( CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
+            CASE WHEN ( CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
+            CASE WHEN ( CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
+            CASE WHEN ( CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
+            CASE WHEN ( CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
+            CASE WHEN ( CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
+            CASE WHEN ( CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
+            CASE WHEN ( CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
+            CASE WHEN ( CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
+            CASE WHEN ( CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
+            CASE WHEN ( CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL)  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
+            CASE WHEN ( CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL)  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
+            CASE WHEN ( CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL)  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -2368,10 +2442,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
@@ -2411,59 +2489,59 @@ WHERE     Variable IN ('Centro Quirúrgico - D-Cirugía Menor de Alto Requerimie
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.2 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(X.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(X.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(X.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(X.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(X.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(X.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(X.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(X.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(X.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(X.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(X.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(X.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(X.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(X.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(X.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(X.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(X.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(X.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(X.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(X.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(X.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(X.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(X.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(X.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(X.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(X.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(X.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(X.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(X.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(X.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(X.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(X.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(X.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(X.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(X.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(X.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(X.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(X.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(X.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(X.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(X.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN X.[202601] <> 0 THEN ((ISNULL(A.[202601], 0)) * 1.00) / X.[202601] ELSE 0 END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN X.[202602] <> 0 THEN ((ISNULL(A.[202602], 0)) * 1.00) / X.[202602] ELSE 0 END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN X.[202603] <> 0 THEN ((ISNULL(A.[202603], 0)) * 1.00) / X.[202603] ELSE 0 END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN X.[202604] <> 0 THEN ((ISNULL(A.[202604], 0)) * 1.00) / X.[202604] ELSE 0 END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN X.[202605] <> 0 THEN ((ISNULL(A.[202605], 0)) * 1.00) / X.[202605] ELSE 0 END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN X.[202606] <> 0 THEN ((ISNULL(A.[202606], 0)) * 1.00) / X.[202606] ELSE 0 END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN X.[202607] <> 0 THEN ((ISNULL(A.[202607], 0)) * 1.00) / X.[202607] ELSE 0 END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN X.[202608] <> 0 THEN ((ISNULL(A.[202608], 0)) * 1.00) / X.[202608] ELSE 0 END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN X.[202609] <> 0 THEN ((ISNULL(A.[202609], 0)) * 1.00) / X.[202609] ELSE 0 END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN X.[202610] <> 0 THEN ((ISNULL(A.[202610], 0)) * 1.00) / X.[202610] ELSE 0 END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN X.[202611] <> 0 THEN ((ISNULL(A.[202611], 0)) * 1.00) / X.[202611] ELSE 0 END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN X.[202612] <> 0 THEN ((ISNULL(A.[202612], 0)) * 1.00) / X.[202612] ELSE 0 END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -2492,10 +2570,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2509,7 +2591,8 @@ WITH A AS (
       SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
       [202609], [202610], [202611], [202612], Variable
       FROM  pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
-      WHERE Variable IN ('Centro Quirúrgico - Operaciones Suspendidas')),
+      WHERE Variable IN ('Centro Quirúrgico - Operaciones Suspendidas')
+),
 B AS (
       SELECT Red, Centro, nivel, codcentro, Año, Grupo, Actividad, Orden, Total, [202601], [202602], [202603], [202604], [202605], [202606], [202607], [202608], 
       [202609], [202610], [202611], [202612], Variable
@@ -2528,59 +2611,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.1 AS [% Acept],
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE NULL END AS Total,
-    CASE WHEN @Mes >= 1  THEN CASE WHEN B.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE NULL END ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  THEN CASE WHEN B.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE NULL END ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  THEN CASE WHEN B.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE NULL END ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  THEN CASE WHEN B.[202604] <> 0 THEN (ISNULL(A.[202604], 0) * 1.00) / B.[202604] ELSE NULL END ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  THEN CASE WHEN B.[202605] <> 0 THEN (ISNULL(A.[202605], 0) * 1.00) / B.[202605] ELSE NULL END ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  THEN CASE WHEN B.[202606] <> 0 THEN (ISNULL(A.[202606], 0) * 1.00) / B.[202606] ELSE NULL END ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  THEN CASE WHEN B.[202607] <> 0 THEN (ISNULL(A.[202607], 0) * 1.00) / B.[202607] ELSE NULL END ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  THEN CASE WHEN B.[202608] <> 0 THEN (ISNULL(A.[202608], 0) * 1.00) / B.[202608] ELSE NULL END ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  THEN CASE WHEN B.[202609] <> 0 THEN (ISNULL(A.[202609], 0) * 1.00) / B.[202609] ELSE NULL END ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 THEN CASE WHEN B.[202610] <> 0 THEN (ISNULL(A.[202610], 0) * 1.00) / B.[202610] ELSE NULL END ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 THEN CASE WHEN B.[202611] <> 0 THEN (ISNULL(A.[202611], 0) * 1.00) / B.[202611] ELSE NULL END ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 THEN CASE WHEN B.[202612] <> 0 THEN (ISNULL(A.[202612], 0) * 1.00) / B.[202612] ELSE NULL END ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN CASE WHEN B.[202601] <> 0 THEN (ISNULL(A.[202601], 0) * 1.00) / B.[202601] ELSE NULL END ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN CASE WHEN B.[202602] <> 0 THEN (ISNULL(A.[202602], 0) * 1.00) / B.[202602] ELSE NULL END ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN CASE WHEN B.[202603] <> 0 THEN (ISNULL(A.[202603], 0) * 1.00) / B.[202603] ELSE NULL END ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN CASE WHEN B.[202604] <> 0 THEN (ISNULL(A.[202604], 0) * 1.00) / B.[202604] ELSE NULL END ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN CASE WHEN B.[202605] <> 0 THEN (ISNULL(A.[202605], 0) * 1.00) / B.[202605] ELSE NULL END ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN CASE WHEN B.[202606] <> 0 THEN (ISNULL(A.[202606], 0) * 1.00) / B.[202606] ELSE NULL END ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN CASE WHEN B.[202607] <> 0 THEN (ISNULL(A.[202607], 0) * 1.00) / B.[202607] ELSE NULL END ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN CASE WHEN B.[202608] <> 0 THEN (ISNULL(A.[202608], 0) * 1.00) / B.[202608] ELSE NULL END ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN CASE WHEN B.[202609] <> 0 THEN (ISNULL(A.[202609], 0) * 1.00) / B.[202609] ELSE NULL END ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN CASE WHEN B.[202610] <> 0 THEN (ISNULL(A.[202610], 0) * 1.00) / B.[202610] ELSE NULL END ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN CASE WHEN B.[202611] <> 0 THEN (ISNULL(A.[202611], 0) * 1.00) / B.[202611] ELSE NULL END ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN CASE WHEN B.[202612] <> 0 THEN (ISNULL(A.[202612], 0) * 1.00) / B.[202612] ELSE NULL END ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -2591,28 +2674,32 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est.estandar_01
-            WHEN 2  THEN est.estandar_02
-            WHEN 3  THEN est.estandar_03
-            WHEN 4  THEN est.estandar_04
-            WHEN 5  THEN est.estandar_05
-            WHEN 6  THEN est.estandar_06
-            WHEN 7  THEN est.estandar_07
-            WHEN 8  THEN est.estandar_08
-            WHEN 9  THEN est.estandar_09
-            WHEN 10 THEN est.estandar_10
-            WHEN 11 THEN est.estandar_11
-            WHEN 12 THEN est.estandar_12
+            WHEN 1  THEN est_tipo.estandar_01
+            WHEN 2  THEN est_tipo.estandar_02
+            WHEN 3  THEN est_tipo.estandar_03
+            WHEN 4  THEN est_tipo.estandar_04
+            WHEN 5  THEN est_tipo.estandar_05
+            WHEN 6  THEN est_tipo.estandar_06
+            WHEN 7  THEN est_tipo.estandar_07
+            WHEN 8  THEN est_tipo.estandar_08
+            WHEN 9  THEN est_tipo.estandar_09
+            WHEN 10 THEN est_tipo.estandar_10
+            WHEN 11 THEN est_tipo.estandar_11
+            WHEN 12 THEN est_tipo.estandar_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2649,59 +2736,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.9 AS [% Acept],
     CASE WHEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00  / (
-            CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN ( CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
-    CASE WHEN ( CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
-    CASE WHEN ( CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
-    CASE WHEN ( CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
-    CASE WHEN ( CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
-    CASE WHEN ( CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
-    CASE WHEN ( CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
-    CASE WHEN ( CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
-    CASE WHEN ( CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
-    CASE WHEN ( CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
-    CASE WHEN ( CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
-    CASE WHEN ( CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
+    CASE WHEN ( CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=1  THEN ISNULL(A.[202601],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=1  THEN ISNULL(B.[202601],0) ELSE 0 END) ELSE 0 END AS [202601],
+    CASE WHEN ( CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=2  THEN ISNULL(A.[202602],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=2  THEN ISNULL(B.[202602],0) ELSE 0 END) ELSE 0 END AS [202602],
+    CASE WHEN ( CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=3  THEN ISNULL(A.[202603],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=3  THEN ISNULL(B.[202603],0) ELSE 0 END) ELSE 0 END AS [202603],
+    CASE WHEN ( CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=4  THEN ISNULL(A.[202604],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=4  THEN ISNULL(B.[202604],0) ELSE 0 END) ELSE 0 END AS [202604],
+    CASE WHEN ( CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=5  THEN ISNULL(A.[202605],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=5  THEN ISNULL(B.[202605],0) ELSE 0 END) ELSE 0 END AS [202605],
+    CASE WHEN ( CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=6  THEN ISNULL(A.[202606],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=6  THEN ISNULL(B.[202606],0) ELSE 0 END) ELSE 0 END AS [202606],
+    CASE WHEN ( CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=7  THEN ISNULL(A.[202607],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=7  THEN ISNULL(B.[202607],0) ELSE 0 END) ELSE 0 END AS [202607],
+    CASE WHEN ( CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=8  THEN ISNULL(A.[202608],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=8  THEN ISNULL(B.[202608],0) ELSE 0 END) ELSE 0 END AS [202608],
+    CASE WHEN ( CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=9  THEN ISNULL(A.[202609],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=9  THEN ISNULL(B.[202609],0) ELSE 0 END) ELSE 0 END AS [202609],
+    CASE WHEN ( CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=10  THEN ISNULL(A.[202610],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=10  THEN ISNULL(B.[202610],0) ELSE 0 END) ELSE 0 END AS [202610],
+    CASE WHEN ( CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=11  THEN ISNULL(A.[202611],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=11  THEN ISNULL(B.[202611],0) ELSE 0 END) ELSE 0 END AS [202611],
+    CASE WHEN ( CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END ) <> 0 THEN (CASE WHEN @Mes>=12  THEN ISNULL(A.[202612],0) ELSE 0 END) * 1.0 / (CASE WHEN @Mes>=12  THEN ISNULL(B.[202612],0) ELSE 0 END) ELSE 0 END AS [202612]
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
@@ -2729,10 +2816,14 @@ LEFT OUTER JOIN (
         cen.red, 
         cen.nivel, 
         cen.tipo, 
-        cen.categoria
+        cen.categoria,
+        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
+        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
+        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
-    JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
-    JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo AND est_tipo.anio = cen.anio
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
     WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
