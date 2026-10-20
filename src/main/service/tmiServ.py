@@ -1,9 +1,10 @@
 from src.main.dtos.tmiDto import (
-    centroTmiDto,
+    tmiCentroDto,
     tmiEstandarDto,
     tmiEstandarTipoDto,
     tmiEstandarNivelDto,
     tmiEstandarCategoriaDto,
+    tmiExclusionCentroEstandarDto,
 )
 
 from sqlalchemy.orm import Session
@@ -13,15 +14,15 @@ from datetime import date
 
 
 #tmi_centro
-def queryCentrosTMIServ(db: Session, anio: int):
+def queryCentrosTMIServ(db: Session):
     try:
         from src.main.repositories.tmiRep import queryCentrosTMI
-        result = queryCentrosTMI(db, anio)
+        result = queryCentrosTMI(db)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryInsertCentrosTMIServ(db: Session, centro: centroTmiDto):
+def queryInsertCentrosTMIServ(db: Session, centro: tmiCentroDto):
     try:
         from src.main.repositories.tmiRep import queryInsertCentrosTMI
         result = queryInsertCentrosTMI(db, centro)
@@ -29,7 +30,7 @@ def queryInsertCentrosTMIServ(db: Session, centro: centroTmiDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def queryUpdateCentrosTMIServ(db: Session, dto:centroTmiDto):
+def queryUpdateCentrosTMIServ(db: Session, dto:tmiCentroDto):
     try:
         from src.main.repositories.tmiRep import queryUpdateCentrosTMI
         result = queryUpdateCentrosTMI(db, dto)
@@ -166,7 +167,34 @@ def queryDeleteEstandarCategoriaServ(db: Session, id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+### tmi_exclusion_centro_estandar
+def queryExclusionCentroEstandarServ(db: Session, anio: int):
+    try:
+        from src.main.repositories.tmiRep import queryExclusionCentroEstandar
+        return queryExclusionCentroEstandar(db, anio)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+def queryDeleteExclusionCentroEstandarServ(db: Session, id: int):
+    try:
+        from src.main.repositories.tmiRep import queryDeleteExclusionCentroEstandar
+        return queryDeleteExclusionCentroEstandar(db, id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryInsertExclusionCentroEstandarServ(db: Session, dto:tmiExclusionCentroEstandarDto):
+    try:
+        from src.main.repositories.tmiRep import queryInsertExclusionCentroEstandar
+        return queryInsertExclusionCentroEstandar(db, dto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def queryUpdateExclusionCentroEstandarServ(db: Session, dto:tmiExclusionCentroEstandarDto):
+    try:
+        from src.main.repositories.tmiRep import queryUpdateExclusionCentroEstandar
+        return queryUpdateExclusionCentroEstandar(db, dto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # procesos internos 
 def periodo_minimo_editable(hoy: Optional[date] = None) -> str:

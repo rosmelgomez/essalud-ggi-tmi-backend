@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Optional
+from xmlrpc.client import boolean
 from pydantic import BaseModel
 
 class cierreDto(BaseModel):
@@ -77,7 +78,7 @@ class tmiEstandarCategoriaDto(BaseModel):
     estandar_11: float
     estandar_12: float
 
-class centroTmiDto(BaseModel):
+class tmiCentroDto(BaseModel):
     id: Optional[int] = None
     red: str
     orden: str
@@ -87,17 +88,22 @@ class centroTmiDto(BaseModel):
     categoria: Optional[str] = None
     nivel: str
     tipo: str
-    anio: int 
-    flag_01: Optional[bool] = None
-    flag_02: Optional[bool] = None
-    flag_03: Optional[bool] = None
-    flag_04: Optional[bool] = None
-    flag_05: Optional[bool] = None
-    flag_06: Optional[bool] = None
-    flag_07: Optional[bool] = None
-    flag_08: Optional[bool] = None
-    flag_09: Optional[bool] = None
-    flag_10: Optional[bool] = None
-    flag_11: Optional[bool] = None
-    flag_12: Optional[bool] = None
+    flag: boolean
 
+class tmiExclusionCentroEstandarDto(BaseModel):
+    id: Optional[int] = None
+    id_centro: int
+    id_estandar: int
+    anio: int
+    excl_01 : boolean
+    excl_02 : boolean
+    excl_03 : boolean
+    excl_04 : boolean
+    excl_05 : boolean
+    excl_06 : boolean
+    excl_07 : boolean
+    excl_08 : boolean
+    excl_09 : boolean
+    excl_10 : boolean
+    excl_11 : boolean
+    excl_12 : boolean

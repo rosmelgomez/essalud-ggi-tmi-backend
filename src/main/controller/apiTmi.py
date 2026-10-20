@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 from src.main.core.security import get_current_user
 from src.main.db.databaseConexion import SessionLocal, get_db
 from src.main.dtos.tmiDto import (
-    centroTmiDto,
+    tmiExclusionCentroEstandarDto,
+    tmiCentroDto,
     tmiEstandarDto,
     tmiEstandarTipoDto,
     tmiEstandarNivelDto,
@@ -30,14 +31,13 @@ router = APIRouter(
 
 
 # Endpoints tmi_centro
-@router.get("/lista-centros/{anio}")
+@router.get("/lista-centros")
 async def queryCentrosTMI(
-    anio:int,
     db: Session = Depends(get_db),
 ):
     try:
         from src.main.service.tmiServ import queryCentrosTMIServ
-        return queryCentrosTMIServ(db,anio)
+        return queryCentrosTMIServ(db)
     except HTTPException:
         raise
     except Exception as e:
@@ -49,7 +49,7 @@ async def queryCentrosTMI(
 
 @router.put("/update-centro")
 async def queryUpdateCentrosTMI(
-    dto: centroTmiDto,
+    dto: tmiCentroDto,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -68,7 +68,7 @@ async def queryUpdateCentrosTMI(
 
 @router.post("/create-centro")
 async def queryCreateCentroTMI(
-    dto: centroTmiDto,
+    dto: tmiCentroDto,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
@@ -405,6 +405,44 @@ async def queryDeleteEstandarCategoria(
             detail="Ocurrió un error al eliminar el estándar categoría.",
         )
 
+
+
+### tmi_exclusion_centro_estandar
+@router.get("/lista-exclusion-centro-estandar/{anio}")
+async def queryExclusionCentroEstandar(
+    anio: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        from src.main.service.tmiServ import queryExclusionCentroEstandarServ
+        return queryExclusionCentroEstandarServ(db, anio)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al consultar exclusión de centro estándar: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al consultar la lista de exclusión de centro estándar.",
+        )
+
+@router.post("/create-exclusion-centro-estandar")
+async def queryCreateExclusionCentroEstandar(
+    dto: tmiExclusionCentroEstandarDto,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' agregando exclusión de centro estándar en año %s", current_user.get("username"), dto.anio)
+        from src.main.service.tmiServ import queryInsertExclusionCentroEstandarServ
+        return queryInsertExclusionCentroEstandarServ(db, dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al agregar la exclusión de centro estándar: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al agregar la exclusión de centro estándar.",
+        )
 
 
 ## consultas

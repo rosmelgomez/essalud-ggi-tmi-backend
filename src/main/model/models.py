@@ -24,24 +24,6 @@ class tmi_estandar(Base):
     fecha_creacion = Column(DateTime())
     fecha_modificacion = Column(DateTime())
 
-class tmi_estandar_evaluacion(Base):
-    __tablename__ = "tmi_estandar_evaluacion"
-    id = Column(Integer,primary_key=True)
-    id_estandar = Column(Integer(), ForeignKey("tmi_estandar.id"))
-    anio = Column(Integer())
-    evaluacion_01 = Column(Integer())
-    evaluacion_02 = Column(String(6))
-    evaluacion_03 = Column(String(6))
-    evaluacion_04 = Column(String(6))
-    evaluacion_05 = Column(String(6))
-    evaluacion_06 = Column(String(6))
-    evaluacion_07 = Column(String(6))
-    evaluacion_08 = Column(String(6))
-    evaluacion_09 = Column(String(6))
-    evaluacion_10 = Column(String(6))
-    evaluacion_11 = Column(String(6))
-    evaluacion_12 = Column(String(6))
-
 class tmi_estandar_tipo(Base):
     __tablename__ = "tmi_estandar_tipo"
     id = Column(Integer,primary_key=True)
@@ -124,4 +106,22 @@ class tmi_centro(Base):
     flag_11 = Column(Boolean())
     flag_12 = Column(Boolean())
 
+class tmi_exclusion_centro_estandar(Base):
+    __tablename__ = "tmi_exclusion_centro_estandar"
+    id = Column(Integer,primary_key=True)
+    id_estandar = Column(Integer(), ForeignKey("tmi_estandar.id"))
+    id_centro = Column(Integer(), ForeignKey("tmi_centro.id"))
+    anio = Column(Integer())
+    estandar_01 = Column(Boolean())
+    estandar_02 = Column(Boolean())
+    estandar_03 = Column(Boolean())
+    estandar_04 = Column(Boolean())
+    estandar_05 = Column(Boolean())
+    estandar_06 = Column(Boolean())
+    estandar_07 = Column(Boolean())
+    estandar_08 = Column(Boolean())
+    estandar_09 = Column(Boolean())
+    estandar_10 = Column(Boolean())
+    estandar_11 = Column(Boolean())
+    estandar_12 = Column(Boolean())
 

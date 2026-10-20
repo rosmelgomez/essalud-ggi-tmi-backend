@@ -1,6 +1,6 @@
 /*  CE_Concent - Concentracion de Consultas*/
 
-DECLARE @Periodo CHAR(6) = '202608';         
+DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -115,7 +115,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar 
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Concentracion de Consultas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 ORDER BY ORDEN asc;
@@ -241,14 +241,14 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Grado de Cumplimiento de Horas Programadas' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 
 
 /*CE_Recetas - Promedio de Recetas por Consultas */
 
-DECLARE @Periodo CHAR(6) = '202608';         
+DECLARE @Periodo CHAR(6) = '202609';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -278,59 +278,59 @@ CEN AS (
 SELECT DISTINCT 
     D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*1.1 AS [% Acept], 
     CASE WHEN (
-            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          ) <> 0
     THEN (
-            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(A.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(A.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(A.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(A.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(A.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(A.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(A.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(A.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(A.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(A.[202612],0) ELSE 0 END
          ) * 1.00 / (
-            CASE WHEN @Mes>=1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
-            CASE WHEN @Mes>=2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
-            CASE WHEN @Mes>=4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
-            CASE WHEN @Mes>=5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
-            CASE WHEN @Mes>=6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
-            CASE WHEN @Mes>=7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
-            CASE WHEN @Mes>=8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
-            CASE WHEN @Mes>=9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
-            CASE WHEN @Mes>=10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
-            CASE WHEN @Mes>=11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
-            CASE WHEN @Mes>=12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
+            CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
+            CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
+            CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
+            CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
+            CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
+            CASE WHEN @Mes>=7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL(B.[202607],0) ELSE 0 END +
+            CASE WHEN @Mes>=8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL(B.[202608],0) ELSE 0 END +
+            CASE WHEN @Mes>=9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL(B.[202609],0) ELSE 0 END +
+            CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
+            CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
+            CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
          )
     ELSE 0 END AS Total,
-    CASE WHEN @Mes >= 1  AND (D.excl_01 = 1 OR D.excl_01 IS NULL) THEN ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) ELSE 0 END AS [202601],
-    CASE WHEN @Mes >= 2  AND (D.excl_02 = 1 OR D.excl_02 IS NULL) THEN ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) ELSE 0 END AS [202602],
-    CASE WHEN @Mes >= 3  AND (D.excl_03 = 1 OR D.excl_03 IS NULL) THEN ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) ELSE 0 END AS [202603],
-    CASE WHEN @Mes >= 4  AND (D.excl_04 = 1 OR D.excl_04 IS NULL) THEN ISNULL((ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0),0) ELSE 0 END AS [202604],
-    CASE WHEN @Mes >= 5  AND (D.excl_05 = 1 OR D.excl_05 IS NULL) THEN ISNULL((ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0),0) ELSE 0 END AS [202605],
-    CASE WHEN @Mes >= 6  AND (D.excl_06 = 1 OR D.excl_06 IS NULL) THEN ISNULL((ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0),0) ELSE 0 END AS [202606],
-    CASE WHEN @Mes >= 7  AND (D.excl_07 = 1 OR D.excl_07 IS NULL) THEN ISNULL((ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0),0) ELSE 0 END AS [202607],
-    CASE WHEN @Mes >= 8  AND (D.excl_08 = 1 OR D.excl_08 IS NULL) THEN ISNULL((ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0),0) ELSE 0 END AS [202608],
-    CASE WHEN @Mes >= 9  AND (D.excl_09 = 1 OR D.excl_09 IS NULL) THEN ISNULL((ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0),0) ELSE 0 END AS [202609],
-    CASE WHEN @Mes >= 10 AND (D.excl_10 = 1 OR D.excl_10 IS NULL) THEN ISNULL((ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0),0) ELSE 0 END AS [202610],
-    CASE WHEN @Mes >= 11 AND (D.excl_11 = 1 OR D.excl_11 IS NULL) THEN ISNULL((ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0),0) ELSE 0 END AS [202611],
-    CASE WHEN @Mes >= 12 AND (D.excl_12 = 1 OR D.excl_12 IS NULL) THEN ISNULL((ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0),0) ELSE 0 END AS [202612]
+    CASE WHEN @Mes >= 1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL((ISNULL(A.[202601],0) * 1.00) / NULLIF(ISNULL(B.[202601],0),0),0) ELSE 0 END AS [202601],
+    CASE WHEN @Mes >= 2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL((ISNULL(A.[202602],0) * 1.00) / NULLIF(ISNULL(B.[202602],0),0),0) ELSE 0 END AS [202602],
+    CASE WHEN @Mes >= 3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL((ISNULL(A.[202603],0) * 1.00) / NULLIF(ISNULL(B.[202603],0),0),0) ELSE 0 END AS [202603],
+    CASE WHEN @Mes >= 4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL((ISNULL(A.[202604],0) * 1.00) / NULLIF(ISNULL(B.[202604],0),0),0) ELSE 0 END AS [202604],
+    CASE WHEN @Mes >= 5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL((ISNULL(A.[202605],0) * 1.00) / NULLIF(ISNULL(B.[202605],0),0),0) ELSE 0 END AS [202605],
+    CASE WHEN @Mes >= 6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL((ISNULL(A.[202606],0) * 1.00) / NULLIF(ISNULL(B.[202606],0),0),0) ELSE 0 END AS [202606],
+    CASE WHEN @Mes >= 7  AND (D.excl_07 = 0 OR D.excl_07 IS NULL) THEN ISNULL((ISNULL(A.[202607],0) * 1.00) / NULLIF(ISNULL(B.[202607],0),0),0) ELSE 0 END AS [202607],
+    CASE WHEN @Mes >= 8  AND (D.excl_08 = 0 OR D.excl_08 IS NULL) THEN ISNULL((ISNULL(A.[202608],0) * 1.00) / NULLIF(ISNULL(B.[202608],0),0),0) ELSE 0 END AS [202608],
+    CASE WHEN @Mes >= 9  AND (D.excl_09 = 0 OR D.excl_09 IS NULL) THEN ISNULL((ISNULL(A.[202609],0) * 1.00) / NULLIF(ISNULL(B.[202609],0),0),0) ELSE 0 END AS [202609],
+    CASE WHEN @Mes >= 10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL((ISNULL(A.[202610],0) * 1.00) / NULLIF(ISNULL(B.[202610],0),0),0) ELSE 0 END AS [202610],
+    CASE WHEN @Mes >= 11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL((ISNULL(A.[202611],0) * 1.00) / NULLIF(ISNULL(B.[202611],0),0),0) ELSE 0 END AS [202611],
+    CASE WHEN @Mes >= 12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL((ISNULL(A.[202612],0) * 1.00) / NULLIF(ISNULL(B.[202612],0),0),0) ELSE 0 END AS [202612]
 
 FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
@@ -366,7 +366,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar 
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -491,7 +491,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
     JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar
     JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento Hora Medico' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
@@ -589,7 +589,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento Hora Medico' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
@@ -713,7 +713,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
  ) AS D ON CEN.codcentro = D.codcentro
 
@@ -834,7 +834,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
     JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I')
@@ -959,7 +959,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Promedio Dia Estancia' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1099,7 +1099,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_tipo.id_estandar
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Intervalo de Sustitución' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1223,7 +1223,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1342,7 +1342,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento Cama' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1504,7 +1504,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo 
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1624,7 +1624,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1743,7 +1743,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -1864,7 +1864,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_nivel.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_nivel.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo NOT IN ('CNSR','IPO','INCOR')
@@ -1961,7 +1961,7 @@ SELECT
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento Hora Odontológica' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE D.tipo IN ('CNSR','IPO','INCOR')
@@ -2084,14 +2084,14 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar =  est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
 
 /* Qx_GCHProg - Porcentaje de Horas Quirúrgicas Efectivas*/
 
-DECLARE @Periodo CHAR(6) = '202609';         
+DECLARE @Periodo CHAR(6) = '202608';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2113,7 +2113,7 @@ CEN AS (
       WHERE     Variable IN ('Centro Quirúrgico - Horas Uso de Sala', 'Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.90 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar - 0.1 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -2203,7 +2203,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2325,7 +2325,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Tasa de Cesáreas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2449,7 +2449,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Intervenciones de Alta Complejidad' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
@@ -2458,7 +2458,7 @@ WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 
 
 /* Qx_IMenor - Porcentaje de Intervenciones Menores*/
 
-DECLARE @Periodo CHAR(6) = '202609';         
+DECLARE @Periodo CHAR(6) = '202608';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2577,7 +2577,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2699,7 +2699,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 
@@ -2823,7 +2823,7 @@ LEFT OUTER JOIN (
     FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_tipo.id_estandar = est.id
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.exclusion_centro_estandar exc ON exc.id_centro = cen.id
+    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 

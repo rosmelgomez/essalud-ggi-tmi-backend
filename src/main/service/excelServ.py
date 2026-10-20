@@ -336,7 +336,7 @@ def generar_excel_tmi(db: Session, periodo: str) -> io.BytesIO:
     anio, mes = periodo[:4], int(periodo[4:])
 
     wb = load_workbook(PLANTILLA)
-    red_de = {str(c["codcentro"]).strip(): str(c["red"] or "").strip() for c in queryCentrosTMI(db, periodo)}
+    red_de = {str(c["codcentro"]).strip(): str(c["red"] or "").strip() for c in queryCentrosTMI(db)}
 
     resultados = []
     for cfg in REPORTS:
