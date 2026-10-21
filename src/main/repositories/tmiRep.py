@@ -453,7 +453,7 @@ def queryCE_ConcentRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -611,7 +611,7 @@ CEN AS (
      WHERE     variable IN ('Consulta Externa - Horas Médicas Programadas')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*0.95 AS [% Acept],
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.95 AS [% Acept],
     CASE WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -715,7 +715,7 @@ def queryCE_RecetasRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;        
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -743,7 +743,7 @@ CEN AS (
     WHERE     variable IN ('Consulta Externa - Consultas')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar*1.1 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 1.1 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -835,7 +835,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Promedio de Recetas por Consultas' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -847,7 +847,7 @@ def queryCE_RHrMedicoRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;           
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -875,7 +875,7 @@ CEN_TIPO AS (
     FROM pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar *0.9  AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar * 0.9  AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -1196,7 +1196,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = '% Prioridad I y II con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
- ) AS D ON CEN.codcentro = D.codcentro
+ ) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -1208,7 +1208,7 @@ def queryEm_PrioIV_VRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1232,7 +1232,7 @@ FROM         pentahodev.dbo.CONSOLIDADO_VAR_ESSALUD_CIFRAS_2026
 WHERE     (Variable IN ('Emergencia - Prioridad IV', 'Emergencia - Prioridad V', 'Emergencia - Total de Atenciones'))
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar* 0.9 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.categoria AS TIPO, D.estandar AS Estandar, D.estandar* 1.2 AS [% Acept], 
     CASE WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(X.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(X.[202602],0) ELSE 0 END +
@@ -1325,7 +1325,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = '% Prioridad IV y V con respecto al Total de Emergencias' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
-WHERE D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I')
+WHERE D.tipo IN ('H.N.', 'H.IV', 'H.III', 'H.II', 'H.I');
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -1337,7 +1337,7 @@ def queryH_EstanciasRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1457,7 +1457,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Promedio Dia Estancia' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -1469,7 +1469,7 @@ def queryH_ISustRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1605,7 +1605,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Intervalo de Sustitución' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -1617,7 +1617,7 @@ def queryH_OCamasRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;           
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1645,7 +1645,7 @@ CEN AS (
     WHERE     variable IN ('Hospitalizacion - Días Cama Disponible')
 )
 SELECT DISTINCT 
-    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar, D.estandar - 0.05 AS [% Aceptmenos], D.estandar + 0.05 AS [% Acept], 
+    D.id AS ORDEN, CEN.Red, CEN.codcentro, CEN.Centro, D.nivel AS NIVEL, D.tipo AS TIPO, D.estandar AS Estandar,  D.estandar + 0.05 AS [% Acept], D.estandar - 0.05 AS [% Aceptmenos],
     CASE WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
@@ -1737,7 +1737,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Ocupación de Cama' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -1749,7 +1749,7 @@ def queryH_RCamaRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;        
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1864,7 +1864,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento Cama' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -1876,7 +1876,7 @@ def queryH_TBMHospRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;        
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); ;
 
@@ -2034,7 +2034,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Tasa Neta de Mortalidad Hospitalaria' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -2046,7 +2046,7 @@ def queryO_ConcentRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); ;
 
@@ -2162,7 +2162,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Concentración de Sesiones Odontológicas' AND est_nivel.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -2174,7 +2174,7 @@ def queryO_GCHOdonRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;            
+DECLARE @Periodo CHAR(6) = :periodo;           
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2289,7 +2289,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Grado de Cumplimiento de Hora Odontólogo' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -2301,7 +2301,7 @@ def queryO_HrOdontRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2529,7 +2529,7 @@ def queryO_NTOdontSRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;  ;         
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2647,7 +2647,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Número de trabajos Odontológicos por Sesión' AND est_tipo.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
-WHERE     (A.Total * 1.00 / B.Total IS NOT NULL)
+WHERE     (A.Total * 1.00 / B.Total IS NOT NULL);
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -2773,7 +2773,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Horas Quirúrgicas Efectivas' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -2785,7 +2785,7 @@ def queryQx_HTCesareasRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;            
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2903,7 +2903,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Tasa de Cesáreas' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -2915,7 +2915,7 @@ def queryQx_IAltaRep(db:Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -3038,7 +3038,7 @@ LEFT OUTER JOIN (
 ) AS D ON CEN.codcentro = D.codcentro
 WHERE     (A.Red IN ('ANCASH', 'APURIMAC', 'AREQUIPA', 'AYACUCHO', 'CAJAMARCA', 'CUSCO', 'HUANCAVELICA', 'HUANUCO', 'HUARAZ', 'ICA', 'RED JAEN', 'INCOR', 'JULIACA', 
                       'JUNIN', 'LA LIBERTAD', 'LAMBAYEQUE', 'LORETO', 'MADRE DE DIOS', 'MOQUEGUA', 'MOYOBAMBA', 'PASCO', 'PIURA', 'PUNO', 'REBAGLIATI', 'SABOGAL', 'TACNA', 
-                      'TARAPOTO', 'TUMBES', 'RED PRESTACIONAL ALMENARA', 'RED PRESTACIONAL REBAGLIATI', 'RED PRESTACIONAL SABOGAL'))
+                      'TARAPOTO', 'TUMBES', 'RED PRESTACIONAL ALMENARA', 'RED PRESTACIONAL REBAGLIATI', 'RED PRESTACIONAL SABOGAL'));
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -3050,7 +3050,7 @@ def queryQx_IMenorRep(db:Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;           
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -3171,7 +3171,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Intervenciones Menores' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -3301,7 +3301,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Porcentaje de Operaciones Suspendidas' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
@@ -3313,7 +3313,7 @@ def queryQx_RendSORep(db:Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -3433,7 +3433,7 @@ LEFT OUTER JOIN (
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_tipo.tipo_centro = cen.tipo
     LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
     WHERE est.indicador = 'Rendimiento de Sala de Operaciones' AND est_tipo.anio = @Anio
-) AS D ON CEN.codcentro = D.codcentro
+) AS D ON CEN.codcentro = D.codcentro;
 """
         result = db.execute(text(query), {"periodo": periodo})
         return [dict(row) for row in result.mappings()]
