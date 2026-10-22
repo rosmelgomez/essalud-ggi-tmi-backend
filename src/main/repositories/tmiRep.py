@@ -147,8 +147,8 @@ def queryDeleteEstandar(db: Session, id: int):
 def queryEstandarTipo(db: Session, anio: int):
     try:
         query = """
-        SELECT est_t.id, est_t.id_estandar, est.tipo, est.indicador, est_t.tipo_centro, est_t.anio, est_t.estandar_01, est_t.estandar_02, est_t.estandar_03, est_t.estandar_04,est_t.estandar_05, 
-        est_t.estandar_06, est_t.estandar_07, est_t.estandar_08, est_t.estandar_09, est_t.estandar_10, est_t.estandar_11, est_t.estandar_12
+        SELECT est_t.id, est_t.id_estandar, est.tipo, est.indicador, est_t.tipo_centro, est_t.anio, est_t.est_fijo, est_t.est_01, est_t.est_02, est_t.est_03, est_t.est_04,est_t.est_05, 
+        est_t.est_06, est_t.est_07, est_t.est_08, est_t.est_09, est_t.est_10, est_t.est_11, est_t.est_12
         FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_t
         JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_t.id_estandar = est.id
         WHERE anio =:anio
@@ -162,8 +162,8 @@ def queryInsertEstandarTipo(db: Session, estandar_tipo: tmiEstandarTipoDto):
     try:
         query = """
         INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_tipo
-        (id_estandar ,tipo_centro ,anio ,estandar_01 ,estandar_02 ,estandar_03 ,estandar_04 ,estandar_05 ,estandar_06 ,estandar_07 ,estandar_08 ,estandar_09 ,estandar_10 ,estandar_11 ,estandar_12)
-        VALUES (:id_estandar ,:tipo_centro ,:anio ,:estandar_01 ,:estandar_02 ,:estandar_03 ,:estandar_04 ,:estandar_05 ,:estandar_06 ,:estandar_07 ,:estandar_08 ,:estandar_09 ,:estandar_10 ,:estandar_11 ,:estandar_12)
+        (id_estandar ,tipo_centro ,anio ,est_01 ,est_02 ,est_03 ,est_04 ,est_05 ,est_06 ,est_07 ,est_08 ,est_09 ,est_10 ,est_11 ,est_12)
+        VALUES (:id_estandar ,:tipo_centro ,:anio ,:est_01 ,:est_02 ,:est_03 ,:est_04 ,:est_05 ,:est_06 ,:est_07 ,:est_08 ,:est_09 ,:est_10 ,:est_11 ,:est_12)
         """
         params = estandar_tipo.model_dump() if hasattr(estandar_tipo, "model_dump") else estandar_tipo.dict()
         result = db.execute(text(query), params)
@@ -180,18 +180,18 @@ def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
             id_estandar = :id_estandar
             ,tipo_centro = :tipo_centro
             ,anio = :anio
-            ,estandar_01 = :estandar_01
-            ,estandar_02 = :estandar_02
-            ,estandar_03 = :estandar_03
-            ,estandar_04 = :estandar_04
-            ,estandar_05 = :estandar_05
-            ,estandar_06 = :estandar_06
-            ,estandar_07 = :estandar_07
-            ,estandar_08 = :estandar_08
-            ,estandar_09 = :estandar_09
-            ,estandar_10 = :estandar_10
-            ,estandar_11 = :estandar_11
-            ,estandar_12 = :estandar_12
+            ,est_01 = :est_01
+            ,est_02 = :est_02
+            ,est_03 = :est_03
+            ,est_04 = :est_04
+            ,est_05 = :est_05
+            ,est_06 = :est_06
+            ,est_07 = :est_07
+            ,est_08 = :est_08
+            ,est_09 = :est_09
+            ,est_10 = :est_10
+            ,est_11 = :est_11
+            ,est_12 = :est_12
 
         WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND tipo_centro = :tipo_centro AND anio = :anio)
         """
@@ -219,8 +219,8 @@ def queryDeleteEstandarTipo(db: Session, id: int):
 def queryEstandarNivel(db: Session, anio: int):
     try:
         query = """
-        SELECT est_n.id, est_n.id_estandar, est.tipo, est.indicador, est_n.nivel_centro, est_n.anio, est_n.estandar_01, est_n.estandar_02, est_n.estandar_03, est_n.estandar_04,est_n.estandar_05, 
-        est_n.estandar_06, est_n.estandar_07, est_n.estandar_08, est_n.estandar_09, est_n.estandar_10, est_n.estandar_11, est_n.estandar_12
+        SELECT est_n.id, est_n.id_estandar, est.tipo, est.indicador, est_n.nivel_centro, est_n.anio, est_n.est_fijo, est_n.est_01, est_n.est_02, est_n.est_03, est_n.est_04,est_n.est_05, 
+        est_n.est_06, est_n.est_07, est_n.est_08, est_n.est_09, est_n.est_10, est_n.est_11, est_n.est_12
         FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_n
         JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_n.id_estandar = est.id
         WHERE anio = :anio
@@ -234,8 +234,8 @@ def queryInsertEstandarNivel(db: Session, estardar_nivel: tmiEstandarNivelDto):
     try:
         query = """
         INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_nivel
-        (id_estandar, nivel_centro ,anio, estandar_01 ,estandar_02 ,estandar_03 ,estandar_04 ,estandar_05 ,estandar_06 ,estandar_07 ,estandar_08 ,estandar_09 ,estandar_10 ,estandar_11 ,estandar_12)
-        VALUES (:id_estandar ,:nivel_centro ,:anio ,:estandar_01 ,:estandar_02 ,:estandar_03 ,:estandar_04 ,:estandar_05 ,:estandar_06 ,:estandar_07 ,:estandar_08 ,:estandar_09 ,:estandar_10 ,:estandar_11 ,:estandar_12)
+        (id_estandar, nivel_centro ,anio, est_01 ,est_02 ,est_03 ,est_04 ,est_05 ,est_06 ,est_07 ,est_08 ,est_09 ,est_10 ,est_11 ,est_12)
+        VALUES (:id_estandar ,:nivel_centro ,:anio ,:est_01 ,:est_02 ,:est_03 ,:est_04 ,:est_05 ,:est_06 ,:est_07 ,:est_08 ,:est_09 ,:est_10 ,:est_11 ,:est_12)
         """
         params = estardar_nivel.model_dump() if hasattr(estardar_nivel, "model_dump") else estardar_nivel.dict()
         result = db.execute(text(query), params)
@@ -252,18 +252,18 @@ def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
              id_estandar = :id_estandar
             ,nivel_centro = :nivel_centro
             ,anio = :anio
-            ,estandar_01 = :estandar_01
-            ,estandar_02 = :estandar_02
-            ,estandar_03 = :estandar_03
-            ,estandar_04 = :estandar_04
-            ,estandar_05 = :estandar_05
-            ,estandar_06 = :estandar_06
-            ,estandar_07 = :estandar_07
-            ,estandar_08 = :estandar_08
-            ,estandar_09 = :estandar_09
-            ,estandar_10 = :estandar_10
-            ,estandar_11 = :estandar_11
-            ,estandar_12 = :estandar_12
+            ,est_01 = :est_01
+            ,est_02 = :est_02
+            ,est_03 = :est_03
+            ,est_04 = :est_04
+            ,est_05 = :est_05
+            ,est_06 = :est_06
+            ,est_07 = :est_07
+            ,est_08 = :est_08
+            ,est_09 = :est_09
+            ,est_10 = :est_10
+            ,est_11 = :est_11
+            ,est_12 = :est_12
 
         WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND nivel_centro = :nivel_centro AND anio = :anio)
         """
@@ -291,8 +291,8 @@ def queryDeleteEstandarNivel(db: Session, id: int):
 def queryEstandarCategoria(db: Session, anio: int):
     try:
         query = """
-        SELECT est_c.id, est_c.id_estandar, est.tipo, est.indicador, est_c.categoria_centro, est_c.anio, est_c.estandar_01, est_c.estandar_02, est_c.estandar_03, est_c.estandar_04, est_c.estandar_05, 
-        est_c.estandar_06, est_c.estandar_07, est_c.estandar_08, est_c.estandar_09, est_c.estandar_10, est_c.estandar_11, est_c.estandar_12
+        SELECT est_c.id, est_c.id_estandar, est.tipo, est.indicador, est_c.categoria_centro, est_c.anio, est_c.est_fijo, est_c.est_01, est_c.est_02, est_c.est_03, est_c.est_04, est_c.est_05, 
+        est_c.est_06, est_c.est_07, est_c.est_08, est_c.est_09, est_c.est_10, est_c.est_11, est_c.est_12
         FROM pentahodev_prueba_01.dbo.tmi_estandar_categoria est_c
         JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_c.id_estandar = est.id
         WHERE anio = :anio
@@ -306,8 +306,8 @@ def queryInsertEstandarCategoria(db: Session, estandar_categoria: tmiEstandarCat
     try:
         query = """
         INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_categoria
-        (id_estandar, categoria_centro, anio, estandar_01, estandar_02, estandar_03, estandar_04, estandar_05, estandar_06, estandar_07, estandar_08, estandar_09, estandar_10, estandar_11, estandar_12)
-        VALUES (:id_estandar, :categoria_centro, :anio, :estandar_01, :estandar_02, :estandar_03, :estandar_04, :estandar_05, :estandar_06, :estandar_07, :estandar_08, :estandar_09, :estandar_10, :estandar_11, :estandar_12)
+        (id_estandar, categoria_centro, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12)
+        VALUES (:id_estandar, :categoria_centro, :anio, :est_01, :est_02, :est_03, :est_04, :est_05, :est_06, :est_07, :est_08, :est_09, :est_10, :est_11, :est_12)
         """
         params = estandar_categoria.model_dump() if hasattr(estandar_categoria, "model_dump") else estandar_categoria.dict()
         result = db.execute(text(query), params)
@@ -324,18 +324,18 @@ def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
             id_estandar = :id_estandar
             ,categoria_centro = :categoria_centro
             ,anio = :anio
-            ,estandar_01 = :estandar_01
-            ,estandar_02 = :estandar_02
-            ,estandar_03 = :estandar_03
-            ,estandar_04 = :estandar_04
-            ,estandar_05 = :estandar_05
-            ,estandar_06 = :estandar_06
-            ,estandar_07 = :estandar_07
-            ,estandar_08 = :estandar_08
-            ,estandar_09 = :estandar_09
-            ,estandar_10 = :estandar_10
-            ,estandar_11 = :estandar_11
-            ,estandar_12 = :estandar_12
+            ,est_01 = :est_01
+            ,est_02 = :est_02
+            ,est_03 = :est_03
+            ,est_04 = :est_04
+            ,est_05 = :est_05
+            ,est_06 = :est_06
+            ,est_07 = :est_07
+            ,est_08 = :est_08
+            ,est_09 = :est_09
+            ,est_10 = :est_10
+            ,est_11 = :est_11
+            ,est_12 = :est_12
         WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND categoria_centro = :categoria_centro AND anio = :anio)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
@@ -453,7 +453,7 @@ def queryCE_ConcentRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -543,18 +543,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_nivel.estandar_01
-            WHEN 2  THEN est_nivel.estandar_02
-            WHEN 3  THEN est_nivel.estandar_03
-            WHEN 4  THEN est_nivel.estandar_04
-            WHEN 5  THEN est_nivel.estandar_05
-            WHEN 6  THEN est_nivel.estandar_06
-            WHEN 7  THEN est_nivel.estandar_07
-            WHEN 8  THEN est_nivel.estandar_08
-            WHEN 9  THEN est_nivel.estandar_09
-            WHEN 10 THEN est_nivel.estandar_10
-            WHEN 11 THEN est_nivel.estandar_11
-            WHEN 12 THEN est_nivel.estandar_12
+            WHEN 1  THEN est_nivel.est_01
+            WHEN 2  THEN est_nivel.est_02
+            WHEN 3  THEN est_nivel.est_03
+            WHEN 4  THEN est_nivel.est_04
+            WHEN 5  THEN est_nivel.est_05
+            WHEN 6  THEN est_nivel.est_06
+            WHEN 7  THEN est_nivel.est_07
+            WHEN 8  THEN est_nivel.est_08
+            WHEN 9  THEN est_nivel.est_09
+            WHEN 10 THEN est_nivel.est_10
+            WHEN 11 THEN est_nivel.est_11
+            WHEN 12 THEN est_nivel.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -583,7 +583,7 @@ def queryCE_GCHProgRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;      
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -676,18 +676,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -808,18 +808,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -847,7 +847,7 @@ def queryCE_RHrMedicoRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;           
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -940,18 +940,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_nivel.estandar_01
-            WHEN 2  THEN est_nivel.estandar_02
-            WHEN 3  THEN est_nivel.estandar_03
-            WHEN 4  THEN est_nivel.estandar_04
-            WHEN 5  THEN est_nivel.estandar_05
-            WHEN 6  THEN est_nivel.estandar_06
-            WHEN 7  THEN est_nivel.estandar_07
-            WHEN 8  THEN est_nivel.estandar_08
-            WHEN 9  THEN est_nivel.estandar_09
-            WHEN 10 THEN est_nivel.estandar_10
-            WHEN 11 THEN est_nivel.estandar_11
-            WHEN 12 THEN est_nivel.estandar_12
+            WHEN 1  THEN est_nivel.est_01
+            WHEN 2  THEN est_nivel.est_02
+            WHEN 3  THEN est_nivel.est_03
+            WHEN 4  THEN est_nivel.est_04
+            WHEN 5  THEN est_nivel.est_05
+            WHEN 6  THEN est_nivel.est_06
+            WHEN 7  THEN est_nivel.est_07
+            WHEN 8  THEN est_nivel.est_08
+            WHEN 9  THEN est_nivel.est_09
+            WHEN 10 THEN est_nivel.est_10
+            WHEN 11 THEN est_nivel.est_11
+            WHEN 12 THEN est_nivel.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1038,18 +1038,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1079,7 +1079,7 @@ def queryEm_PrioI_IIRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1169,18 +1169,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1208,7 +1208,7 @@ def queryEm_PrioIV_VRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;           
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1297,18 +1297,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1337,7 +1337,7 @@ def queryH_EstanciasRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1430,18 +1430,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1469,7 +1469,7 @@ def queryH_ISustRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1578,18 +1578,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1710,18 +1710,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1749,7 +1749,7 @@ def queryH_RCamaRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -1837,18 +1837,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -1876,7 +1876,7 @@ def queryH_TBMHospRep(db: Session, periodo:str):
     try:    
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;        
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); ;
 
@@ -2007,18 +2007,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2046,7 +2046,7 @@ def queryO_ConcentRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); ;
 
@@ -2135,18 +2135,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_nivel.estandar_01
-            WHEN 2  THEN est_nivel.estandar_02
-            WHEN 3  THEN est_nivel.estandar_03
-            WHEN 4  THEN est_nivel.estandar_04
-            WHEN 5  THEN est_nivel.estandar_05
-            WHEN 6  THEN est_nivel.estandar_06
-            WHEN 7  THEN est_nivel.estandar_07
-            WHEN 8  THEN est_nivel.estandar_08
-            WHEN 9  THEN est_nivel.estandar_09
-            WHEN 10 THEN est_nivel.estandar_10
-            WHEN 11 THEN est_nivel.estandar_11
-            WHEN 12 THEN est_nivel.estandar_12
+            WHEN 1  THEN est_nivel.est_01
+            WHEN 2  THEN est_nivel.est_02
+            WHEN 3  THEN est_nivel.est_03
+            WHEN 4  THEN est_nivel.est_04
+            WHEN 5  THEN est_nivel.est_05
+            WHEN 6  THEN est_nivel.est_06
+            WHEN 7  THEN est_nivel.est_07
+            WHEN 8  THEN est_nivel.est_08
+            WHEN 9  THEN est_nivel.est_09
+            WHEN 10 THEN est_nivel.est_10
+            WHEN 11 THEN est_nivel.est_11
+            WHEN 12 THEN est_nivel.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2174,7 +2174,7 @@ def queryO_GCHOdonRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;           
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2262,18 +2262,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2391,18 +2391,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_nivel.estandar_01
-            WHEN 2  THEN est_nivel.estandar_02
-            WHEN 3  THEN est_nivel.estandar_03
-            WHEN 4  THEN est_nivel.estandar_04
-            WHEN 5  THEN est_nivel.estandar_05
-            WHEN 6  THEN est_nivel.estandar_06
-            WHEN 7  THEN est_nivel.estandar_07
-            WHEN 8  THEN est_nivel.estandar_08
-            WHEN 9  THEN est_nivel.estandar_09
-            WHEN 10 THEN est_nivel.estandar_10
-            WHEN 11 THEN est_nivel.estandar_11
-            WHEN 12 THEN est_nivel.estandar_12
+            WHEN 1  THEN est_nivel.est_01
+            WHEN 2  THEN est_nivel.est_02
+            WHEN 3  THEN est_nivel.est_03
+            WHEN 4  THEN est_nivel.est_04
+            WHEN 5  THEN est_nivel.est_05
+            WHEN 6  THEN est_nivel.est_06
+            WHEN 7  THEN est_nivel.est_07
+            WHEN 8  THEN est_nivel.est_08
+            WHEN 9  THEN est_nivel.est_09
+            WHEN 10 THEN est_nivel.est_10
+            WHEN 11 THEN est_nivel.est_11
+            WHEN 12 THEN est_nivel.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2488,18 +2488,18 @@ SELECT
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2619,18 +2619,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2746,18 +2746,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2785,7 +2785,7 @@ def queryQx_HTCesareasRep(db: Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;            
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -2876,18 +2876,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -2915,7 +2915,7 @@ def queryQx_IAltaRep(db:Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -3008,18 +3008,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -3050,7 +3050,7 @@ def queryQx_IMenorRep(db:Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;          
+DECLARE @Periodo CHAR(6) = :periodo;         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -3144,18 +3144,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -3183,7 +3183,7 @@ def queryQx_IntSuspRep(db:Session, periodo:str):
     try:
         query = """
 SET NOCOUNT ON;
-DECLARE @Periodo CHAR(6) = :periodo;         
+DECLARE @Periodo CHAR(6) = :periodo;          
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT);
 
@@ -3274,18 +3274,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 
@@ -3406,18 +3406,18 @@ LEFT OUTER JOIN (
         est.tipo AS tipo_indicador, 
         est.indicador, 
         CASE @Mes
-            WHEN 1  THEN est_tipo.estandar_01
-            WHEN 2  THEN est_tipo.estandar_02
-            WHEN 3  THEN est_tipo.estandar_03
-            WHEN 4  THEN est_tipo.estandar_04
-            WHEN 5  THEN est_tipo.estandar_05
-            WHEN 6  THEN est_tipo.estandar_06
-            WHEN 7  THEN est_tipo.estandar_07
-            WHEN 8  THEN est_tipo.estandar_08
-            WHEN 9  THEN est_tipo.estandar_09
-            WHEN 10 THEN est_tipo.estandar_10
-            WHEN 11 THEN est_tipo.estandar_11
-            WHEN 12 THEN est_tipo.estandar_12
+            WHEN 1  THEN est_tipo.est_01
+            WHEN 2  THEN est_tipo.est_02
+            WHEN 3  THEN est_tipo.est_03
+            WHEN 4  THEN est_tipo.est_04
+            WHEN 5  THEN est_tipo.est_05
+            WHEN 6  THEN est_tipo.est_06
+            WHEN 7  THEN est_tipo.est_07
+            WHEN 8  THEN est_tipo.est_08
+            WHEN 9  THEN est_tipo.est_09
+            WHEN 10 THEN est_tipo.est_10
+            WHEN 11 THEN est_tipo.est_11
+            WHEN 12 THEN est_tipo.est_12
         END AS estandar,
         cen.codcentro, 
         cen.centro, 

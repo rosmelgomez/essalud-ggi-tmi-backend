@@ -29,54 +29,57 @@ class tmiEstandarTipoDto(BaseModel):
     id_estandar: int
     tipo_centro: str
     anio: int 
-    estandar_01: float
-    estandar_02: float
-    estandar_03: float
-    estandar_04: float
-    estandar_05: float
-    estandar_06: float
-    estandar_07: float
-    estandar_08: float
-    estandar_09: float
-    estandar_10: float
-    estandar_11: float
-    estandar_12: float  
+    est_fijo: float
+    est_01: float
+    est_02: float
+    est_03: float
+    est_04: float
+    est_05: float
+    est_06: float
+    est_07: float
+    est_08: float
+    est_09: float
+    est_10: float
+    est_11: float
+    est_12: float  
 
 class tmiEstandarNivelDto(BaseModel):
     id: Optional[int] = None
     id_estandar: int
     nivel_centro: str
     anio: int 
-    estandar_01: float
-    estandar_02: float
-    estandar_03: float
-    estandar_04: float
-    estandar_05: float
-    estandar_06: float
-    estandar_07: float
-    estandar_08: float
-    estandar_09: float
-    estandar_10: float
-    estandar_11: float
-    estandar_12: float
+    est_fijo: float
+    est_01: float
+    est_02: float
+    est_03: float
+    est_04: float
+    est_05: float
+    est_06: float
+    est_07: float
+    est_08: float
+    est_09: float
+    est_10: float
+    est_11: float
+    est_12: float
 
 class tmiEstandarCategoriaDto(BaseModel):
     id: Optional[int] = None
     id_estandar: int
     categoria_centro: str
     anio: int 
-    estandar_01: float
-    estandar_02: float
-    estandar_03: float
-    estandar_04: float
-    estandar_05: float
-    estandar_06: float
-    estandar_07: float
-    estandar_08: float
-    estandar_09: float
-    estandar_10: float
-    estandar_11: float
-    estandar_12: float
+    est_fijo: float
+    est_01: float
+    est_02: float
+    est_03: float
+    est_04: float
+    est_05: float
+    est_06: float
+    est_07: float
+    est_08: float
+    est_09: float
+    est_10: float
+    est_11: float
+    est_12: float
 
 class tmiCentroDto(BaseModel):
     id: Optional[int] = None
