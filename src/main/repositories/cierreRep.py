@@ -7,17 +7,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 # Tabla de cierre (base.esquema.tabla). Configurable por .env
-CIERRE_TABLA = os.getenv("CIERRE_TABLA", "pentahodev_prueba.dbo.cierre").strip()
+CIERRE_TABLA = os.getenv("CIERRE_TABLA", "pentahodev_prueba_01.dbo.cierre").strip()
 if not re.fullmatch(r"[A-Za-z0-9_]+(\.[A-Za-z0-9_]+){0,2}", CIERRE_TABLA):
     raise RuntimeError("CIERRE_TABLA tiene un formato inválido")
 
 # Tablas que se copian del periodo anterior en el cierre (solo lectura aquí)
 TABLAS_CIERRE = {
-    "tmi_centro": "pentahodev_prueba.dbo.tmi_centro",
-    "tmi_estandar_tipo": "pentahodev_prueba.dbo.tmi_estandar_tipo",
-    "tmi_estandar_nivel": "pentahodev_prueba.dbo.tmi_estandar_nivel",
+    #"tmi_centro": "pentahodev_prueba_01.dbo.tmi_centro",
+    #"tmi_estandar_tipo": "pentahodev_prueba_01.dbo.tmi_estandar_tipo",
+    #"tmi_estandar_nivel": "pentahodev_prueba_01.dbo.tmi_estandar_nivel",
     # desactivado por ahora: tmi_estandar_categoria aún no tiene datos
-    # "tmi_estandar_categoria": "pentahodev_prueba.dbo.tmi_estandar_categoria",
+    # "tmi_estandar_categoria": "pentahodev_prueba_01.dbo.tmi_estandar_categoria",
 }
 
 
