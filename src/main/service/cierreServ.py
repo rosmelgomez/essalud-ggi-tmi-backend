@@ -20,9 +20,9 @@ CIERRE_INTERVALO_MINUTOS = int(os.getenv("CIERRE_INTERVALO_MINUTOS", "60"))
 
 # Inserción del periodo nuevo copiando el periodo anterior (funciones existentes)
 INSERTS_CIERRE = {
-    "tmi_centro": tmiRep.queryInsertCentrosTMI,
-    "tmi_estandar_tipo": tmiRep.queryInsertEstandarTipo,
-    "tmi_estandar_nivel": tmiRep.queryInsertEstandarNivel,
+    ##"tmi_centro": tmiRep.queryInsertCentrosTMI,
+    ##"tmi_estandar_tipo": tmiRep.queryInsertEstandarTipo,
+    ##"tmi_estandar_nivel": tmiRep.queryInsertEstandarNivel,
     # desactivado por ahora: tmi_estandar_categoria aún no tiene datos
     # "tmi_estandar_categoria": tmiRep.queryInsertEstandarCategoria,
 }
