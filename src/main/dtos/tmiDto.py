@@ -1,7 +1,21 @@
 from datetime import date, datetime
 from typing import Optional
 from xmlrpc.client import boolean
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
+
+
+class _conIndicador(BaseModel):
+    """id_indicador (DDL actual, -> tmi_indicador) o id_estandar (DDL anterior): se acepta cualquiera y se igualan."""
+    id_indicador: Optional[int] = None
+    id_estandar: Optional[int] = None
+
+    @model_validator(mode="after")
+    def _igualar_indicador(self):
+        if self.id_indicador is None:
+            self.id_indicador = self.id_estandar
+        if self.id_estandar is None:
+            self.id_estandar = self.id_indicador
+        return self
 
 class cierreDto(BaseModel):
     id: int
@@ -24,62 +38,59 @@ class tmiEstandarDto(BaseModel):
     fecha_creacion: Optional[datetime] = None
     fecha_modificacion: Optional[datetime] = None
 
-class tmiEstandarTipoDto(BaseModel):
+class tmiEstandarTipoDto(_conIndicador):
     id: Optional[int] = None
-    id_estandar: int
     tipo_centro: str
     anio: int 
-    est_fijo: float
-    est_01: float
-    est_02: float
-    est_03: float
-    est_04: float
-    est_05: float
-    est_06: float
-    est_07: float
-    est_08: float
-    est_09: float
-    est_10: float
-    est_11: float
-    est_12: float  
+    est_fijo: Optional[float] = None
+    est_01: Optional[float] = None
+    est_02: Optional[float] = None
+    est_03: Optional[float] = None
+    est_04: Optional[float] = None
+    est_05: Optional[float] = None
+    est_06: Optional[float] = None
+    est_07: Optional[float] = None
+    est_08: Optional[float] = None
+    est_09: Optional[float] = None
+    est_10: Optional[float] = None
+    est_11: Optional[float] = None
+    est_12: Optional[float] = None
 
-class tmiEstandarNivelDto(BaseModel):
+class tmiEstandarNivelDto(_conIndicador):
     id: Optional[int] = None
-    id_estandar: int
     nivel_centro: str
     anio: int 
-    est_fijo: float
-    est_01: float
-    est_02: float
-    est_03: float
-    est_04: float
-    est_05: float
-    est_06: float
-    est_07: float
-    est_08: float
-    est_09: float
-    est_10: float
-    est_11: float
-    est_12: float
+    est_fijo: Optional[float] = None
+    est_01: Optional[float] = None
+    est_02: Optional[float] = None
+    est_03: Optional[float] = None
+    est_04: Optional[float] = None
+    est_05: Optional[float] = None
+    est_06: Optional[float] = None
+    est_07: Optional[float] = None
+    est_08: Optional[float] = None
+    est_09: Optional[float] = None
+    est_10: Optional[float] = None
+    est_11: Optional[float] = None
+    est_12: Optional[float] = None
 
-class tmiEstandarCategoriaDto(BaseModel):
+class tmiEstandarCategoriaDto(_conIndicador):
     id: Optional[int] = None
-    id_estandar: int
     categoria_centro: str
     anio: int 
-    est_fijo: float
-    est_01: float
-    est_02: float
-    est_03: float
-    est_04: float
-    est_05: float
-    est_06: float
-    est_07: float
-    est_08: float
-    est_09: float
-    est_10: float
-    est_11: float
-    est_12: float
+    est_fijo: Optional[float] = None
+    est_01: Optional[float] = None
+    est_02: Optional[float] = None
+    est_03: Optional[float] = None
+    est_04: Optional[float] = None
+    est_05: Optional[float] = None
+    est_06: Optional[float] = None
+    est_07: Optional[float] = None
+    est_08: Optional[float] = None
+    est_09: Optional[float] = None
+    est_10: Optional[float] = None
+    est_11: Optional[float] = None
+    est_12: Optional[float] = None
 
 class tmiCentroDto(BaseModel):
     id: Optional[int] = None
@@ -91,22 +102,36 @@ class tmiCentroDto(BaseModel):
     categoria: Optional[str] = None
     nivel: str
     tipo: str
-    flag: boolean
+    flag: Optional[boolean] = True
+    anio: Optional[int] = None
+    flag_01: Optional[boolean] = None
+    flag_02: Optional[boolean] = None
+    flag_03: Optional[boolean] = None
+    flag_04: Optional[boolean] = None
+    flag_05: Optional[boolean] = None
+    flag_06: Optional[boolean] = None
+    flag_07: Optional[boolean] = None
+    flag_08: Optional[boolean] = None
+    flag_09: Optional[boolean] = None
+    flag_10: Optional[boolean] = None
+    flag_11: Optional[boolean] = None
+    flag_12: Optional[boolean] = None
 
-class tmiExclusionCentroEstandarDto(BaseModel):
+class tmiExclusionCentroEstandarDto(_conIndicador):
     id: Optional[int] = None
-    id_centro: int
-    id_estandar: int
+    id_centro: Optional[int] = None
+    codcentro: Optional[str] = None
     anio: int
-    excl_01 : boolean
-    excl_02 : boolean
-    excl_03 : boolean
-    excl_04 : boolean
-    excl_05 : boolean
-    excl_06 : boolean
-    excl_07 : boolean
-    excl_08 : boolean
-    excl_09 : boolean
-    excl_10 : boolean
-    excl_11 : boolean
-    excl_12 : boolean
+    excl_01: boolean = False
+    excl_02: boolean = False
+    excl_03: boolean = False
+    excl_04: boolean = False
+    excl_05: boolean = False
+    excl_06: boolean = False
+    excl_07: boolean = False
+    excl_08: boolean = False
+    excl_09: boolean = False
+    excl_10: boolean = False
+    excl_11: boolean = False
+    excl_12: boolean = False
+    motivo: Optional[str] = None

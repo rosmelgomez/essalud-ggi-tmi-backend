@@ -1,6 +1,6 @@
 /*  CE_Concent - Concentracion de Consultas*/
 
-DECLARE @Periodo CHAR(6) = '202609';         
+DECLARE @Periodo CHAR(6) = '202607';         
 DECLARE @Mes     INT     = CAST(RIGHT(@Periodo, 2) AS INT);
 DECLARE @Anio    INT     = CAST(LEFT(@Periodo, 4) AS INT); 
 
@@ -85,38 +85,22 @@ FROM CEN
 LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
 LEFT OUTER JOIN (        
-        SELECT 
-        cen.id, 
-        est.tipo AS tipo_indicador, 
-        est.indicador, 
-        CASE @Mes
-            WHEN 1  THEN est_nivel.est_01
-            WHEN 2  THEN est_nivel.est_02
-            WHEN 3  THEN est_nivel.est_03
-            WHEN 4  THEN est_nivel.est_04
-            WHEN 5  THEN est_nivel.est_05
-            WHEN 6  THEN est_nivel.est_06
-            WHEN 7  THEN est_nivel.est_07
-            WHEN 8  THEN est_nivel.est_08
-            WHEN 9  THEN est_nivel.est_09
-            WHEN 10 THEN est_nivel.est_10
-            WHEN 11 THEN est_nivel.est_11
-            WHEN 12 THEN est_nivel.est_12
-        END AS estandar,
-        cen.codcentro, 
-        cen.centro, 
-        cen.red, 
-        cen.nivel, 
-        cen.tipo, 
-        cen.categoria,
-        exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04,
-        exc.excl_05, exc.excl_06, exc.excl_07, exc.excl_08,
-        exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
-    FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_nivel
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est.id = est_nivel.id_estandar 
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON est_nivel.nivel_centro = cen.nivel
-    LEFT OUTER JOIN pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc ON exc.id_centro = cen.id AND exc.id_estandar =est.id
-    WHERE est.indicador = 'Concentracion de Consultas' AND est_nivel.anio = @Anio
+SELECT cen.id,
+       g.descripcion AS tipo_indicador,
+       est.indicador,
+       CHOOSE(@Mes, en.est_01, en.est_02, en.est_03, en.est_04, en.est_05, en.est_06,
+                    en.est_07, en.est_08, en.est_09, en.est_10, en.est_11, en.est_12) AS estandar,
+       cen.codcentro, cen.centro, cen.red, cen.nivel, cen.tipo, cen.categoria,
+       exc.excl_01, exc.excl_02, exc.excl_03, exc.excl_04, exc.excl_05, exc.excl_06,
+       exc.excl_07, exc.excl_08, exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
+FROM pentahodev.dbo.tmi_estandar_nivel en
+JOIN pentahodev.dbo.tmi_indicador est ON est.id = en.id_indicador
+LEFT JOIN pentahodev.dbo.tmi_grupo g  ON g.id = est.grupo
+JOIN pentahodev.dbo.tmi_centro cen    ON cen.nivel = en.nivel_centro
+LEFT JOIN pentahodev.dbo.tmi_exclusion_centro_estandar exc
+       ON exc.id_centro = cen.id AND exc.anio = @Anio
+      AND (exc.id_indicador = est.id OR exc.id_indicador IS NULL)
+WHERE en.id_indicador = 1 AND en.anio = @Anio
 ) AS D ON CEN.codcentro = D.codcentro
 ORDER BY ORDEN asc;
 

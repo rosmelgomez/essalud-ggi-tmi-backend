@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
+from src.main.core.tmiConfig import TMI_DB
 from src.main.dtos.tmiDto import (
     tmiCentroDto,
     tmiEstandarDto,
@@ -12,13 +13,22 @@ from fastapi import HTTPException
 from sqlalchemy import text
 
 ###
-name_server = 'pentahodev_prueba_01.dbo'
+name_server = f"{TMI_DB}.dbo"
 
 ### tmi_centro 
 def queryCentrosTMI(db: Session):
     try:
         query = f"""
-        SElECT * FROM pentahodev_prueba_01.dbo.tmi_centro 
+        IF OBJECT_ID('{name_server}.vw_tmi_centro_base') IS NOT NULL
+            SELECT id_centro AS id, red, CAST(orden AS VARCHAR(20)) AS orden, CAST(orden_tipo AS VARCHAR(20)) AS orden_tipo,
+                   CAST(codcentro AS VARCHAR(50)) AS codcentro, centro, categoria, nivel, tipo,
+                   f01 AS flag, ISNULL(anio, YEAR(GETDATE())) AS anio,
+                   f01 AS flag_01, f02 AS flag_02, f03 AS flag_03, f04 AS flag_04, f05 AS flag_05, f06 AS flag_06,
+                   f07 AS flag_07, f08 AS flag_08, f09 AS flag_09, f10 AS flag_10, f11 AS flag_11, f12 AS flag_12
+            FROM {name_server}.vw_tmi_centro_base
+            ORDER BY TRY_CAST(orden AS INT), TRY_CAST(orden_tipo AS INT), codcentro
+        ELSE
+            SELECT * FROM {name_server}.tmi_centro
         """
         result = db.execute(text(query))
         return [dict(row) for row in result.mappings()]
@@ -27,13 +37,20 @@ def queryCentrosTMI(db: Session):
 
 def queryInsertCentrosTMI(db: Session, centro:tmiCentroDto):
     try:
-        query = """
-INSERT INTO pentahodev_prueba_01.dbo.tmi_centro
-(red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,anio, flag_01, flag_02, flag_03, flag_04, flag_05, flag_06, flag_07, flag_08, flag_09, flag_10, flag_11, flag_12)
-VALUES 
-(:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,:anio, :flag_01, :flag_02, :flag_03, :flag_04, :flag_05, :flag_06, :flag_07, :flag_08, :flag_09, :flag_10, :flag_11, :flag_12)
+        query = f"""
+        IF COL_LENGTH('{name_server}.tmi_centro', 'flag_01') IS NOT NULL
+            INSERT INTO {name_server}.tmi_centro
+            (red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,anio, flag_01, flag_02, flag_03, flag_04, flag_05, flag_06, flag_07, flag_08, flag_09, flag_10, flag_11, flag_12)
+            VALUES 
+            (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:anio, YEAR(GETDATE())), ISNULL(:flag_01, :flag), ISNULL(:flag_02, :flag), ISNULL(:flag_03, :flag), ISNULL(:flag_04, :flag), ISNULL(:flag_05, :flag), ISNULL(:flag_06, :flag), ISNULL(:flag_07, :flag), ISNULL(:flag_08, :flag), ISNULL(:flag_09, :flag), ISNULL(:flag_10, :flag), ISNULL(:flag_11, :flag), ISNULL(:flag_12, :flag))
+        ELSE
+            INSERT INTO {name_server}.tmi_centro
+            (red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,flag)
+            VALUES (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:flag, 1))
         """
         params = centro.model_dump() if hasattr(centro, "model_dump") else centro.dict()
+        for k in ("anio", "flag", "flag_01", "flag_02", "flag_03", "flag_04", "flag_05", "flag_06", "flag_07", "flag_08", "flag_09", "flag_10", "flag_11", "flag_12"):
+            params.setdefault(k, None)
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Centros TMI insertados correctamente", "rows_inserted": result.rowcount}
@@ -43,32 +60,46 @@ VALUES
 def queryUpdateCentrosTMI(db: Session, dto:tmiCentroDto):
     try:
         query = f"""
-        UPDATE pentahodev_prueba_01.dbo.tmi_centro
-            SET red = :red
-            ,orden = :orden
-            ,orden_tipo = :orden_tipo
-            ,codcentro = :codcentro
-            ,centro = :centro
-            ,categoria = :categoria
-            ,nivel = :nivel
-            ,tipo = :tipo
-            ,anio = :anio
-            ,flag_01 = :flag_01
-            ,flag_02 = :flag_02
-            ,flag_03 = :flag_03
-            ,flag_04 = :flag_04
-            ,flag_05 = :flag_05
-            ,flag_06 = :flag_06
-            ,flag_07 = :flag_07
-            ,flag_08 = :flag_08
-            ,flag_09 = :flag_09
-            ,flag_10 = :flag_10
-            ,flag_11 = :flag_11
-            ,flag_12 = :flag_12
-
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro AND anio = :anio)
+        IF COL_LENGTH('{name_server}.tmi_centro', 'flag_01') IS NOT NULL
+            UPDATE {name_server}.tmi_centro
+                SET red = :red
+                ,orden = :orden
+                ,orden_tipo = :orden_tipo
+                ,codcentro = :codcentro
+                ,centro = :centro
+                ,categoria = :categoria
+                ,nivel = :nivel
+                ,tipo = :tipo
+                ,anio = ISNULL(:anio, anio)
+                ,flag_01 = COALESCE(:flag_01, :flag, flag_01)
+                ,flag_02 = COALESCE(:flag_02, :flag, flag_02)
+                ,flag_03 = COALESCE(:flag_03, :flag, flag_03)
+                ,flag_04 = COALESCE(:flag_04, :flag, flag_04)
+                ,flag_05 = COALESCE(:flag_05, :flag, flag_05)
+                ,flag_06 = COALESCE(:flag_06, :flag, flag_06)
+                ,flag_07 = COALESCE(:flag_07, :flag, flag_07)
+                ,flag_08 = COALESCE(:flag_08, :flag, flag_08)
+                ,flag_09 = COALESCE(:flag_09, :flag, flag_09)
+                ,flag_10 = COALESCE(:flag_10, :flag, flag_10)
+                ,flag_11 = COALESCE(:flag_11, :flag, flag_11)
+                ,flag_12 = COALESCE(:flag_12, :flag, flag_12)
+            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)
+        ELSE
+            UPDATE {name_server}.tmi_centro
+                SET red = :red
+                ,orden = :orden
+                ,orden_tipo = :orden_tipo
+                ,codcentro = :codcentro
+                ,centro = :centro
+                ,categoria = :categoria
+                ,nivel = :nivel
+                ,tipo = :tipo
+                ,flag = COALESCE(:flag, :flag_01, flag)
+            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)
         """
         params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        for k in ("anio", "flag", "flag_01", "flag_02", "flag_03", "flag_04", "flag_05", "flag_06", "flag_07", "flag_08", "flag_09", "flag_10", "flag_11", "flag_12"):
+            params.setdefault(k, None)
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Centro TMI actualizado correctamente", "rows_affected": result.rowcount}
@@ -78,7 +109,7 @@ def queryUpdateCentrosTMI(db: Session, dto:tmiCentroDto):
 def queryDeleteCentrosTMI(db: Session, id:int):
     try:
         query = f"""
-        DELETE FROM pentahodev_prueba_01.dbo.tmi_centro
+        DELETE FROM {name_server}.tmi_centro
         WHERE id = :id
         """
         result = db.execute(text(query), {"id": id})
@@ -88,11 +119,60 @@ def queryDeleteCentrosTMI(db: Session, id:int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-### tmi_estandar
+### tmi_estandar -> tmi_indicador
+# Las tablas de estándar y exclusión pueden venir de dos DDL:
+#   - actual (indicador_estandar.sql / centros_tmi.sql): id_indicador -> tmi_indicador, est_01..12
+#   - anterior: id_estandar -> tmi_estandar
+# Además tmi_estandar_tipo / _nivel pueden estar en formato largo (indicador por nombre, mes, estandar).
+MESES = [f"{m:02d}" for m in range(1, 13)]
+
+
+def _tiene_columna(db: Session, tabla: str, columna: str) -> bool:
+    return db.execute(text("SELECT COL_LENGTH(:t, :c)"), {"t": f"{name_server}.{tabla}", "c": columna}).scalar() is not None
+
+
+def _existe_tabla(db: Session, tabla: str) -> bool:
+    return db.execute(text("SELECT OBJECT_ID(:t)"), {"t": f"{name_server}.{tabla}"}).scalar() is not None
+
+
+def _col_indicador(db: Session, tabla: str) -> str:
+    return "id_indicador" if _tiene_columna(db, tabla, "id_indicador") else "id_estandar"
+
+
+def _formato_largo(db: Session, tabla: str) -> bool:
+    return _tiene_columna(db, tabla, "mes") and not _tiene_columna(db, tabla, "est_01")
+
+
+def _indicador_join(db: Session, alias_col: str) -> tuple:
+    """(JOIN del maestro de indicadores, expresión del 'tipo' = sección del reporte, orden)."""
+    if _existe_tabla(db, "tmi_indicador"):
+        return (f"JOIN {name_server}.tmi_indicador i ON i.id = {alias_col} "
+                f"LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo",
+                "ISNULL(g.descripcion, '')", "i.orden, i.id")
+    return f"JOIN {name_server}.tmi_estandar i ON i.id = {alias_col}", "ISNULL(i.tipo, '')", "i.id"
+
+
+def _params(dto) -> dict:
+    return dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+
+
+def _id_indicador(params: dict) -> int:
+    valor = params.get("id_indicador") if params.get("id_indicador") is not None else params.get("id_estandar")
+    if valor is None:
+        raise HTTPException(status_code=400, detail="Falta el indicador (id_indicador).")
+    return valor
+
+
 def queryEstandar(db: Session ):
     try:
-        query = """
-        SELECT * FROM pentahodev_prueba_01.dbo.tmi_estandar
+        query = f"""
+        IF OBJECT_ID('{name_server}.tmi_indicador') IS NOT NULL
+            SELECT i.id, ISNULL(g.descripcion, '') AS tipo, i.indicador, i.fecha_creacion, i.fecha_modificacion
+            FROM {name_server}.tmi_indicador i
+            LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
+            ORDER BY i.orden, i.id
+        ELSE
+            SELECT * FROM {name_server}.tmi_estandar
         """
         result = db.execute(text(query))
         return [dict(row) for row in result.mappings()]
@@ -101,321 +181,324 @@ def queryEstandar(db: Session ):
 
 def queryInsertEstandar(db: Session, estandar: tmiEstandarDto):
     try:
-        query = """
-        INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar
-        (tipo ,indicador ,fecha_creacion ,fecha_modificacion)
-        VALUES (:tipo ,:indicador ,COALESCE(:fecha_creacion, GETDATE()) ,COALESCE(:fecha_modificacion, GETDATE()))
-        """
-        params = estandar.model_dump() if hasattr(estandar, "model_dump") else estandar.dict()
+        params = _params(estandar)
+        if _existe_tabla(db, "tmi_indicador"):
+            # 'tipo' es la sección del reporte (tmi_grupo.descripcion)
+            query = f"""
+            INSERT INTO {name_server}.tmi_indicador (grupo, indicador, fecha_creacion, fecha_modificacion)
+            VALUES ((SELECT TOP 1 id FROM {name_server}.tmi_grupo WHERE LTRIM(RTRIM(descripcion)) = LTRIM(RTRIM(:tipo))),
+                    :indicador, COALESCE(:fecha_creacion, GETDATE()), COALESCE(:fecha_modificacion, GETDATE()))
+            """
+        else:
+            query = f"""
+            INSERT INTO {name_server}.tmi_estandar
+            (tipo ,indicador ,fecha_creacion ,fecha_modificacion)
+            VALUES (:tipo ,:indicador ,COALESCE(:fecha_creacion, GETDATE()) ,COALESCE(:fecha_modificacion, GETDATE()))
+            """
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Estándar insertado correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateEstandar(db: Session, dto: tmiEstandarDto):
     try:
-        query = """
-        UPDATE pentahodev_prueba_01.dbo.tmi_estandar
-            SET tipo = :tipo
-            ,indicador = :indicador
-            ,fecha_creacion = COALESCE(:fecha_creacion, fecha_creacion)
-            ,fecha_modificacion = COALESCE(:fecha_modificacion, GETDATE())
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND indicador = :indicador)
-        """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+        params = _params(dto)
+        if _existe_tabla(db, "tmi_indicador"):
+            query = f"""
+            UPDATE {name_server}.tmi_indicador
+                SET grupo = COALESCE((SELECT TOP 1 id FROM {name_server}.tmi_grupo
+                                      WHERE LTRIM(RTRIM(descripcion)) = LTRIM(RTRIM(:tipo))), grupo)
+                ,indicador = :indicador
+                ,fecha_modificacion = COALESCE(:fecha_modificacion, GETDATE())
+            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND indicador = :indicador)
+            """
+        else:
+            query = f"""
+            UPDATE {name_server}.tmi_estandar
+                SET tipo = :tipo
+                ,indicador = :indicador
+                ,fecha_creacion = COALESCE(:fecha_creacion, fecha_creacion)
+                ,fecha_modificacion = COALESCE(:fecha_modificacion, GETDATE())
+            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND indicador = :indicador)
+            """
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Estándar actualizado correctamente", "rows_affected": result.rowcount}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryDeleteEstandar(db: Session, id: int):
+    tabla = "tmi_indicador" if _existe_tabla(db, "tmi_indicador") else "tmi_estandar"
     try:
-        query = """
-        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar
-        WHERE id = :id
-        """
-        result = db.execute(text(query), {"id": id})
+        result = db.execute(text(f"DELETE FROM {name_server}.{tabla} WHERE id = :id"), {"id": id})
         db.commit()
         return {"message": "Estándar eliminado correctamente", "rows_deleted": result.rowcount}
     except Exception as e:
+        db.rollback()
+        if "REFERENCE" in str(e).upper() or "FOREIGN KEY" in str(e).upper():
+            raise HTTPException(status_code=400, detail="El indicador tiene estándares, letras o exclusiones: "
+                                                        "elimínelos antes o márquelo como inactivo.")
         raise HTTPException(status_code=500, detail=str(e))
-    
 
-### tmi_estandar_tipo
+
+### tmi_estandar_tipo / _nivel / _categoria (misma estructura, cambia la clave del centro)
+def _listar_estandar(db: Session, tabla: str, clave: str, fuente: str, anio: int):
+    if _formato_largo(db, tabla):
+        # formato largo: se lee por la vista adaptadora (no tiene un id por fila)
+        query = f"""
+        SELECT ROW_NUMBER() OVER (ORDER BY i.orden, s.id_estandar, s.clave) AS id,
+               s.id_estandar AS id_indicador, s.id_estandar,
+               ISNULL(g.descripcion, '') AS tipo,
+               i.indicador,
+               s.clave AS {clave},
+               s.anio,
+               s.m01 AS est_fijo,
+               s.m01 AS est_01, s.m02 AS est_02, s.m03 AS est_03, s.m04 AS est_04, s.m05 AS est_05, s.m06 AS est_06,
+               s.m07 AS est_07, s.m08 AS est_08, s.m09 AS est_09, s.m10 AS est_10, s.m11 AS est_11, s.m12 AS est_12
+        FROM {name_server}.vw_tmi_std s
+        JOIN {name_server}.tmi_indicador i ON i.id = s.id_estandar
+        LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
+        WHERE s.fuente = '{fuente}' AND s.anio = :anio
+        ORDER BY i.orden, s.id_estandar, s.clave
+        """
+    else:
+        col = _col_indicador(db, tabla)
+        pre = "est_" if _tiene_columna(db, tabla, "est_01") else "estandar_"
+        fijo = "t.est_fijo" if _tiene_columna(db, tabla, "est_fijo") else "CAST(NULL AS FLOAT)"
+        join, tipo, orden = _indicador_join(db, f"t.{col}")
+        meses = ", ".join(f"t.{pre}{m} AS est_{m}" for m in MESES)
+        query = f"""
+        SELECT t.id, t.{col} AS id_indicador, t.{col} AS id_estandar, {tipo} AS tipo, i.indicador,
+               t.{clave}, t.anio, {fijo} AS est_fijo, {meses}
+        FROM {name_server}.{tabla} t
+        {join}
+        WHERE t.anio = :anio
+        ORDER BY {orden}, t.{clave}
+        """
+    result = db.execute(text(query), {"anio": anio})
+    return [dict(row) for row in result.mappings()]
+
+
+def _guardar_estandar(db: Session, tabla: str, clave: str, dto):
+    """Alta o edición. Con id: actualiza esa fila. Sin id: actualiza la fila del mismo indicador, clave y año,
+    o la crea (así no se duplica la combinación, que tiene UNIQUE)."""
+    params = _params(dto)
+    params["id_indicador"] = _id_indicador(params)
+    col = _col_indicador(db, tabla)
+    pre = "est_" if _tiene_columna(db, tabla, "est_01") else "estandar_"
+    con_fijo = _tiene_columna(db, tabla, "est_fijo")
+    sets = [f"{col} = :id_indicador", f"{clave} = LTRIM(RTRIM(:{clave}))", "anio = :anio"]
+    sets += [f"{pre}{m} = :est_{m}" for m in MESES] + (["est_fijo = :est_fijo"] if con_fijo else [])
+    cols = [col, clave, "anio"] + [f"{pre}{m}" for m in MESES] + (["est_fijo"] if con_fijo else [])
+    vals = [":id_indicador", f"LTRIM(RTRIM(:{clave}))", ":anio"] + [f":est_{m}" for m in MESES] + ([":est_fijo"] if con_fijo else [])
+    if params.get("id"):
+        query = f"UPDATE {name_server}.{tabla} SET {', '.join(sets)} WHERE id = :id"
+    else:
+        query = f"""
+        UPDATE {name_server}.{tabla} SET {', '.join(sets)}
+        WHERE {col} = :id_indicador AND LTRIM(RTRIM({clave})) = LTRIM(RTRIM(:{clave})) AND anio = :anio;
+        IF @@ROWCOUNT = 0
+            INSERT INTO {name_server}.{tabla} ({', '.join(cols)}) VALUES ({', '.join(vals)});
+        """
+    result = db.execute(text(query), params)
+    db.commit()
+    return result.rowcount
+
+
+def _guardar_estandar_largo(db: Session, tabla: str, clave: str, dto):
+    """Formato largo (una fila por mes, indicador por nombre): se reemplazan los 12 meses."""
+    params = _params(dto)
+    params["id_indicador"] = _id_indicador(params)
+    query = f"""
+    DECLARE @tipo VARCHAR(200), @ind VARCHAR(200);
+    SELECT @tipo = ISNULL(g.descripcion, ''), @ind = i.indicador
+    FROM {name_server}.tmi_indicador i
+    LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
+    WHERE i.id = :id_indicador;
+
+    DELETE s FROM {name_server}.{tabla} s
+    WHERE REPLACE(LTRIM(RTRIM(s.indicador)), ' de ', ' ') = REPLACE(LTRIM(RTRIM(@ind)), ' de ', ' ')
+      AND LTRIM(RTRIM(s.{clave})) = LTRIM(RTRIM(:{clave}))
+      AND s.anio = :anio;
+
+    INSERT INTO {name_server}.{tabla} (tipo, indicador, {clave}, anio, mes, periodo, estandar)
+    SELECT @tipo, @ind, LTRIM(RTRIM(:{clave})), :anio, v.mes,
+           CAST(:anio AS VARCHAR(4)) + RIGHT('0' + CAST(v.mes AS VARCHAR(2)), 2), v.est
+    FROM (VALUES
+        (1, :est_01), (2, :est_02), (3, :est_03), (4, :est_04), (5, :est_05), (6, :est_06),
+        (7, :est_07), (8, :est_08), (9, :est_09), (10, :est_10), (11, :est_11), (12, :est_12)
+    ) v(mes, est);
+    """
+    result = db.execute(text(query), params)
+    db.commit()
+    return result.rowcount
+
+
+def _guardar(db: Session, tabla: str, clave: str, dto, mensaje: str):
+    try:
+        if _formato_largo(db, tabla):
+            filas = _guardar_estandar_largo(db, tabla, clave, dto)
+        else:
+            filas = _guardar_estandar(db, tabla, clave, dto)
+        return {"message": mensaje, "rows_affected": filas}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def _eliminar(db: Session, tabla: str, id: int, mensaje: str):
+    try:
+        if _formato_largo(db, tabla):
+            raise HTTPException(status_code=400, detail=f"{tabla} está en formato largo: sus filas no tienen id. "
+                                                        "Guarde los estándares en 0 para dejarlos sin efecto.")
+        result = db.execute(text(f"DELETE FROM {name_server}.{tabla} WHERE id = :id"), {"id": id})
+        db.commit()
+        return {"message": mensaje, "rows_deleted": result.rowcount}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 def queryEstandarTipo(db: Session, anio: int):
     try:
-        query = """
-        SELECT est_t.id, est_t.id_estandar, est.tipo, est.indicador, est_t.tipo_centro, est_t.anio, est_t.est_fijo, est_t.est_01, est_t.est_02, est_t.est_03, est_t.est_04,est_t.est_05, 
-        est_t.est_06, est_t.est_07, est_t.est_08, est_t.est_09, est_t.est_10, est_t.est_11, est_t.est_12
-        FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo est_t
-        JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_t.id_estandar = est.id
-        WHERE anio =:anio
-        """
-        result = db.execute(text(query), {"anio": anio})
-        return [dict(row) for row in result.mappings()]
+        return _listar_estandar(db, "tmi_estandar_tipo", "tipo_centro", "TIPO", anio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryInsertEstandarTipo(db: Session, estandar_tipo: tmiEstandarTipoDto):
-    try:
-        query = """
-        INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_tipo
-        (id_estandar ,tipo_centro ,anio ,est_01 ,est_02 ,est_03 ,est_04 ,est_05 ,est_06 ,est_07 ,est_08 ,est_09 ,est_10 ,est_11 ,est_12)
-        VALUES (:id_estandar ,:tipo_centro ,:anio ,:est_01 ,:est_02 ,:est_03 ,:est_04 ,:est_05 ,:est_06 ,:est_07 ,:est_08 ,:est_09 ,:est_10 ,:est_11 ,:est_12)
-        """
-        params = estandar_tipo.model_dump() if hasattr(estandar_tipo, "model_dump") else estandar_tipo.dict()
-        result = db.execute(text(query), params)
-        db.commit()
-        return {"message": "Estándares por Tipo insertados correctamente", "rows_inserted": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _guardar(db, "tmi_estandar_tipo", "tipo_centro", estandar_tipo, "Estándares por Tipo guardados correctamente")
 
 def queryUpdateEstandarTipo(db: Session, dto: tmiEstandarTipoDto):
-    try:
-        query = """
-        UPDATE pentahodev_prueba_01.dbo.tmi_estandar_tipo
-            SET 
-            id_estandar = :id_estandar
-            ,tipo_centro = :tipo_centro
-            ,anio = :anio
-            ,est_01 = :est_01
-            ,est_02 = :est_02
-            ,est_03 = :est_03
-            ,est_04 = :est_04
-            ,est_05 = :est_05
-            ,est_06 = :est_06
-            ,est_07 = :est_07
-            ,est_08 = :est_08
-            ,est_09 = :est_09
-            ,est_10 = :est_10
-            ,est_11 = :est_11
-            ,est_12 = :est_12
-
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND tipo_centro = :tipo_centro AND anio = :anio)
-        """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
-        result = db.execute(text(query), params)
-        db.commit()
-        return {"message": "Estándar Tipo actualizado correctamente", "rows_affected": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _guardar(db, "tmi_estandar_tipo", "tipo_centro", dto, "Estándar Tipo actualizado correctamente")
 
 def queryDeleteEstandarTipo(db: Session, id: int):
-    try:
-        query = """
-        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar_tipo
-        WHERE id = :id
-        """
-        result = db.execute(text(query), {"id": id})
-        db.commit()
-        return {"message": "Estándar Tipo eliminado correctamente", "rows_deleted": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _eliminar(db, "tmi_estandar_tipo", id, "Estándar Tipo eliminado correctamente")
 
 
-### tmi_estandar_nivel
 def queryEstandarNivel(db: Session, anio: int):
     try:
-        query = """
-        SELECT est_n.id, est_n.id_estandar, est.tipo, est.indicador, est_n.nivel_centro, est_n.anio, est_n.est_fijo, est_n.est_01, est_n.est_02, est_n.est_03, est_n.est_04,est_n.est_05, 
-        est_n.est_06, est_n.est_07, est_n.est_08, est_n.est_09, est_n.est_10, est_n.est_11, est_n.est_12
-        FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel est_n
-        JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_n.id_estandar = est.id
-        WHERE anio = :anio
-        """
-        result = db.execute(text(query), {"anio": anio})
-        return [dict(row) for row in result.mappings()]
+        return _listar_estandar(db, "tmi_estandar_nivel", "nivel_centro", "NIVEL", anio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryInsertEstandarNivel(db: Session, estardar_nivel: tmiEstandarNivelDto):
-    try:
-        query = """
-        INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_nivel
-        (id_estandar, nivel_centro ,anio, est_01 ,est_02 ,est_03 ,est_04 ,est_05 ,est_06 ,est_07 ,est_08 ,est_09 ,est_10 ,est_11 ,est_12)
-        VALUES (:id_estandar ,:nivel_centro ,:anio ,:est_01 ,:est_02 ,:est_03 ,:est_04 ,:est_05 ,:est_06 ,:est_07 ,:est_08 ,:est_09 ,:est_10 ,:est_11 ,:est_12)
-        """
-        params = estardar_nivel.model_dump() if hasattr(estardar_nivel, "model_dump") else estardar_nivel.dict()
-        result = db.execute(text(query), params)
-        db.commit()
-        return {"message": "Estándares por Nivel insertados correctamente", "rows_inserted": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _guardar(db, "tmi_estandar_nivel", "nivel_centro", estardar_nivel, "Estándares por Nivel guardados correctamente")
 
 def queryUpdateEstandarNivel(db: Session, dto: tmiEstandarNivelDto):
-    try:
-        query = """
-        UPDATE pentahodev_prueba_01.dbo.tmi_estandar_nivel
-            SET 
-             id_estandar = :id_estandar
-            ,nivel_centro = :nivel_centro
-            ,anio = :anio
-            ,est_01 = :est_01
-            ,est_02 = :est_02
-            ,est_03 = :est_03
-            ,est_04 = :est_04
-            ,est_05 = :est_05
-            ,est_06 = :est_06
-            ,est_07 = :est_07
-            ,est_08 = :est_08
-            ,est_09 = :est_09
-            ,est_10 = :est_10
-            ,est_11 = :est_11
-            ,est_12 = :est_12
-
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND nivel_centro = :nivel_centro AND anio = :anio)
-        """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
-        result = db.execute(text(query), params)
-        db.commit()
-        return {"message": "Estándar Nivel actualizado correctamente", "rows_affected": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _guardar(db, "tmi_estandar_nivel", "nivel_centro", dto, "Estándar Nivel actualizado correctamente")
 
 def queryDeleteEstandarNivel(db: Session, id: int):
-    try:
-        query = """
-        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar_nivel
-        WHERE id = :id
-        """
-        result = db.execute(text(query), {"id": id})
-        db.commit()
-        return {"message": "Estándar Nivel eliminado correctamente", "rows_deleted": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _eliminar(db, "tmi_estandar_nivel", id, "Estándar Nivel eliminado correctamente")
 
 
-### tmi_estandar_categoria
 def queryEstandarCategoria(db: Session, anio: int):
     try:
-        query = """
-        SELECT est_c.id, est_c.id_estandar, est.tipo, est.indicador, est_c.categoria_centro, est_c.anio, est_c.est_fijo, est_c.est_01, est_c.est_02, est_c.est_03, est_c.est_04, est_c.est_05, 
-        est_c.est_06, est_c.est_07, est_c.est_08, est_c.est_09, est_c.est_10, est_c.est_11, est_c.est_12
-        FROM pentahodev_prueba_01.dbo.tmi_estandar_categoria est_c
-        JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON est_c.id_estandar = est.id
-        WHERE anio = :anio
-        """
-        result = db.execute(text(query), {"anio": anio})
-        return [dict(row) for row in result.mappings()]
+        return _listar_estandar(db, "tmi_estandar_categoria", "categoria_centro", "CATEGORIA", anio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryInsertEstandarCategoria(db: Session, estandar_categoria: tmiEstandarCategoriaDto):
-    try:
-        query = """
-        INSERT INTO pentahodev_prueba_01.dbo.tmi_estandar_categoria
-        (id_estandar, categoria_centro, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12)
-        VALUES (:id_estandar, :categoria_centro, :anio, :est_01, :est_02, :est_03, :est_04, :est_05, :est_06, :est_07, :est_08, :est_09, :est_10, :est_11, :est_12)
-        """
-        params = estandar_categoria.model_dump() if hasattr(estandar_categoria, "model_dump") else estandar_categoria.dict()
-        result = db.execute(text(query), params)
-        db.commit()
-        return {"message": "Estándares por Categoría insertados correctamente", "rows_inserted": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _guardar(db, "tmi_estandar_categoria", "categoria_centro", estandar_categoria,
+                    "Estándares por Categoría guardados correctamente")
 
 def queryUpdateEstandarCategoria(db: Session, dto: tmiEstandarCategoriaDto):
-    try:
-        query = """
-        UPDATE pentahodev_prueba_01.dbo.tmi_estandar_categoria
-            SET 
-            id_estandar = :id_estandar
-            ,categoria_centro = :categoria_centro
-            ,anio = :anio
-            ,est_01 = :est_01
-            ,est_02 = :est_02
-            ,est_03 = :est_03
-            ,est_04 = :est_04
-            ,est_05 = :est_05
-            ,est_06 = :est_06
-            ,est_07 = :est_07
-            ,est_08 = :est_08
-            ,est_09 = :est_09
-            ,est_10 = :est_10
-            ,est_11 = :est_11
-            ,est_12 = :est_12
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND categoria_centro = :categoria_centro AND anio = :anio)
-        """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
-        result = db.execute(text(query), params)
-        db.commit()
-        return {"message": "Estándar Categoría actualizado correctamente", "rows_affected": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _guardar(db, "tmi_estandar_categoria", "categoria_centro", dto, "Estándar Categoría actualizado correctamente")
 
 def queryDeleteEstandarCategoria(db: Session, id: int):
-    try:
-        query = """
-        DELETE FROM pentahodev_prueba_01.dbo.tmi_estandar_categoria
-        WHERE id = :id
-        """
-        result = db.execute(text(query), {"id": id})
-        db.commit()
-        return {"message": "Estándar Categoría eliminado correctamente", "rows_deleted": result.rowcount}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return _eliminar(db, "tmi_estandar_categoria", id, "Estándar Categoría eliminado correctamente")
 
-### tmi_exclusion_centro_estandar
+
+### tmi_exclusion_centro_estandar (id_indicador NULL = todos los indicadores del centro)
 def queryExclusionCentroEstandar(db: Session, anio: int):
     try:
-        query = """
-        SELECT cen.codcentro, cen.centro, est.tipo, est.indicador ,exc.* 
-        FROM pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar exc 
-        JOIN pentahodev_prueba_01.dbo.tmi_estandar est ON exc.id_estandar = est.id
-        JOIN pentahodev_prueba_01.dbo.tmi_centro cen ON exc.id_centro = cen.id
-        WHERE anio = :anio
+        tabla = "tmi_exclusion_centro_estandar"
+        col = _col_indicador(db, tabla)
+        pre = "excl_" if _tiene_columna(db, tabla, "excl_01") else "estandar_"
+        cod = "COALESCE(CAST(cen.codcentro AS VARCHAR(50)), exc.codcentro)" if _tiene_columna(db, tabla, "codcentro") else "cen.codcentro"
+        motivo = "exc.motivo" if _tiene_columna(db, tabla, "motivo") else "CAST(NULL AS VARCHAR(300))"
+        join, tipo, orden = _indicador_join(db, f"exc.{col}")
+        join = join.replace("JOIN ", "LEFT JOIN ", 1) if join.startswith("JOIN ") else join
+        meses = ", ".join(f"exc.{pre}{m} AS excl_{m}" for m in MESES)
+        query = f"""
+        SELECT exc.id, exc.id_centro, {cod} AS codcentro, cen.centro,
+               {tipo} AS tipo, ISNULL(i.indicador, 'Todos los indicadores') AS indicador,
+               exc.{col} AS id_indicador, exc.{col} AS id_estandar, exc.anio, {meses}, {motivo} AS motivo
+        FROM {name_server}.tmi_exclusion_centro_estandar exc
+        {join}
+        LEFT JOIN {name_server}.vw_tmi_centro_base cen ON cen.id_centro = exc.id_centro
+        WHERE exc.anio = :anio
+        ORDER BY {cod}, {orden}
         """
         result = db.execute(text(query), {"anio": anio})
         return [dict(row) for row in result.mappings()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _params_exclusion(db: Session, dto) -> tuple:
+    tabla = "tmi_exclusion_centro_estandar"
+    params = _params(dto)
+    params["id_indicador"] = params.get("id_indicador") if params.get("id_indicador") is not None else params.get("id_estandar")
+    if params.get("id_centro") is None and not params.get("codcentro"):
+        raise HTTPException(status_code=400, detail="Indique el centro (id_centro o codcentro).")
+    if params.get("id_centro") is None:
+        params["id_centro"] = db.execute(text(f"""
+            SELECT MIN(id) FROM {name_server}.tmi_centro WHERE LTRIM(RTRIM(codcentro)) = LTRIM(RTRIM(:codcentro))"""),
+            {"codcentro": params["codcentro"]}).scalar()
+    col = _col_indicador(db, tabla)
+    pre = "excl_" if _tiene_columna(db, tabla, "excl_01") else "estandar_"
+    cols = {"id_centro": ":id_centro", col: ":id_indicador", "anio": ":anio"}
+    cols.update({f"{pre}{m}": f"ISNULL(:excl_{m}, 0)" for m in MESES})
+    if _tiene_columna(db, tabla, "codcentro"):
+        cols["codcentro"] = f"COALESCE(:codcentro, (SELECT codcentro FROM {name_server}.tmi_centro WHERE id = :id_centro))"
+    if _tiene_columna(db, tabla, "motivo"):
+        cols["motivo"] = ":motivo"
+    for k in ("codcentro", "motivo", "id"):
+        params.setdefault(k, None)
+    return params, cols, col
+
+
 def queryInsertExclusionCentroEstandar(db: Session, dto:tmiExclusionCentroEstandarDto):
     try:
-        query = """
-        INSERT INTO pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar
-        (id_centro, id_estandar, anio, excl_01, excl_02, excl_03, excl_04, excl_05, excl_06, excl_07, excl_08, excl_09, excl_10, excl_11, excl_12)
-        VALUES (:id_centro, :id_estandar, :anio, :excl_01, :excl_02, :excl_03, :excl_04, :excl_05, :excl_06, :excl_07, :excl_08, :excl_09, :excl_10, :excl_11, :excl_12)
+        params, cols, _ = _params_exclusion(db, dto)
+        query = f"""
+        INSERT INTO {name_server}.tmi_exclusion_centro_estandar ({', '.join(cols)})
+        VALUES ({', '.join(cols.values())})
         """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Exclusión de Centro y Estándar insertada correctamente", "rows_inserted": result.rowcount}
+    except HTTPException:
+        raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 def queryUpdateExclusionCentroEstandar(db: Session, dto: tmiExclusionCentroEstandarDto):
     try:
-        query = """
-        UPDATE pentahodev_prueba_01.dbo.tmi_exclusion_centro_estandar
-            SET 
-            id_centro = :id_centro
-            ,id_estandar = :id_estandar
-            ,anio = :anio
-            ,excl_01 = :excl_01
-            ,excl_02 = :excl_02
-            ,excl_03 = :excl_03
-            ,excl_04 = :excl_04
-            ,excl_05 = :excl_05
-            ,excl_06 = :excl_06
-            ,excl_07 = :excl_07
-            ,excl_08 = :excl_08
-            ,excl_09 = :excl_09
-            ,excl_10 = :excl_10
-            ,excl_11 = :excl_11
-            ,excl_12 = :excl_12
-
-        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND id_centro = :id_centro AND id_estandar = :id_estandar AND anio = :anio)
+        params, cols, col = _params_exclusion(db, dto)
+        sets = ", ".join(f"{c} = {v}" for c, v in cols.items())
+        query = f"""
+        UPDATE {name_server}.tmi_exclusion_centro_estandar SET {sets}
+        WHERE (:id IS NOT NULL AND id = :id)
+           OR (:id IS NULL AND id_centro = :id_centro AND anio = :anio
+               AND ({col} = :id_indicador OR ({col} IS NULL AND :id_indicador IS NULL)))
         """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
         result = db.execute(text(query), params)
         db.commit()
         return {"message": "Exclusión de Centro y Estándar actualizada correctamente", "rows_affected": result.rowcount}
+    except HTTPException:
+        raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 #### insertar centros y estándares
@@ -423,7 +506,7 @@ def queryCreateFila(db: Session, tabla: str, params: dict):
     try:
         columnas = COLUMNAS_TABLA[tabla]
         query = f"""
-        INSERT INTO pentahodev_prueba.dbo.{tabla} ({", ".join(columnas)})
+        INSERT INTO {name_server}.{tabla} ({", ".join(columnas)})
         OUTPUT INSERTED.id
         VALUES ({", ".join(":" + c for c in columnas)})
         """
@@ -437,7 +520,7 @@ def queryCreateFila(db: Session, tabla: str, params: dict):
 
 def queryDeleteFila(db: Session, tabla: str, id: int):
     try:
-        query = f"DELETE FROM pentahodev_prueba_01.dbo.{tabla} WHERE id = :id"
+        query = f"DELETE FROM {name_server}.{tabla} WHERE id = :id"
         result = db.execute(text(query), {"id": id})
         db.commit()
         return {"message": "Fila eliminada correctamente", "rows_affected": result.rowcount}

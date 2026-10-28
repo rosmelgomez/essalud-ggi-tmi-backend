@@ -34,7 +34,18 @@ except Exception as e:
     logger.error("Error al decodificar clave secreta JWT: %s", e)
     RAW_SECRET_KEY = raw_secret_str.encode("utf-8")
 
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS512")
+def _algoritmo_por_clave(clave: bytes) -> str:
+    # Igual que jjwt (signWith) en essalud-gcpp-backend: el HMAC depende del tamaño de la clave
+    if len(clave) >= 64:
+        return "HS512"
+    if len(clave) >= 48:
+        return "HS384"
+    return "HS256"
+
+
+# Se aceptan los HMAC que puede generar essalud-gcpp-backend; al firmar se usa el que corresponde a la clave
+JWT_ALGORITHMS_PERMITIDOS = ["HS256", "HS384", "HS512"]
+JWT_ALGORITHM = _algoritmo_por_clave(RAW_SECRET_KEY)
 ACCESS_COOKIE_NAME = os.getenv("JWT_ACCESS_COOKIE_NAME", "access_token")
 
 # Refresco transparente del access_token con la cookie api_token (igual que essalud-gcpp-backend)
@@ -99,7 +110,7 @@ def _usuario_desde_token(token: str, clave: bytes, tipo_esperado: str) -> Dict:
         payload = jwt.decode(
             token,
             clave,
-            algorithms=[JWT_ALGORITHM],
+            algorithms=JWT_ALGORITHMS_PERMITIDOS,
             options={"verify_exp": True},
         )
     except jwt.ExpiredSignatureError:

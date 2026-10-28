@@ -287,17 +287,20 @@ def _dibujo_por_hoja(z: zipfile.ZipFile) -> Dict[str, str]:
     return resultado
 
 
-def _restaurar_dibujos(generado: bytes) -> bytes:
+def _restaurar_dibujos(generado: bytes, plantilla: Path = PLANTILLA,
+                       hoja_origen: Optional[Dict[str, str]] = None) -> bytes:
     """openpyxl reescribe mal los logos de la plantilla (pierde el hipervínculo de la imagen y Excel
     tiene que reparar el archivo). Se reemplazan los dibujos del libro generado por los originales
-    de la plantilla, con sus relaciones e imágenes."""
-    with zipfile.ZipFile(PLANTILLA) as tpl, zipfile.ZipFile(io.BytesIO(generado)) as gen:
+    de la plantilla, con sus relaciones e imágenes.
+    hoja_origen: hoja generada -> hoja de la plantilla de la que se copió (hojas creadas desde un modelo)."""
+    hoja_origen = hoja_origen or {}
+    with zipfile.ZipFile(plantilla) as tpl, zipfile.ZipFile(io.BytesIO(generado)) as gen:
         dib_tpl, dib_gen = _dibujo_por_hoja(tpl), _dibujo_por_hoja(gen)
         reemplazos: Dict[str, bytes] = {}
         nuevas_imagenes: Dict[str, bytes] = {}
         imagenes_viejas = set()
         for hoja, parte_gen in dib_gen.items():
-            parte_tpl = dib_tpl.get(hoja)
+            parte_tpl = dib_tpl.get(hoja_origen.get(hoja, hoja))
             if not parte_tpl:
                 continue
             imagenes_viejas.update(_destino(parte_gen, r["Target"]) for r in _rels(gen, parte_gen) if r.get("Type") == REL_IMAGE)

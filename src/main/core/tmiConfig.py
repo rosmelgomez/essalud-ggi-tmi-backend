@@ -38,3 +38,12 @@ elif not ALLOWED_ORIGINS:
 if IS_PRODUCTION and not COOKIE_SECURE:
     raise RuntimeError("COOKIE_SECURE debe estar habilitada en producción")
 
+# TMI dinámico: dónde viven las tablas tmi_* y las fuentes (se usan en los scripts de src/resources/sql/tmi)
+TMI_DB = os.getenv("TMI_DB", os.getenv("DB_NAME", "pentahodev_prueba_01")).strip()
+TMI_TOTALIZADO3 = os.getenv("TMI_TOTALIZADO3", "pentahodev.dbo.TOTALIZADO3").strip()
+TMI_DIM = os.getenv("TMI_DIM", "pentahodevDW.dbo").strip()
+# Ejecutar los scripts SQL al iniciar la aplicación (como ExecuteQuery de essalud-gcpp-backend)
+TMI_EJECUTAR_SQL = os.getenv("TMI_EJECUTAR_SQL", "true").lower() in {"1", "true", "yes"}
+# Solo se calcula el periodo anterior al mes actual (hoy 2026-10 -> 202609): los anteriores ya pasaron su
+# fecha de cierre y su Excel se arma con el resultado guardado. false = permite recalcular cualquier periodo.
+TMI_CALCULO_SOLO_PERIODO_ANTERIOR = os.getenv("TMI_CALCULO_SOLO_PERIODO_ANTERIOR", "true").lower() in {"1", "true", "yes"}
