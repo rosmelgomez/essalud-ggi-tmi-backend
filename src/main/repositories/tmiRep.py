@@ -25,8 +25,8 @@ def queryCentrosTMI(db: Session):
                    f01 AS flag, ISNULL(anio, YEAR(GETDATE())) AS anio,
                    f01 AS flag_01, f02 AS flag_02, f03 AS flag_03, f04 AS flag_04, f05 AS flag_05, f06 AS flag_06,
                    f07 AS flag_07, f08 AS flag_08, f09 AS flag_09, f10 AS flag_10, f11 AS flag_11, f12 AS flag_12
-            FROM {name_server}.vw_tmi_centro_base
-            ORDER BY TRY_CAST(orden AS INT), TRY_CAST(orden_tipo AS INT), codcentro
+            FROM {name_server}.vw_tmi_centro_base b
+            ORDER BY b.orden, b.orden_tipo, b.codcentro
         ELSE
             SELECT * FROM {name_server}.tmi_centro
         """

@@ -139,8 +139,10 @@ def queryVariablesTMI(db: Session):
     return _consulta(db, f"""
         SELECT v.id, v.nombre, v.descripcion, v.total_anual, v.activo,
                (SELECT COUNT(*) FROM {name_server}.tmi_variable_logica l WHERE l.id_variable = v.id) AS filas_logica,
-               (SELECT STRING_AGG(x.codigo, ', ') FROM (SELECT DISTINCT i.codigo FROM {name_server}.tmi_indicador_variable iv
-                    JOIN {name_server}.tmi_indicador i ON i.id = iv.id_indicador WHERE iv.id_variable = v.id) x) AS indicadores
+               STUFF((SELECT ', ' + x.codigo FROM (SELECT DISTINCT i.codigo FROM {name_server}.tmi_indicador_variable iv
+                    JOIN {name_server}.tmi_indicador i ON i.id = iv.id_indicador
+                    WHERE iv.id_variable = v.id AND i.codigo IS NOT NULL) x
+                    ORDER BY x.codigo FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS indicadores
         FROM {name_server}.tmi_variable v
         ORDER BY v.nombre""")
 
@@ -164,11 +166,18 @@ def queryIndicadoresTMI(db: Session):
                i.expr_denominador, i.tipo_calculo, i.factor, i.den_cero, i.num_cero_na, i.cero_si_letra_mes_0,
                i.sin_datos_anio, i.base_estandar, i.sentido, i.tipo_tolerancia, i.tolerancia, i.decimales,
                i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, g.descripcion AS grupo_descripcion,
-               (SELECT STRING_AGG(x.txt, ' | ') FROM (
-                    SELECT iv.letra + ' = ' + STRING_AGG(v.nombre, ' + ') AS txt
+               STUFF((SELECT ' | ' + x.txt FROM (
+                    SELECT iv.letra,
+                           iv.letra + ' = ' + ISNULL(STUFF((
+                               SELECT ' + ' + v.nombre
+                               FROM {name_server}.tmi_indicador_variable iv2
+                               JOIN {name_server}.tmi_variable v ON v.id = iv2.id_variable
+                               WHERE iv2.id_indicador = i.id AND iv2.letra = iv.letra
+                               ORDER BY v.nombre
+                               FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, ''), '') AS txt
                     FROM {name_server}.tmi_indicador_variable iv
-                    JOIN {name_server}.tmi_variable v ON v.id = iv.id_variable
-                    WHERE iv.id_indicador = i.id GROUP BY iv.letra) x) AS letras
+                    WHERE iv.id_indicador = i.id GROUP BY iv.letra) x
+                    ORDER BY x.letra FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, '') AS letras
         FROM {name_server}.tmi_indicador i
         LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
         ORDER BY i.orden, i.id""")
@@ -178,15 +187,16 @@ def queryIndicadorLetrasTMI(db: Session, id_indicador: int):
     return _consulta(db, f"""
         SELECT iv.id, iv.id_indicador, iv.letra, iv.id_variable, v.nombre AS variable, v.total_anual,
                (SELECT COUNT(*) FROM {name_server}.tmi_variable_logica l WHERE l.id_variable = v.id) AS filas_logica,
-               (SELECT STRING_AGG(
+               STUFF((SELECT ' | ' + (
                     CAST(l.tipgrupo AS VARCHAR) + '·' + ISNULL(LTRIM(RTRIM(g.desctipgrupo)), '')
                     + ' / ' + CAST(l.actividad AS VARCHAR) + '·' + ISNULL(COALESCE(NULLIF(LTRIM(RTRIM(a.desclarga)), ''), LTRIM(RTRIM(a.descactividad))), '')
-                    + ' (Serv: ' + ISNULL(CAST(l.servicio AS VARCHAR), 'Todos') + ', ' + l.agregacion + ')',
-                    ' | ')
+                    + ' (Serv: ' + ISNULL(CAST(l.servicio AS VARCHAR), 'Todos') + ', ' + l.agregacion + ')')
                 FROM {name_server}.tmi_variable_logica l
                 LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = l.tipgrupo
                 LEFT JOIN {TMI_DIM}.DIM_ACTIVIDAD a ON a.actividad = l.actividad
-                WHERE l.id_variable = v.id AND l.activo = 1) AS detalle_logica
+                WHERE l.id_variable = v.id AND l.activo = 1
+                ORDER BY l.tipgrupo, l.actividad, l.servicio
+                FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, '') AS detalle_logica
         FROM {name_server}.tmi_indicador_variable iv
         JOIN {name_server}.tmi_variable v ON v.id = iv.id_variable
         WHERE iv.id_indicador = :id ORDER BY iv.letra, v.nombre""", {"id": id_indicador})
@@ -218,10 +228,25 @@ def queryCentroEstandarTMI(db: Session, anio: int):
         FROM {name_server}.tmi_centro_estandar ce
         LEFT JOIN {name_server}.tmi_indicador i ON i.id = ce.{col}
         OUTER APPLY (SELECT TOP 1 b.centro, b.red FROM {name_server}.vw_tmi_centro_base b
-                     WHERE b.codcentro = TRY_CAST(ce.codcentro AS INT)) c
+                     WHERE CAST(b.codcentro AS VARCHAR(50)) = LTRIM(RTRIM(ce.codcentro))) c
         WHERE ce.anio = :anio
         ORDER BY ce.{col}, ce.codcentro""", {"anio": anio})
 
+#Grupo, actividad y servicio con sus descripciones (para la lógica de variables)
+def queryGrupoActividadServicioTMI(db: Session):
+    """Devuelve el grupo, actividad y servicio con sus descripciones (para la lógica de variables)."""
+    return _consulta(db, f"""
+       SELECT 
+gas.tipgrupo,
+gr.desctipgrupo,
+gas.actividad,
+act.desclarga,
+gas.servicio,
+serv.desclarga
+FROM pentahodevDW.dbo.DIM_GRUPOACTIVIDADSERVICIO gas
+JOIN pentahodevDW.dbo.DIM_GRUPO gr ON gas.tipgrupo = gr.tipgrupo
+JOIN pentahodevDW.dbo.DIM_ACTIVIDAD act on gas.actividad = act.actividad
+JOIN pentahodevDW.dbo.DIM_SERVICIO serv ON gas.servicio = serv.servicio""")
 
 def queryCatalogoGruposTMI(db: Session):
     """Grupos de DIM_GRUPO (para la lógica de variables)."""
@@ -362,7 +387,8 @@ def queryCentrosReporteTMI(db: Session, periodo: int):
             FROM {name_server}.vw_tmi_centro_base c
             WHERE (c.anio = @anio
                    OR (c.anio IS NULL AND NOT EXISTS (SELECT 1 FROM {name_server}.vw_tmi_centro_base x WHERE x.anio = @anio)))
-              AND CHOOSE(@mes, c.f01, c.f02, c.f03, c.f04, c.f05, c.f06, c.f07, c.f08, c.f09, c.f10, c.f11, c.f12) = 1
+              AND (CASE @mes WHEN 1 THEN c.f01 WHEN 2 THEN c.f02 WHEN 3 THEN c.f03 WHEN 4 THEN c.f04 WHEN 5 THEN c.f05 WHEN 6 THEN c.f06
+                             WHEN 7 THEN c.f07 WHEN 8 THEN c.f08 WHEN 9 THEN c.f09 WHEN 10 THEN c.f10 WHEN 11 THEN c.f11 WHEN 12 THEN c.f12 END) = 1
             GROUP BY c.codcentro
             ORDER BY MIN(c.orden), MIN(c.id_centro)
         """), {"periodo": periodo})

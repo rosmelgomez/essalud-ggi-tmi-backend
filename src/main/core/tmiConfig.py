@@ -39,7 +39,7 @@ if IS_PRODUCTION and not COOKIE_SECURE:
     raise RuntimeError("COOKIE_SECURE debe estar habilitada en producción")
 
 # TMI dinámico: dónde viven las tablas tmi_* y las fuentes (se usan en los scripts de src/resources/sql/tmi)
-TMI_DB = os.getenv("TMI_DB", os.getenv("DB_NAME", "pentahodev_prueba_01")).strip()
+TMI_DB = os.getenv("TMI_DB", os.getenv("DB_NAME", "pentahodev_prueba")).strip()
 TMI_TOTALIZADO3 = os.getenv("TMI_TOTALIZADO3", "pentahodev.dbo.TOTALIZADO3").strip()
 TMI_DIM = os.getenv("TMI_DIM", "pentahodevDW.dbo").strip()
 # Ejecutar los scripts SQL al iniciar la aplicación (como ExecuteQuery de essalud-gcpp-backend)
