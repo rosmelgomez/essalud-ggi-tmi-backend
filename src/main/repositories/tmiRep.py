@@ -415,10 +415,10 @@ def queryDeleteEstandarCategoria(db: Session, id: int):
     return _eliminar(db, "tmi_estandar_categoria", id, "Estándar Categoría eliminado correctamente")
 
 
-### tmi_exclusion_centro_estandar (id_indicador NULL = todos los indicadores del centro)
+### tmi_exclusion_centro_indicador (exclusión de centro por indicador; id_indicador NULL = todos los indicadores del centro)
 def queryExclusionCentroEstandar(db: Session, anio: int):
     try:
-        tabla = "tmi_exclusion_centro_estandar"
+        tabla = "tmi_exclusion_centro_indicador"
         col = _col_indicador(db, tabla)
         pre = "excl_" if _tiene_columna(db, tabla, "excl_01") else "estandar_"
         cod = "COALESCE(CAST(cen.codcentro AS VARCHAR(50)), exc.codcentro)" if _tiene_columna(db, tabla, "codcentro") else "cen.codcentro"
@@ -430,7 +430,7 @@ def queryExclusionCentroEstandar(db: Session, anio: int):
         SELECT exc.id, exc.id_centro, {cod} AS codcentro, cen.centro,
                {tipo} AS tipo, ISNULL(i.indicador, 'Todos los indicadores') AS indicador,
                exc.{col} AS id_indicador, exc.{col} AS id_estandar, exc.anio, {meses}, {motivo} AS motivo
-        FROM {name_server}.tmi_exclusion_centro_estandar exc
+        FROM {name_server}.tmi_exclusion_centro_indicador exc
         {join}
         LEFT JOIN {name_server}.vw_tmi_centro_base cen ON cen.id_centro = exc.id_centro
         WHERE exc.anio = :anio
@@ -443,7 +443,7 @@ def queryExclusionCentroEstandar(db: Session, anio: int):
 
 
 def _params_exclusion(db: Session, dto) -> tuple:
-    tabla = "tmi_exclusion_centro_estandar"
+    tabla = "tmi_exclusion_centro_indicador"
     params = _params(dto)
     params["id_indicador"] = params.get("id_indicador") if params.get("id_indicador") is not None else params.get("id_estandar")
     if params.get("id_centro") is None and not params.get("codcentro"):
@@ -469,12 +469,12 @@ def queryInsertExclusionCentroEstandar(db: Session, dto:tmiExclusionCentroEstand
     try:
         params, cols, _ = _params_exclusion(db, dto)
         query = f"""
-        INSERT INTO {name_server}.tmi_exclusion_centro_estandar ({', '.join(cols)})
+        INSERT INTO {name_server}.tmi_exclusion_centro_indicador ({', '.join(cols)})
         VALUES ({', '.join(cols.values())})
         """
         result = db.execute(text(query), params)
         db.commit()
-        return {"message": "Exclusión de Centro y Estándar insertada correctamente", "rows_inserted": result.rowcount}
+        return {"message": "Exclusión de centro por indicador guardada correctamente", "rows_inserted": result.rowcount}
     except HTTPException:
         raise
     except Exception as e:
@@ -486,14 +486,14 @@ def queryUpdateExclusionCentroEstandar(db: Session, dto: tmiExclusionCentroEstan
         params, cols, col = _params_exclusion(db, dto)
         sets = ", ".join(f"{c} = {v}" for c, v in cols.items())
         query = f"""
-        UPDATE {name_server}.tmi_exclusion_centro_estandar SET {sets}
+        UPDATE {name_server}.tmi_exclusion_centro_indicador SET {sets}
         WHERE (:id IS NOT NULL AND id = :id)
            OR (:id IS NULL AND id_centro = :id_centro AND anio = :anio
                AND ({col} = :id_indicador OR ({col} IS NULL AND :id_indicador IS NULL)))
         """
         result = db.execute(text(query), params)
         db.commit()
-        return {"message": "Exclusión de Centro y Estándar actualizada correctamente", "rows_affected": result.rowcount}
+        return {"message": "Exclusión de centro por indicador actualizada correctamente", "rows_affected": result.rowcount}
     except HTTPException:
         raise
     except Exception as e:

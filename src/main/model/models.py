@@ -106,8 +106,8 @@ class tmi_centro(Base):
     flag_11 = Column(Boolean())
     flag_12 = Column(Boolean())
 
-class tmi_exclusion_centro_estandar(Base):
-    __tablename__ = "tmi_exclusion_centro_estandar"
+class tmi_exclusion_centro_indicador(Base):
+    __tablename__ = "tmi_exclusion_centro_indicador"
     id = Column(Integer,primary_key=True)
     id_estandar = Column(Integer(), ForeignKey("tmi_estandar.id"))
     id_centro = Column(Integer(), ForeignKey("tmi_centro.id"))

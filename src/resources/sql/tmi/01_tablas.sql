@@ -300,18 +300,26 @@ END
 GO
 
 -- Exclusión por periodo: excl_MM = 1 -> NA ese mes. id_indicador NULL = todos los indicadores del centro.
-IF OBJECT_ID('dbo.tmi_exclusion_centro_estandar') IS NULL
-CREATE TABLE dbo.tmi_exclusion_centro_estandar (
+-- La exclusión es por indicador: tmi_exclusion_centro_estandar pasa a llamarse tmi_exclusion_centro_indicador.
+-- Se deja un sinónimo con el nombre anterior para las consultas existentes (002/003_TMI_CONSULTAS_VISTA.sql, Pentaho...).
+IF OBJECT_ID('dbo.tmi_exclusion_centro_estandar', 'U') IS NOT NULL AND OBJECT_ID('dbo.tmi_exclusion_centro_indicador') IS NULL
+    EXEC sp_rename 'dbo.tmi_exclusion_centro_estandar', 'tmi_exclusion_centro_indicador';
+GO
+IF OBJECT_ID('dbo.tmi_exclusion_centro_indicador') IS NULL
+CREATE TABLE dbo.tmi_exclusion_centro_indicador (
     id INT IDENTITY(1,1) PRIMARY KEY, id_centro INT NULL, codcentro VARCHAR(50) NULL,
     id_indicador INT NULL REFERENCES dbo.tmi_indicador(id), anio INT NOT NULL,
     excl_01 BIT, excl_02 BIT, excl_03 BIT, excl_04 BIT, excl_05 BIT, excl_06 BIT,
     excl_07 BIT, excl_08 BIT, excl_09 BIT, excl_10 BIT, excl_11 BIT, excl_12 BIT
 );
 GO
-IF COL_LENGTH('dbo.tmi_exclusion_centro_estandar', 'codcentro') IS NULL
-    ALTER TABLE dbo.tmi_exclusion_centro_estandar ADD codcentro VARCHAR(50) NULL;
-IF COL_LENGTH('dbo.tmi_exclusion_centro_estandar', 'motivo') IS NULL
-    ALTER TABLE dbo.tmi_exclusion_centro_estandar ADD motivo VARCHAR(300) NULL;
+IF COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'codcentro') IS NULL
+    ALTER TABLE dbo.tmi_exclusion_centro_indicador ADD codcentro VARCHAR(50) NULL;
+IF COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'motivo') IS NULL
+    ALTER TABLE dbo.tmi_exclusion_centro_indicador ADD motivo VARCHAR(300) NULL;
+GO
+IF OBJECT_ID('dbo.tmi_exclusion_centro_estandar') IS NULL
+    EXEC (N'CREATE SYNONYM dbo.tmi_exclusion_centro_estandar FOR dbo.tmi_exclusion_centro_indicador');
 GO
 
 /* ---------- Parte 4. Resultados ---------- */

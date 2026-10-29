@@ -167,7 +167,7 @@ def queryDeleteEstandarCategoriaServ(db: Session, id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-### tmi_exclusion_centro_estandar
+### tmi_exclusion_centro_indicador (exclusión de centro por indicador)
 def queryExclusionCentroEstandarServ(db: Session, anio: int):
     try:
         from src.main.repositories.tmiRep import queryExclusionCentroEstandar

@@ -12,7 +12,7 @@ datos que el usuario ya cambió.
 
 | Orden | Script | Contenido |
 |------:|--------|-----------|
-| 1 | `01_tablas.sql` | `tmi_variable`, `tmi_variable_logica`, `tmi_grupo`, `tmi_tipo_calculo`, `tmi_indicador` (+ columnas de cálculo), `tmi_indicador_variable`, `tmi_indicador_ambito`, `tmi_centro_estandar`, `tmi_estandar_acept`, `tmi_exclusion_centro_estandar`, `tmi_variable_pivot`, `tmi_resultado` |
+| 1 | `01_tablas.sql` | `tmi_variable`, `tmi_variable_logica`, `tmi_grupo`, `tmi_tipo_calculo`, `tmi_indicador` (+ columnas de cálculo), `tmi_indicador_variable`, `tmi_indicador_ambito`, `tmi_centro_estandar`, `tmi_estandar_acept`, `tmi_exclusion_centro_indicador`, `tmi_variable_pivot`, `tmi_resultado` |
 | 2 | `02_vistas_adaptadoras.sql` | Vistas `vw_tmi_*` que leen las tablas existentes con sus columnas reales (`est_01` o `estandar_01`, `flag` o `flag_01..12`, `excl_01`…) |
 | 3 | `03_datos.sql` | Datos iniciales: tipos de cálculo, grupos, 37 variables y su lógica, 21 indicadores con fórmula y letras, estándares por centro, ámbito de Emergencia |
 | 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `usp_tmi_generar_pivot`, `usp_tmi_calcular` |
@@ -86,7 +86,7 @@ python src/resources/plantillas/crear_plantilla_base.py
   hacia abajo, NULL = el mismo). Menor es mejor: estándar + %; mayor es mejor: estándar − %. El % Acept propio del
   centro (`tmi_centro_estandar.acept`) gana. Se edita en la pestaña "% Acept" (`PUT /indicadores/{id}/tolerancia`).
   En los resultados (`tmi_resultado`, `tmi_resultado_indicador`) las columnas son `acept` y `aceptmenos`.
-* **Exclusión por periodo**: `tmi_exclusion_centro_estandar` (`excl_MM = 1`; `id_estandar` NULL = todos los indicadores del centro).
+* **Exclusión por periodo**: `tmi_exclusion_centro_indicador` (`excl_MM = 1`; `id_indicador` NULL = todos los indicadores del centro).
 * **Centro visible por mes**: `tmi_centro.flag` / `flag_MM`.
 * **Estándar propio de un centro**: `tmi_centro_estandar` (`aplica = 0` = NA; `acept` = % Acept propio).
 * **Qué centros entran a un indicador**: los que tienen estándar (mayor que 0) en la tabla de su tipo de estándar

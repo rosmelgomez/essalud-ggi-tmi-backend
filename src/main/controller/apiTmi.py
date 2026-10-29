@@ -407,7 +407,7 @@ async def queryDeleteEstandarCategoria(
 
 
 
-### tmi_exclusion_centro_estandar
+### tmi_exclusion_centro_indicador (exclusión de centro por indicador)
 @router.get("/lista-exclusion-centro-estandar/{anio}")
 async def queryExclusionCentroEstandar(
     anio: int,

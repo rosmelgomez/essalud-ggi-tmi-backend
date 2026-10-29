@@ -3,7 +3,7 @@
    Ejecutar DESPUÉS de TMI/estandares/indicador_estandar.sql (las tablas referencian a tmi_indicador).
    Correcciones:
      - se quitó la coma final antes de ")" en tmi_centro (SQL Server no la acepta)
-     - tmi_exclusion_centro_estandar: id_indicador NULL = excluye TODOS los indicadores del centro; motivo
+     - tmi_exclusion_centro_indicador: id_indicador NULL = excluye TODOS los indicadores del centro; motivo
      - tmi_centro_estandar: aplica (0 = NA), acept (% Acept propio) y sustento, que usa el cálculo
      - UNIQUE por centro + indicador + año: una sola fila por combinación
    ===================================================================================================== */
@@ -23,7 +23,7 @@ CREATE TABLE tmi_centro (
 
 
 -- Exclusión por periodo: excl_MM = 1 -> el centro sale NA ese mes y no se suma en los acumulados.
-CREATE TABLE tmi_exclusion_centro_estandar (
+CREATE TABLE tmi_exclusion_centro_indicador (
     id           INT IDENTITY(1,1) PRIMARY KEY,
     id_centro    INT REFERENCES tmi_centro(id),
     codcentro    VARCHAR(50),
