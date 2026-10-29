@@ -121,25 +121,6 @@ CREATE TABLE tmi_estandar_categoria (
 );
 
 
--- Aceptación por mes cuando no sirve la tolerancia del indicador.
--- condicion: ACEPT = límite Rojo (Rojo - en BANDA) | MAS = Rojo + (solo BANDA)
-CREATE TABLE tmi_estandar_acept (
-    id           INT IDENTITY(1,1) PRIMARY KEY,
-    id_indicador INT NOT NULL REFERENCES tmi_indicador(id),
-    tipo         VARCHAR(50),
-    condicion    VARCHAR(50) NOT NULL DEFAULT 'ACEPT',
-    anio         INT NOT NULL,
-    acept_01 FLOAT,
-    acept_02 FLOAT,
-    acept_03 FLOAT,
-    acept_04 FLOAT,
-    acept_05 FLOAT,
-    acept_06 FLOAT,
-    acept_07 FLOAT,
-    acept_08 FLOAT,
-    acept_09 FLOAT,
-    acept_10 FLOAT,
-    acept_11 FLOAT,
-    acept_12 FLOAT,
-    CONSTRAINT UX_tmi_estandar_acept UNIQUE (id_indicador, condicion, anio)
-);
+
+-- % Acept: no tiene tabla. Se calcula con el porcentaje del indicador (tmi_indicador.tolerancia /
+-- tolerancia_menos), en la pestaña "% Acept".

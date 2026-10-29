@@ -4,7 +4,7 @@
    Correcciones:
      - se quitó la coma final antes de ")" en tmi_centro (SQL Server no la acepta)
      - tmi_exclusion_centro_estandar: id_indicador NULL = excluye TODOS los indicadores del centro; motivo
-     - tmi_centro_estandar: aplica (0 = NA), acept (Rojo propio) y sustento, que usa el cálculo
+     - tmi_centro_estandar: aplica (0 = NA), acept (% Acept propio) y sustento, que usa el cálculo
      - UNIQUE por centro + indicador + año: una sola fila por combinación
    ===================================================================================================== */
 
@@ -67,7 +67,7 @@ CREATE TABLE tmi_centro_estandar (
     est_10 FLOAT,
     est_11 FLOAT,
     est_12 FLOAT,
-    acept        FLOAT NULL,                -- Rojo propio (NULL = tolerancia del indicador)
+    acept        FLOAT NULL,                -- % Acept propio (NULL = tolerancia del indicador)
     sustento     VARCHAR(300) NULL,         -- carta o directiva
     CONSTRAINT UX_tmi_centro_estandar UNIQUE (codcentro, id_indicador, anio)
 );

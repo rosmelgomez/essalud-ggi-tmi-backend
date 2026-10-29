@@ -45,7 +45,6 @@ SEMILLAS = [
     ("tmi_centro", "centro/insert_centros_tmi.sql"),
     ("tmi_estandar_tipo", "estandares/insert_estandares_tipo.sql"),
     ("tmi_estandar_nivel", "estandares/insert_estandares_nivel.sql"),
-    ("tmi_estandar_acept", "estandares/insert_estandares_acept.sql"),
 ]
 
 _GO = re.compile(r"^\s*GO\s*;?\s*$", re.IGNORECASE | re.MULTILINE)

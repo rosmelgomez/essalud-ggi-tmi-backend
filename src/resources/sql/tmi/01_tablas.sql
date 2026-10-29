@@ -105,12 +105,51 @@ IF COL_LENGTH('dbo.tmi_indicador', 'codigo') IS NULL
 GO
 
 -- 1 = numerador 0 -> NA (el Excel actual pone NA a los centros con partos y 0 cesáreas)
+-- % Acept hacia abajo en los indicadores de banda (NULL = el mismo porcentaje que hacia arriba)
+IF COL_LENGTH('dbo.tmi_indicador', 'tolerancia_menos') IS NULL
+    ALTER TABLE dbo.tmi_indicador ADD tolerancia_menos FLOAT NULL;
+GO
 IF COL_LENGTH('dbo.tmi_indicador', 'num_cero_na') IS NULL
     ALTER TABLE dbo.tmi_indicador ADD num_cero_na BIT NOT NULL CONSTRAINT DF_tmi_ind_numcero DEFAULT 0;
 GO
 -- Ampliar base_estandar para permitir combinaciones: TIPO, NIVEL, CATEGORIA, TIPO_NIVEL, TIPO_CATEGORIA, NIVEL_CATEGORIA, TIPO_NIVEL_CATEGORIA
 IF COL_LENGTH('dbo.tmi_indicador', 'base_estandar') IS NOT NULL AND COL_LENGTH('dbo.tmi_indicador', 'base_estandar') < 30
     ALTER TABLE dbo.tmi_indicador ALTER COLUMN base_estandar VARCHAR(30) NULL;
+GO
+
+/* ---------- Tablas maestras de estándares ----------
+   tmi_tipo_estandar : tipos de estándar (NIVEL, NIVEL_TIPO, TIPO, CATEGORIA). tmi_indicador.base_estandar -> codigo (FK).
+   tmi_estandar      : claves de cada tipo; fuente = tabla de valores (tmi_estandar_nivel / _tipo / _categoria) y
+                       clave = valor del centro en tmi_centro. Si un centro cumple dos claves del mismo tipo, gana la
+                       de mayor prioridad (NIVEL_TIPO: los institutos toman su estándar por tipo y no por nivel).
+   Los valores siguen en tmi_estandar_nivel / _tipo / _categoria. La carga inicial está en 03_datos.sql. */
+IF OBJECT_ID('dbo.tmi_tipo_estandar') IS NULL
+BEGIN
+    CREATE TABLE dbo.tmi_tipo_estandar (
+        id          INT IDENTITY(1,1) PRIMARY KEY,
+        codigo      VARCHAR(30)  NOT NULL CONSTRAINT UX_tmi_tipo_estandar UNIQUE,
+        descripcion VARCHAR(100) NOT NULL,
+        orden       INT NULL,
+        activo      BIT NOT NULL DEFAULT 1
+    );
+    -- Una sola vez, al crear el catálogo: Rendimiento Hora Médico y Rendimiento Hora Odontológica se evalúan por
+    -- nivel, salvo los institutos (CNSR, IPO, INCOR), que van por tipo (002_TMI_CONSULTAS_VISTA.sql).
+    EXEC (N'UPDATE dbo.tmi_indicador SET base_estandar = ''NIVEL_TIPO''
+            WHERE codigo IN (''CE_RHrMedico'', ''O_HrOdont'') AND base_estandar = ''NIVEL''');
+END
+GO
+IF OBJECT_ID('dbo.tmi_estandar') IS NULL
+CREATE TABLE dbo.tmi_estandar (
+    id            INT IDENTITY(1,1) PRIMARY KEY,
+    tipo_estandar VARCHAR(30)  NOT NULL CONSTRAINT FK_tmi_estandar_tipo REFERENCES dbo.tmi_tipo_estandar (codigo),
+    orden         INT NULL,
+    fuente        VARCHAR(10)  NOT NULL CONSTRAINT CK_tmi_estandar_fuente CHECK (fuente IN ('NIVEL', 'TIPO', 'CATEGORIA')),
+    clave         VARCHAR(50)  NOT NULL,
+    descripcion   VARCHAR(100) NULL,
+    prioridad     INT NOT NULL DEFAULT 1,
+    activo        BIT NOT NULL DEFAULT 1,
+    CONSTRAINT UX_tmi_estandar UNIQUE (tipo_estandar, fuente, clave)
+);
 GO
 
 -- Formato de los valores en el Excel: NUMERO (0.00) o PORCENTAJE (0.00 %). Al agregar la columna se marcan
@@ -166,10 +205,17 @@ CREATE TABLE dbo.tmi_indicador_estandar (
     periodo_desde INT NOT NULL DEFAULT 200001,
     periodo_hasta INT NOT NULL DEFAULT 999912,
     estandar      FLOAT NOT NULL,
-    acept         FLOAT NULL,
-    acept_mas     FLOAT NULL,
+    acept         FLOAT NULL,                -- % Acept (en banda, el de arriba)
+    aceptmenos    FLOAT NULL,                -- % Aceptmenos (solo banda, el de abajo)
     activo        BIT NOT NULL DEFAULT 1
 );
+GO
+-- Nombres como en 002_TMI_CONSULTAS_VISTA.sql: acept / aceptmenos (antes acept / acept_mas)
+IF COL_LENGTH('dbo.tmi_indicador_estandar', 'acept_mas') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.tmi_indicador_estandar.acept_mas', 'aceptmenos', 'COLUMN';
+    EXEC (N'UPDATE dbo.tmi_indicador_estandar SET acept = aceptmenos, aceptmenos = acept WHERE aceptmenos IS NOT NULL');
+END
 GO
 
 /* ---------- Parte 3. Centros y estándares (tablas existentes; se crean solo si faltan, igual que
@@ -225,19 +271,32 @@ GO
 IF COL_LENGTH('dbo.tmi_centro_estandar', 'aplica') IS NULL
     ALTER TABLE dbo.tmi_centro_estandar ADD aplica BIT NOT NULL CONSTRAINT DF_tmi_ce_aplica DEFAULT 1;   -- 0 = NA
 IF COL_LENGTH('dbo.tmi_centro_estandar', 'acept') IS NULL
-    ALTER TABLE dbo.tmi_centro_estandar ADD acept FLOAT NULL;                                            -- Rojo propio
+    ALTER TABLE dbo.tmi_centro_estandar ADD acept FLOAT NULL;                                            -- % Acept propio
 IF COL_LENGTH('dbo.tmi_centro_estandar', 'sustento') IS NULL
     ALTER TABLE dbo.tmi_centro_estandar ADD sustento VARCHAR(300) NULL;
 GO
 
--- Aceptación por mes cuando no sirve la tolerancia del indicador (condicion: ACEPT = Rojo | MAS = Rojo +)
-IF OBJECT_ID('dbo.tmi_estandar_acept') IS NULL
-CREATE TABLE dbo.tmi_estandar_acept (
-    id INT IDENTITY(1,1) PRIMARY KEY, id_indicador INT NOT NULL REFERENCES dbo.tmi_indicador(id),
-    tipo VARCHAR(50), condicion VARCHAR(50) NOT NULL DEFAULT 'ACEPT', anio INT NOT NULL,
-    acept_01 FLOAT, acept_02 FLOAT, acept_03 FLOAT, acept_04 FLOAT, acept_05 FLOAT, acept_06 FLOAT,
-    acept_07 FLOAT, acept_08 FLOAT, acept_09 FLOAT, acept_10 FLOAT, acept_11 FLOAT, acept_12 FLOAT
-);
+/* ---------- % Acept ----------
+   El % Acept se calcula: estándar ± el porcentaje del indicador (tmi_indicador.tipo_tolerancia / tolerancia; en banda,
+   tolerancia = hacia arriba y tolerancia_menos = hacia abajo). No se guarda por mes. La tabla tmi_estandar_acept de
+   versiones anteriores se elimina si está vacía; si tiene datos se conserva como tmi_estandar_acept_anterior. */
+IF OBJECT_ID('dbo.vw_tmi_acept', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_acept;
+IF OBJECT_ID('dbo.tmi_estandar_acept') IS NOT NULL
+BEGIN
+    DECLARE @cols NVARCHAR(MAX), @sql NVARCHAR(MAX), @con_valores INT = 0;
+    SELECT @cols = STUFF((SELECT ', ' + QUOTENAME(name) FROM sys.columns
+                          WHERE object_id = OBJECT_ID('dbo.tmi_estandar_acept') AND name LIKE 'acept[_]__'
+                          FOR XML PATH('')), 1, 2, '');
+    IF @cols IS NOT NULL
+    BEGIN
+        SET @sql = N'SELECT @n = COUNT(*) FROM dbo.tmi_estandar_acept WHERE COALESCE(' + @cols + N', NULL) IS NOT NULL';
+        EXEC sp_executesql @sql, N'@n INT OUTPUT', @n = @con_valores OUTPUT;
+    END
+    IF @con_valores > 0 AND OBJECT_ID('dbo.tmi_estandar_acept_anterior') IS NULL
+        EXEC sp_rename 'dbo.tmi_estandar_acept', 'tmi_estandar_acept_anterior';
+    ELSE IF @con_valores = 0
+        DROP TABLE dbo.tmi_estandar_acept;
+END
 GO
 
 -- Exclusión por periodo: excl_MM = 1 -> NA ese mes. id_indicador NULL = todos los indicadores del centro.
@@ -280,14 +339,22 @@ CREATE TABLE dbo.tmi_resultado (
     valor         FLOAT NULL,
     estandar      FLOAT NULL,
     verde         FLOAT NULL,
-    rojo          FLOAT NULL,
-    rojo_mas      FLOAT NULL,
+    acept         FLOAT NULL,                -- % Acept: límite para el puntaje 3 (en banda, el de arriba)
+    aceptmenos    FLOAT NULL,                -- % Aceptmenos: solo banda, el de abajo
     puntaje       VARCHAR(2) NOT NULL,       -- 5 | 3 | 1 | 0 | NA
     motivo_na     VARCHAR(30) NULL,
     visible       BIT NOT NULL DEFAULT 1,
     fecha_calculo DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_tmi_resultado PRIMARY KEY (periodo_corte, id_indicador, codcentro, mes)
 );
+GO
+-- Nombres como en 002_TMI_CONSULTAS_VISTA.sql: acept / aceptmenos (antes rojo / rojo_mas)
+IF COL_LENGTH('dbo.tmi_resultado', 'rojo_mas') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.tmi_resultado.rojo', 'acept', 'COLUMN';
+    EXEC sp_rename 'dbo.tmi_resultado.rojo_mas', 'aceptmenos', 'COLUMN';
+    EXEC (N'UPDATE dbo.tmi_resultado SET acept = aceptmenos, aceptmenos = acept WHERE aceptmenos IS NOT NULL');
+END
 GO
 
 -- Resultado final por indicador (una fila por centro, como la hoja del Excel): lo llena usp_tmi_calcular.
@@ -312,8 +379,8 @@ CREATE TABLE dbo.tmi_resultado_indicador (
     tipo          VARCHAR(50) NULL,
     categoria     VARCHAR(50) NULL,
     estandar      FLOAT NULL,
-    acept         FLOAT NULL,                -- Rojo (Rojo - en BANDA)
-    acept_mas     FLOAT NULL,                -- Rojo + (solo BANDA)
+    acept         FLOAT NULL,                -- % Acept (en banda, el de arriba)
+    aceptmenos    FLOAT NULL,                -- % Aceptmenos (solo banda, el de abajo)
     total         FLOAT NULL,
     puntaje       VARCHAR(2) NOT NULL,
     motivo_na     VARCHAR(30) NULL,
@@ -322,4 +389,11 @@ CREATE TABLE dbo.tmi_resultado_indicador (
     fecha_calculo DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_tmi_resultado_indicador PRIMARY KEY (periodo, id_indicador, codcentro)
 );
+GO
+-- antes acept / acept_mas
+IF COL_LENGTH('dbo.tmi_resultado_indicador', 'acept_mas') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.tmi_resultado_indicador.acept_mas', 'aceptmenos', 'COLUMN';
+    EXEC (N'UPDATE dbo.tmi_resultado_indicador SET acept = aceptmenos, aceptmenos = acept WHERE aceptmenos IS NOT NULL');
+END
 GO

@@ -5,7 +5,7 @@
   y los valores son los del día en que se calculó, aunque después cambien tmi_centro o los estándares.
   Los puntajes mensuales de las hojas Puntajes salen de tmi_resultado del mismo cálculo.
 - Formato condicional calculado sobre las filas escritas; columna F (código de centro) visible;
-  columna N (Rojo +) solo en indicadores de BANDA.
+  columna N (% Acept de arriba) solo en indicadores de BANDA.
 - Puntajes y Puntajes_RED con una columna por indicador activo (excelPuntajesServ).
 """
 
@@ -45,13 +45,13 @@ MODELO_PUNTAJES_RED = "_MODELO_PUNTAJES_RED"
 
 # Columnas de la hoja de indicador
 COL_PUNTAJE, COL_CODIGO, COL_MARCA, COL_COD, COL_CENTRO = 3, 4, 5, 6, 7
-COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ROJO, COL_ROJO_MAS = 8, 9, 10, 11, 12, 13, 14
+COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT, COL_ACEPT_BANDA = 8, 9, 10, 11, 12, 13, 14
 COL_MES1 = 19                    # S
 FILA_TOTAL, FILA_DATOS = 8, 10
 FILA_MODELO_RED, FILA_MODELO_CENTRO = 10, 11
 # Formato de los valores por indicador (tmi_indicador.formato), como en TMI_PLANTILLA.xlsx
 FORMATO_NUMERO = {"NUMERO": "0.00", "PORCENTAJE": "0.00%"}
-COLS_VALORES = [COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ROJO, COL_ROJO_MAS] + [COL_MES1 + i for i in range(12)]
+COLS_VALORES = [COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT, COL_ACEPT_BANDA] + [COL_MES1 + i for i in range(12)]
 CODIGO_PUNTAJE = {5: 1, 3: 2, 1: 3, 0: 3}
 NA = "NA"
 # Motivos con los que la fila completa se muestra como NA (sin dato real del indicador)
@@ -157,8 +157,9 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
 
     ws.cell(3, COL_PUNTAJE, value=ind["titulo_hoja"] or ind["indicador"])
     ws.cell(5, COL_MES1, value=f"AÑO: {anio}")
-    ws.cell(6, COL_ROJO).value = "Rojo -" if banda else "Rojo"
-    ws.cell(6, COL_ROJO_MAS).value = "Rojo +" if banda else None
+    # como en 002_TMI_CONSULTAS_VISTA.sql: en banda, M = % Aceptmenos (abajo) y N = % Acept (arriba)
+    ws.cell(6, COL_ACEPT).value = "% Aceptmenos" if banda else "% Acept"
+    ws.cell(6, COL_ACEPT_BANDA).value = "% Acept" if banda else None
     ws.column_dimensions["F"].hidden = False
     ws.column_dimensions["N"].hidden = not banda
 
@@ -199,10 +200,10 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
             ws.cell(fila, COL_COD, value=c["codcentro"])
             ws.cell(fila, COL_CENTRO, value=c["centro"])
             if fila_na:
-                for col in (COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ROJO):
+                for col in (COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT):
                     ws.cell(fila, col, value=NA)
                 if banda:
-                    ws.cell(fila, COL_ROJO_MAS, value=NA)
+                    ws.cell(fila, COL_ACEPT_BANDA, value=NA)
                 for i in range(12):
                     ws.cell(fila, COL_MES1 + i, value=NA)
             else:
@@ -211,9 +212,9 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
                 ws.cell(fila, COL_VALOR, value=corte.get("total") if corte.get("total") is not None else 0)
                 ws.cell(fila, COL_ESTANDAR, value=corte.get("estandar"))
                 ws.cell(fila, COL_VERDE, value=corte.get("estandar"))
-                ws.cell(fila, COL_ROJO, value=corte.get("acept"))
+                ws.cell(fila, COL_ACEPT, value=corte.get("aceptmenos") if banda else corte.get("acept"))
                 if banda:
-                    ws.cell(fila, COL_ROJO_MAS, value=corte.get("acept_mas"))
+                    ws.cell(fila, COL_ACEPT_BANDA, value=corte.get("acept"))
                 for i in range(12):
                     v = corte.get(f"periodo_{i + 1:02d}")
                     ws.cell(fila, COL_MES1 + i, value=v if v is not None else 0)

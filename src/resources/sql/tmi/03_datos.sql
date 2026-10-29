@@ -181,7 +181,7 @@ SET IDENTITY_INSERT dbo.tmi_indicador ON;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 1) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (1, 1, 'Concentracion de Consultas', GETDATE());
 UPDATE dbo.tmi_indicador SET codigo = 'CE_Concent', nombre_hoja = 'C.E_Concent.', titulo_hoja = 'CONCENTRACION DE CONSULTAS', orden = 1, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'ACUMULADO', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 1, sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 1 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 2) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (2, 1, 'Rendimiento Hora Medico', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'CE_RHrMedico', nombre_hoja = 'C.E_R.Hr.Medico', titulo_hoja = 'RENDIMIENTO HORA MEDICO', orden = 2, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'MENSUAL', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 0, sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = 2, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 2 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'CE_RHrMedico', nombre_hoja = 'C.E_R.Hr.Medico', titulo_hoja = 'RENDIMIENTO HORA MEDICO', orden = 2, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'MENSUAL', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 0, sin_datos_anio = 'NA', base_estandar = 'NIVEL_TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = 2, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 2 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 3) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (3, 1, 'Grado de Cumplimiento de Horas Programadas', GETDATE());
 UPDATE dbo.tmi_indicador SET codigo = 'CE_GCHProg', nombre_hoja = 'C.E_G.C.H.Prog', titulo_hoja = 'GRADO DE CUMPLIMIENTO DE HORAS PROGRAMADAS', orden = 3, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'MENSUAL', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 0, sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.05, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 3 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 4) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (4, 1, 'Promedio de Recetas por Consultas', GETDATE());
@@ -215,7 +215,7 @@ UPDATE dbo.tmi_indicador SET codigo = 'Em_PrioI_II', nombre_hoja = 'Em_Prio.I_II
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 18) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (18, 19, 'Concentración de Sesiones Odontológicas', GETDATE());
 UPDATE dbo.tmi_indicador SET codigo = 'O_Concent', nombre_hoja = 'O_Concent.', titulo_hoja = 'CONCENTRACIÓN DE SESIONES ODONTOLÓGICAS', orden = 18, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'ACUMULADO', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 1, sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 18 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 19) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (19, 19, 'Rendimiento Hora Odontológica', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'O_HrOdont', nombre_hoja = 'O_Hr.Odont', titulo_hoja = 'RENDIMIENTO HORA ODONTOLÓGICA', orden = 19, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'MENSUAL', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 0, sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 19 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'O_HrOdont', nombre_hoja = 'O_Hr.Odont', titulo_hoja = 'RENDIMIENTO HORA ODONTOLÓGICA', orden = 19, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'MENSUAL', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 0, sin_datos_anio = 'NA', base_estandar = 'NIVEL_TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 19 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 20) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (20, 19, 'Grado de Cumplimiento de Hora Odontólogo', GETDATE());
 UPDATE dbo.tmi_indicador SET codigo = 'O_GCHOdon', nombre_hoja = 'O_G.C.H.Odon', titulo_hoja = 'GRADO DE CUMPLIMIENTO DE HORA ODONTÓLOGO', orden = 20, expr_numerador = 'A', expr_denominador = 'B', tipo_calculo = 'MENSUAL', factor = 1, den_cero = 'CERO', cero_si_letra_mes_0 = 0, sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.05, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 20 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 21) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (21, 19, 'Número de trabajos Odontológicos por Sesión', GETDATE());
@@ -310,13 +310,67 @@ SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE co
 SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''702'' AND #COL# = 19 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 702), ''702'', 19, 2026, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, ''TMI_ESTANDARES_D.csv: estándar 0'';', '#COL#', @col); EXEC sp_executesql @s;
 GO
 
-/* ---------- Ámbito: Emergencia solo se evalúa en hospitales (así sale en el Excel; POL. y C.M. quedan NA) ---------- */
-INSERT INTO dbo.tmi_indicador_ambito (id_indicador, tipo, incluir)
-SELECT i.id, t.tipo, 1
-FROM dbo.tmi_indicador i
-CROSS JOIN (VALUES ('H.N.'), ('H.IV'), ('H.III'), ('H.II'), ('H.I')) t(tipo)
-WHERE i.codigo IN ('Em_PrioIV_V', 'Em_PrioI_II')
-  AND NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador_ambito a WHERE a.id_indicador = i.id);
+
+/* ---------- Tablas maestras de estándares: tipos y claves (solo agrega lo que falta) ---------- */
+INSERT INTO dbo.tmi_tipo_estandar (codigo, descripcion, orden)
+SELECT v.codigo, v.descripcion, v.orden
+FROM (VALUES ('NIVEL', 'Nivel', 1), ('NIVEL_TIPO', 'Nivel y Tipo', 2), ('TIPO', 'Tipo', 3), ('CATEGORIA', 'Categoría', 4)) v(codigo, descripcion, orden)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_estandar t WHERE t.codigo = v.codigo);
+
+INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
+SELECT v.tipo_estandar, v.orden, v.fuente, v.clave, v.descripcion, v.prioridad
+FROM (VALUES
+    ('NIVEL', 1, 'NIVEL', 'I', 'I', 1),
+    ('NIVEL', 2, 'NIVEL', 'II', 'II', 1),
+    ('NIVEL', 3, 'NIVEL', 'III', 'III', 1),
+    ('NIVEL_TIPO', 1, 'NIVEL', 'I', 'I', 1),
+    ('NIVEL_TIPO', 2, 'NIVEL', 'II', 'II', 1),
+    ('NIVEL_TIPO', 3, 'NIVEL', 'III', 'III', 1),
+    ('NIVEL_TIPO', 4, 'TIPO', 'CNSR', 'CNSR', 2),
+    ('NIVEL_TIPO', 5, 'TIPO', 'IPO', 'IPO', 2),
+    ('NIVEL_TIPO', 6, 'TIPO', 'INCOR', 'INCOR', 2),
+    ('TIPO', 1, 'TIPO', 'H.N.', 'H.N.', 1),
+    ('TIPO', 2, 'TIPO', 'H.IV', 'H.IV', 1),
+    ('TIPO', 3, 'TIPO', 'H.III', 'H.III', 1),
+    ('TIPO', 4, 'TIPO', 'H.II', 'H.II', 1),
+    ('TIPO', 5, 'TIPO', 'H.I', 'H.I', 1),
+    ('TIPO', 6, 'TIPO', 'POL.', 'POL.', 1),
+    ('TIPO', 7, 'TIPO', 'C.M.', 'C.M.', 1),
+    ('TIPO', 8, 'TIPO', 'CNSR', 'CNSR', 1),
+    ('TIPO', 9, 'TIPO', 'IPO', 'IPO', 1),
+    ('TIPO', 10, 'TIPO', 'INCOR', 'INCOR', 1),
+    ('CATEGORIA', 1, 'CATEGORIA', 'H.N.', 'H.N.', 1),
+    ('CATEGORIA', 2, 'CATEGORIA', 'H.IV', 'H.IV', 1),
+    ('CATEGORIA', 3, 'CATEGORIA', 'H.III', 'H.III', 1),
+    ('CATEGORIA', 4, 'CATEGORIA', 'H.II', 'H.II', 1),
+    ('CATEGORIA', 5, 'CATEGORIA', 'H.I', 'H.I', 1),
+    ('CATEGORIA', 6, 'CATEGORIA', 'POL.', 'POL.', 1),
+    ('CATEGORIA', 7, 'CATEGORIA', 'C.A.P.III', 'C.A.P.III', 1),
+    ('CATEGORIA', 8, 'CATEGORIA', 'C.A.P.II', 'C.A.P.II', 1),
+    ('CATEGORIA', 9, 'CATEGORIA', 'C.A.P.I', 'C.A.P.I', 1),
+    ('CATEGORIA', 10, 'CATEGORIA', 'C.M.', 'C.M.', 1),
+    ('CATEGORIA', 11, 'CATEGORIA', 'P.M.', 'P.M.', 1),
+    ('CATEGORIA', 12, 'CATEGORIA', 'CNSR', 'CNSR', 1),
+    ('CATEGORIA', 13, 'CATEGORIA', 'IPO', 'IPO', 1),
+    ('CATEGORIA', 14, 'CATEGORIA', 'INCOR', 'INCOR', 1)
+) v(tipo_estandar, orden, fuente, clave, descripcion, prioridad)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar e
+                  WHERE e.tipo_estandar = v.tipo_estandar AND e.fuente = v.fuente AND e.clave = v.clave);
+GO
+
+-- Los niveles se muestran como I, II y III (la carga anterior los llamaba N1, N2 y N3)
+UPDATE dbo.tmi_estandar SET descripcion = clave
+WHERE fuente = 'NIVEL' AND descripcion IN ('N1', 'N2', 'N3') AND clave IN ('I', 'II', 'III');
+GO
+
+-- base_estandar del indicador -> tmi_tipo_estandar.codigo. Se crea cuando todos los indicadores usan un tipo del
+-- catálogo (si no, usp_tmi_validar_config lo informa).
+IF OBJECT_ID('dbo.FK_tmi_indicador_base_estandar') IS NULL
+   AND NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador i
+                   WHERE i.base_estandar IS NOT NULL
+                     AND NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_estandar t WHERE t.codigo = i.base_estandar))
+    EXEC (N'ALTER TABLE dbo.tmi_indicador ADD CONSTRAINT FK_tmi_indicador_base_estandar
+            FOREIGN KEY (base_estandar) REFERENCES dbo.tmi_tipo_estandar (codigo)');
 GO
 
 /* ---------- Estándares de cada indicador por Nivel / Categoría / Tipo y por Periodo (inicializados desde vw_tmi_std) ---------- */

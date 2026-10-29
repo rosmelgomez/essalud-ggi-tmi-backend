@@ -69,8 +69,26 @@ python src/resources/plantillas/crear_plantilla_base.py
 
 ## Cómo administra el usuario
 * **Nueva variable**: `tmi_variable` (nombre) + filas en `tmi_variable_logica` (tipgrupo, actividad, servicio, `SUMA` o `MEDIANA`, vigencia).
-* **Nuevo indicador**: `tmi_indicador` (nombre de hoja, fórmula `expr_numerador` / `expr_denominador` con letras, `tipo_calculo`, sentido, tolerancia, `base_estandar`) + letras en `tmi_indicador_variable`. Aparece solo como hoja nueva y como columna en Puntajes.
+* **Nuevo indicador**: `tmi_indicador` en dos partes. Aparece solo como hoja nueva y como columna en Puntajes.
+  1. *Cálculo del pivot final*: fórmula en bloques (`PUT /indicadores/{id}/formula` → `expr_numerador` /
+     `expr_denominador` y letras automáticas en `tmi_indicador_variable`), `tipo_calculo` y reglas de ceros.
+  2. *Estándares*: `base_estandar` (FK a `tmi_tipo_estandar.codigo`), sentido, tolerancia y formato; los valores por
+     clave y mes en `tmi_estandar_nivel` / `_tipo` / `_categoria`.
+* **Tipos de estándar** (tablas maestras):
+  * `tmi_tipo_estandar`: `NIVEL`, `NIVEL_TIPO`, `TIPO`, `CATEGORIA`…
+  * `tmi_estandar`: claves de cada tipo. `fuente` = tabla de valores (`NIVEL` / `TIPO` / `CATEGORIA`), `clave` = valor del
+    centro en `tmi_centro`, `prioridad` = cuál gana si el centro cumple dos claves del mismo tipo (en `NIVEL_TIPO`,
+    CNSR / IPO / INCOR tienen prioridad 2 y toman su estándar por tipo; el resto, por nivel).
+  * Orden del estándar en el cálculo: estándar propio del centro → clave del tipo de estándar con mayor prioridad que
+    tenga valor → reglas especiales del panel (`tmi_indicador_estandar`).
+* **% Acept**: se calcula, no se guarda por mes: estándar ± el porcentaje del indicador (`tmi_indicador.tipo_tolerancia`:
+  `REL` = % del estándar, `ABS` = puntos; `tolerancia`; en banda `tolerancia` = hacia arriba y `tolerancia_menos` =
+  hacia abajo, NULL = el mismo). Menor es mejor: estándar + %; mayor es mejor: estándar − %. El % Acept propio del
+  centro (`tmi_centro_estandar.acept`) gana. Se edita en la pestaña "% Acept" (`PUT /indicadores/{id}/tolerancia`).
+  En los resultados (`tmi_resultado`, `tmi_resultado_indicador`) las columnas son `acept` y `aceptmenos`.
 * **Exclusión por periodo**: `tmi_exclusion_centro_estandar` (`excl_MM = 1`; `id_estandar` NULL = todos los indicadores del centro).
 * **Centro visible por mes**: `tmi_centro.flag` / `flag_MM`.
-* **Estándar propio de un centro**: `tmi_centro_estandar` (`aplica = 0` = NA; `acept` = Rojo propio).
-* **Qué centros entran a un indicador**: `tmi_indicador_ambito` (lista blanca o negra por red, tipo o centro).
+* **Estándar propio de un centro**: `tmi_centro_estandar` (`aplica = 0` = NA; `acept` = % Acept propio).
+* **Qué centros entran a un indicador**: los que tienen estándar (mayor que 0) en la tabla de su tipo de estándar
+  (unión por `nivel_centro` / `tipo_centro` / `categoria_centro`). Sin estándar el centro queda NA "Sin estándar".
+  `tmi_indicador_ambito` ya no se usa en el cálculo.

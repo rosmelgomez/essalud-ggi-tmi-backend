@@ -138,26 +138,3 @@ FROM dbo.tmi_centro_estandar ce
 LEFT JOIN dbo.vw_tmi_centro_base c ON c.id_centro = ce.id_centro';
 EXEC sp_executesql @sql;
 GO
-
-/* ---------- vw_tmi_acept: aceptación por mes (ACEPT = Rojo / Rojo - ; MAS = Rojo +) ---------- */
-DECLARE @sql NVARCHAR(MAX), @cols NVARCHAR(MAX);
-SELECT @cols = STUFF((
-    SELECT ', CAST(acept_' + RIGHT('0' + CAST(n AS VARCHAR), 2) + ' AS FLOAT) AS a'
-           + RIGHT('0' + CAST(n AS VARCHAR), 2)
-    FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) x(n)
-    ORDER BY n
-    FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
-IF COL_LENGTH('dbo.tmi_estandar_acept', 'acept_03') IS NULL
-    SELECT @cols = STUFF((
-        SELECT ', CAST(NULL AS FLOAT) AS a' + RIGHT('0' + CAST(n AS VARCHAR), 2)
-        FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) x(n)
-        ORDER BY n
-        FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
-IF OBJECT_ID('dbo.vw_tmi_acept', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_acept;
-SET @sql = N'CREATE VIEW dbo.vw_tmi_acept AS
-SELECT ' + CASE WHEN COL_LENGTH('dbo.tmi_estandar_acept', 'id_estandar') IS NOT NULL THEN N'id_estandar' ELSE N'id_indicador' END
-         + N' AS id_estandar, UPPER(ISNULL(' + CASE WHEN COL_LENGTH('dbo.tmi_estandar_acept', 'condicion') IS NOT NULL
-                                                    THEN N'condicion' ELSE N'NULL' END + N', ''ACEPT'')) AS condicion, anio, ' + @cols + N'
-FROM dbo.tmi_estandar_acept';
-EXEC sp_executesql @sql;
-GO

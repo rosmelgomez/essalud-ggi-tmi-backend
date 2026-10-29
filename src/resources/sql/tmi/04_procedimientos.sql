@@ -18,17 +18,27 @@ BEGIN
     -- Las DIM pueden estar en otro servidor (servidor vinculado): se copian una vez y se consultan localmente
     SELECT DISTINCT tipgrupo INTO #dim_grupo FROM {{DIM}}.DIM_GRUPO;
     SELECT DISTINCT actividad INTO #dim_actividad FROM {{DIM}}.DIM_ACTIVIDAD;
-    SELECT i.id AS id_indicador, i.codigo AS elemento, 'Fórmula con caracteres no permitidos (solo A-Z, números, espacios, + - * . y paréntesis)' AS problema
+    SELECT i.id AS id_indicador, i.codigo AS elemento, 'Fórmula con caracteres no permitidos (solo A-Z, números, espacios, + - * / . y paréntesis)' AS problema
     FROM dbo.tmi_indicador i
     WHERE i.activo = 1
-      AND (PATINDEX('%[^A-Z0-9 ().+*-]%', ISNULL(i.expr_numerador, '') COLLATE Latin1_General_BIN) > 0
-        OR PATINDEX('%[^A-Z0-9 ().+*-]%', ISNULL(i.expr_denominador, '') COLLATE Latin1_General_BIN) > 0)
+      AND (PATINDEX('%[^A-Z0-9 ().+*/-]%', ISNULL(i.expr_numerador, '') COLLATE Latin1_General_BIN) > 0
+        OR PATINDEX('%[^A-Z0-9 ().+*/-]%', ISNULL(i.expr_denominador, '') COLLATE Latin1_General_BIN) > 0)
     UNION ALL
     SELECT i.id, i.codigo, 'Falta numerador, denominador, nombre de hoja, tipo de cálculo, sentido o base de estándar'
     FROM dbo.tmi_indicador i
     WHERE i.activo = 1
       AND (NULLIF(LTRIM(i.expr_numerador), '') IS NULL OR NULLIF(LTRIM(i.expr_denominador), '') IS NULL
         OR i.nombre_hoja IS NULL OR i.tipo_calculo IS NULL OR i.sentido IS NULL OR i.base_estandar IS NULL)
+    UNION ALL
+    SELECT i.id, i.codigo, 'Tipo de estándar no existe en tmi_tipo_estandar: ' + i.base_estandar
+    FROM dbo.tmi_indicador i
+    WHERE i.activo = 1 AND i.base_estandar IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_estandar t WHERE t.codigo = i.base_estandar)
+    UNION ALL
+    SELECT i.id, i.codigo, 'Tipo de estándar ' + i.base_estandar + ' sin claves activas en tmi_estandar'
+    FROM dbo.tmi_indicador i
+    WHERE i.activo = 1 AND EXISTS (SELECT 1 FROM dbo.tmi_tipo_estandar t WHERE t.codigo = i.base_estandar)
+      AND NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar e WHERE e.tipo_estandar = i.base_estandar AND e.activo = 1)
     UNION ALL
     SELECT i.id, i.codigo, 'Tipo de cálculo no existe en tmi_tipo_calculo: ' + i.tipo_calculo
     FROM dbo.tmi_indicador i
@@ -292,25 +302,31 @@ BEGIN
         EXEC sp_executesql @sql;
 
         /* 2.5 Fórmula de cada indicador: cada letra -> ISNULL(p.[letra],0) (traducción carácter por carácter) */
-        DECLARE @id INT, @num VARCHAR(200), @den VARCHAR(200), @e_num NVARCHAR(MAX), @e_den NVARCHAR(MAX), @k INT, @c CHAR(1);
+        DECLARE @id INT, @num VARCHAR(200), @den VARCHAR(200), @e_num NVARCHAR(MAX), @e_den NVARCHAR(MAX), @k INT, @c CHAR(1), @div BIT;
         DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
             SELECT i.id, i.expr_numerador, i.expr_denominador FROM dbo.tmi_indicador i
             WHERE i.activo = 1 AND EXISTS (SELECT 1 FROM #letra_piv p WHERE p.id_indicador = i.id);
         OPEN cur; FETCH NEXT FROM cur INTO @id, @num, @den;
         WHILE @@FETCH_STATUS = 0
         BEGIN
-            SELECT @e_num = N'', @e_den = N'', @k = 1;
+            /* letra que sigue a "/" -> NULLIF(...,0): una división entre cero da NULL (NA ese mes) en vez de detener el
+               cálculo. Tras "/" con paréntesis queda la división simple (los bloques no generan paréntesis). */
+            SELECT @e_num = N'', @e_den = N'', @k = 1, @div = 0;
             WHILE @k <= LEN(@num)
             BEGIN
                 SET @c = SUBSTRING(@num, @k, 1);
-                SET @e_num += CASE WHEN @c COLLATE Latin1_General_BIN LIKE '[A-Z]' THEN N'ISNULL(p.[' + @c + N'],0)' ELSE @c END;
+                SET @e_num += CASE WHEN @c COLLATE Latin1_General_BIN LIKE '[A-Z]' AND @div = 1 THEN N'NULLIF(ISNULL(p.[' + @c + N'],0),0)'
+                                   WHEN @c COLLATE Latin1_General_BIN LIKE '[A-Z]' THEN N'ISNULL(p.[' + @c + N'],0)' ELSE @c END;
+                SET @div = CASE WHEN @c = '/' THEN 1 WHEN @c = ' ' THEN @div ELSE 0 END;
                 SET @k += 1;
             END
-            SET @k = 1;
+            SELECT @k = 1, @div = 0;
             WHILE @k <= LEN(@den)
             BEGIN
                 SET @c = SUBSTRING(@den, @k, 1);
-                SET @e_den += CASE WHEN @c COLLATE Latin1_General_BIN LIKE '[A-Z]' THEN N'ISNULL(p.[' + @c + N'],0)' ELSE @c END;
+                SET @e_den += CASE WHEN @c COLLATE Latin1_General_BIN LIKE '[A-Z]' AND @div = 1 THEN N'NULLIF(ISNULL(p.[' + @c + N'],0),0)'
+                                   WHEN @c COLLATE Latin1_General_BIN LIKE '[A-Z]' THEN N'ISNULL(p.[' + @c + N'],0)' ELSE @c END;
+                SET @div = CASE WHEN @c = '/' THEN 1 WHEN @c = ' ' THEN @div ELSE 0 END;
                 SET @k += 1;
             END
             SET @sql = N'INSERT INTO #num_den SELECT p.id_indicador, p.codcentro, p.mes, ' + @e_num + N', ' + @e_den +
@@ -328,25 +344,10 @@ BEGIN
     WITH malla AS (
         SELECT c.codcentro, c.red, c.tipo, c.nivel, c.categoria, c.motivo_centro, c.excluido, c.mes,
                i.id, i.factor, i.den_cero, i.num_cero_na, i.cero_si_letra_mes_0, i.sin_datos_anio, i.base_estandar, i.sentido,
-               i.tipo_tolerancia, i.tolerancia, i.decimales, i.cero_es_logro, i.mostrar_no_aplica,
-               CASE WHEN NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador_ambito a WHERE a.id_indicador = i.id
-                                       AND (@anio * 100 + c.mes) BETWEEN a.periodo_desde AND a.periodo_hasta AND a.incluir = 1)
-                      OR EXISTS (SELECT 1 FROM dbo.tmi_indicador_ambito a WHERE a.id_indicador = i.id AND a.incluir = 1
-                                   AND (@anio * 100 + c.mes) BETWEEN a.periodo_desde AND a.periodo_hasta
-                                   AND (a.red IS NULL OR a.red = c.red)
-                                   AND (a.nivel IS NULL OR a.nivel = c.nivel)
-                                   AND (a.categoria IS NULL OR a.categoria = c.categoria)
-                                   AND (a.tipo IS NULL OR a.tipo = c.tipo)
-                                   AND (a.codcentro IS NULL OR a.codcentro = c.codcentro))
-                    THEN 1 ELSE 0 END AS en_ambito_incl,
-               CASE WHEN EXISTS (SELECT 1 FROM dbo.tmi_indicador_ambito a WHERE a.id_indicador = i.id AND a.incluir = 0
-                                   AND (@anio * 100 + c.mes) BETWEEN a.periodo_desde AND a.periodo_hasta
-                                   AND (a.red IS NULL OR a.red = c.red)
-                                   AND (a.nivel IS NULL OR a.nivel = c.nivel)
-                                   AND (a.categoria IS NULL OR a.categoria = c.categoria)
-                                   AND (a.tipo IS NULL OR a.tipo = c.tipo)
-                                   AND (a.codcentro IS NULL OR a.codcentro = c.codcentro))
-                    THEN 1 ELSE 0 END AS en_ambito_excl
+               /* qué centros entran al indicador lo decide el estándar: el centro se une a la tabla de su tipo de estándar
+                  (nivel, tipo o categoría); sin estándar (o 0) queda NA "Sin estándar" */
+               i.tipo_tolerancia, i.tolerancia, ISNULL(i.tolerancia_menos, i.tolerancia) AS tolerancia_menos,
+               i.decimales, i.cero_es_logro, i.mostrar_no_aplica
         FROM #centro_ind_mes c
         JOIN dbo.tmi_indicador i ON i.id = c.id_indicador
     ),
@@ -356,23 +357,19 @@ BEGIN
                SUM(ABS(ISNULL(d.num, 0)) + ABS(ISNULL(d.den, 0))) OVER (PARTITION BY g.id, g.codcentro) AS datos_anio,
                NULLIF(CASE g.mes WHEN 1 THEN ce.m01 WHEN 2 THEN ce.m02 WHEN 3 THEN ce.m03 WHEN 4 THEN ce.m04 WHEN 5 THEN ce.m05 WHEN 6 THEN ce.m06
                                  WHEN 7 THEN ce.m07 WHEN 8 THEN ce.m08 WHEN 9 THEN ce.m09 WHEN 10 THEN ce.m10 WHEN 11 THEN ce.m11 WHEN 12 THEN ce.m12 END, 0) AS est_centro,
-               ce.aplica AS aplica_centro, ce.acept AS acept_centro,
-               NULLIF(ie.estandar, 0) AS est_combinado, ie.acept AS acept_combinado, ie.acept_mas AS acept_mas_combinado,
+               ce.aplica AS aplica_centro, ce.acept AS acept_centro, eb.est AS est_base,
+               NULLIF(ie.estandar, 0) AS est_combinado, ie.acept AS acept_combinado, ie.aceptmenos AS aceptmenos_combinado,
                NULLIF(CASE g.mes WHEN 1 THEN st.m01 WHEN 2 THEN st.m02 WHEN 3 THEN st.m03 WHEN 4 THEN st.m04 WHEN 5 THEN st.m05 WHEN 6 THEN st.m06
                                  WHEN 7 THEN st.m07 WHEN 8 THEN st.m08 WHEN 9 THEN st.m09 WHEN 10 THEN st.m10 WHEN 11 THEN st.m11 WHEN 12 THEN st.m12 END, 0) AS est_tipo,
                NULLIF(CASE g.mes WHEN 1 THEN sn.m01 WHEN 2 THEN sn.m02 WHEN 3 THEN sn.m03 WHEN 4 THEN sn.m04 WHEN 5 THEN sn.m05 WHEN 6 THEN sn.m06
                                  WHEN 7 THEN sn.m07 WHEN 8 THEN sn.m08 WHEN 9 THEN sn.m09 WHEN 10 THEN sn.m10 WHEN 11 THEN sn.m11 WHEN 12 THEN sn.m12 END, 0) AS est_nivel,
                NULLIF(CASE g.mes WHEN 1 THEN sc.m01 WHEN 2 THEN sc.m02 WHEN 3 THEN sc.m03 WHEN 4 THEN sc.m04 WHEN 5 THEN sc.m05 WHEN 6 THEN sc.m06
-                                 WHEN 7 THEN sc.m07 WHEN 8 THEN sc.m08 WHEN 9 THEN sc.m09 WHEN 10 THEN sc.m10 WHEN 11 THEN sc.m11 WHEN 12 THEN sc.m12 END, 0) AS est_categoria,
-               CASE g.mes WHEN 1 THEN ac.a01 WHEN 2 THEN ac.a02 WHEN 3 THEN ac.a03 WHEN 4 THEN ac.a04 WHEN 5 THEN ac.a05 WHEN 6 THEN ac.a06
-                          WHEN 7 THEN ac.a07 WHEN 8 THEN ac.a08 WHEN 9 THEN ac.a09 WHEN 10 THEN ac.a10 WHEN 11 THEN ac.a11 WHEN 12 THEN ac.a12 END AS acept_mes,
-               CASE g.mes WHEN 1 THEN am.a01 WHEN 2 THEN am.a02 WHEN 3 THEN am.a03 WHEN 4 THEN am.a04 WHEN 5 THEN am.a05 WHEN 6 THEN am.a06
-                          WHEN 7 THEN am.a07 WHEN 8 THEN am.a08 WHEN 9 THEN am.a09 WHEN 10 THEN am.a10 WHEN 11 THEN am.a11 WHEN 12 THEN am.a12 END AS acept_mas_mes
+                                 WHEN 7 THEN sc.m07 WHEN 8 THEN sc.m08 WHEN 9 THEN sc.m09 WHEN 10 THEN sc.m10 WHEN 11 THEN sc.m11 WHEN 12 THEN sc.m12 END, 0) AS est_categoria
         FROM malla g
         LEFT JOIN #num_den d ON d.id_indicador = g.id AND d.codcentro = g.codcentro AND d.mes = g.mes
         OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_centro_estandar x
                      WHERE x.id_estandar = g.id AND x.codcentro = g.codcentro AND x.anio = @anio) ce
-        OUTER APPLY (SELECT TOP 1 x.estandar, x.acept, x.acept_mas
+        OUTER APPLY (SELECT TOP 1 x.estandar, x.acept, x.aceptmenos
                      FROM dbo.tmi_indicador_estandar x
                      WHERE x.id_indicador = g.id AND x.activo = 1
                        AND (@anio * 100 + g.mes) BETWEEN x.periodo_desde AND x.periodo_hasta
@@ -385,25 +382,30 @@ BEGIN
                              + CASE WHEN x.nivel IS NOT NULL THEN 1 ELSE 0 END) DESC,
                               (x.periodo_hasta - x.periodo_desde) ASC,
                               x.id DESC) ie
+        /* Estándar según el tipo del indicador (tmi_tipo_estandar / tmi_estandar): de las claves que coinciden con el
+           centro (nivel, tipo o categoría según la fuente), la de mayor prioridad que tenga valor en su tabla. */
+        OUTER APPLY (SELECT TOP 1 v.est, k.fuente, k.clave
+                     FROM dbo.tmi_estandar k
+                     JOIN dbo.vw_tmi_std x ON x.id_estandar = g.id AND x.anio = @anio AND x.fuente = k.fuente AND x.clave = k.clave
+                     CROSS APPLY (SELECT NULLIF(CHOOSE(g.mes, x.m01, x.m02, x.m03, x.m04, x.m05, x.m06, x.m07, x.m08,
+                                                       x.m09, x.m10, x.m11, x.m12), 0) AS est) v
+                     WHERE k.tipo_estandar = g.base_estandar AND k.activo = 1 AND v.est IS NOT NULL
+                       AND k.clave = CASE k.fuente WHEN 'NIVEL' THEN g.nivel WHEN 'TIPO' THEN g.tipo ELSE g.categoria END
+                     ORDER BY k.prioridad DESC, k.orden) eb
         OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_std x WHERE x.id_estandar = g.id AND x.anio = @anio
                        AND x.fuente = 'TIPO' AND x.clave = g.tipo) st
         OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_std x WHERE x.id_estandar = g.id AND x.anio = @anio
                        AND x.fuente = 'NIVEL' AND x.clave = g.nivel) sn
         OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_std x WHERE x.id_estandar = g.id AND x.anio = @anio
                        AND x.fuente = 'CATEGORIA' AND x.clave = g.categoria) sc
-        OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_acept x WHERE x.id_estandar = g.id AND x.anio = @anio
-                       AND x.condicion = 'ACEPT') ac
-        OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_acept x WHERE x.id_estandar = g.id AND x.anio = @anio
-                       AND x.condicion = 'MAS') am
     ),
     val AS (
         SELECT e.*,
+               /* orden: estándar del centro > tipo de estándar del indicador (tablas maestras) > reglas del panel
+                  (tmi_indicador_estandar) > combinaciones anteriores de base_estandar que no estén en el catálogo */
                CASE WHEN e.aplica_centro = 0 THEN NULL
-                    ELSE COALESCE(e.est_centro, e.est_combinado,
+                    ELSE COALESCE(e.est_centro, e.est_base, e.est_combinado,
                                   CASE e.base_estandar
-                                      WHEN 'TIPO'                 THEN e.est_tipo
-                                      WHEN 'NIVEL'                THEN e.est_nivel
-                                      WHEN 'CATEGORIA'            THEN e.est_categoria
                                       WHEN 'TIPO_NIVEL'           THEN COALESCE(e.est_tipo, e.est_nivel)
                                       WHEN 'TIPO_CATEGORIA'       THEN COALESCE(e.est_tipo, e.est_categoria)
                                       WHEN 'NIVEL_CATEGORIA'      THEN COALESCE(e.est_nivel, e.est_categoria)
@@ -419,18 +421,21 @@ BEGIN
     lim AS (
         SELECT v.*,
                v.estandar AS verde,
-               COALESCE(v.acept_centro, v.acept_combinado, v.acept_mes,
-                        CASE WHEN v.sentido = 'MENOR'
+               /* % Acept: límite para el puntaje 3 (en banda, el de arriba) = estándar ± el porcentaje del indicador.
+                  El % Acept propio del centro (tmi_centro_estandar.acept) gana. */
+               COALESCE(v.acept_centro,
+                        CASE WHEN v.est_centro IS NULL AND v.est_base IS NULL THEN v.acept_combinado END,
+                        CASE WHEN v.sentido IN ('MENOR', 'BANDA')
                              THEN CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar + v.tolerancia ELSE v.estandar * (1 + v.tolerancia) END
                              ELSE CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar - v.tolerancia ELSE v.estandar * (1 - v.tolerancia) END
-                        END) AS rojo,
+                        END) AS acept,
+               /* % Aceptmenos: solo banda, el límite de abajo */
                CASE WHEN v.sentido = 'BANDA'
-                    THEN COALESCE(v.acept_mas_combinado, v.acept_mas_mes,
-                                  CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar + v.tolerancia
-                                                         ELSE v.estandar * (1 + v.tolerancia) END) END AS rojo_mas,
+                    THEN COALESCE(CASE WHEN v.est_centro IS NULL AND v.est_base IS NULL THEN v.aceptmenos_combinado END,
+                                  CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar - v.tolerancia_menos
+                                                         ELSE v.estandar * (1 - v.tolerancia_menos) END) END AS aceptmenos,
                ROUND(v.valor, ISNULL(v.decimales, 15)) AS valor_eval,
-               CASE WHEN v.en_ambito_incl = 0 OR v.en_ambito_excl = 1        THEN 'FUERA_DE_AMBITO'
-                    WHEN v.motivo_centro IS NOT NULL                         THEN v.motivo_centro
+               CASE WHEN v.motivo_centro IS NOT NULL                         THEN v.motivo_centro
                     WHEN v.excluido = 1                                      THEN 'EXCLUIDO'
                     WHEN v.estandar IS NULL                                  THEN 'SIN_ESTANDAR'
                     WHEN v.datos_anio = 0 AND v.sin_datos_anio <> 'MOSTRAR'  THEN 'SIN_DATOS_ANIO'
@@ -438,16 +443,16 @@ BEGIN
         FROM val v
     )
     INSERT INTO dbo.tmi_resultado (periodo_corte, id_indicador, codcentro, mes, numerador, denominador, valor,
-                                   estandar, verde, rojo, rojo_mas, puntaje, motivo_na, visible)
-    SELECT @PERIODO, l.id, l.codcentro, l.mes, l.num, l.den, l.valor, l.estandar, l.verde, l.rojo, l.rojo_mas,
+                                   estandar, verde, acept, aceptmenos, puntaje, motivo_na, visible)
+    SELECT @PERIODO, l.id, l.codcentro, l.mes, l.num, l.den, l.valor, l.estandar, l.verde, l.acept, l.aceptmenos,
            CASE WHEN l.motivo_na IS NOT NULL                   THEN 'NA'
                 WHEN l.valor_eval = 0 AND l.cero_es_logro = 0  THEN '0'
                 WHEN l.sentido = 'BANDA' THEN
-                     CASE WHEN l.valor_eval BETWEEN (l.verde + l.rojo) / 2 AND (l.verde + l.rojo_mas) / 2 THEN '5'
-                          WHEN l.valor_eval BETWEEN l.rojo AND l.rojo_mas                                 THEN '3'
+                     CASE WHEN l.valor_eval BETWEEN (l.verde + l.aceptmenos) / 2 AND (l.verde + l.acept) / 2 THEN '5'
+                          WHEN l.valor_eval BETWEEN l.aceptmenos AND l.acept                                 THEN '3'
                           ELSE '1' END
-                WHEN l.sentido = 'MAYOR' THEN CASE WHEN l.valor_eval >= l.verde THEN '5' WHEN l.valor_eval >= l.rojo THEN '3' ELSE '1' END
-                ELSE                          CASE WHEN l.valor_eval <= l.verde THEN '5' WHEN l.valor_eval <= l.rojo THEN '3' ELSE '1' END
+                WHEN l.sentido = 'MAYOR' THEN CASE WHEN l.valor_eval >= l.verde THEN '5' WHEN l.valor_eval >= l.acept THEN '3' ELSE '1' END
+                ELSE                          CASE WHEN l.valor_eval <= l.verde THEN '5' WHEN l.valor_eval <= l.acept THEN '3' ELSE '1' END
            END,
            l.motivo_na,
            -- visible = 0: el centro no se lista en la hoja del indicador (por defecto los NA sí se listan)
@@ -459,13 +464,13 @@ BEGIN
     /* 2.7 Resultado final por indicador (filas del Excel) -> tmi_resultado_indicador */
     DELETE dbo.tmi_resultado_indicador WHERE periodo = @PERIODO;
     INSERT INTO dbo.tmi_resultado_indicador (periodo, anio, id_indicador, orden, orden_red, red, codcentro, centro, nivel, tipo,
-                                             categoria, estandar, acept, acept_mas, total, puntaje, motivo_na, visible,
+                                             categoria, estandar, acept, aceptmenos, total, puntaje, motivo_na, visible,
                                              periodo_01, periodo_02, periodo_03, periodo_04, periodo_05, periodo_06, periodo_07, periodo_08, periodo_09, periodo_10, periodo_11, periodo_12)
     SELECT @PERIODO, @anio, r.id_indicador, MIN(c.id_centro), MIN(c.orden), MAX(c.red), r.codcentro, MAX(c.centro), MAX(c.nivel), MAX(c.tipo),
            MAX(c.categoria),
            MAX(CASE WHEN r.mes = @mes THEN r.estandar END),
-           MAX(CASE WHEN r.mes = @mes THEN r.rojo END),
-           MAX(CASE WHEN r.mes = @mes THEN r.rojo_mas END),
+           MAX(CASE WHEN r.mes = @mes THEN r.acept END),
+           MAX(CASE WHEN r.mes = @mes THEN r.aceptmenos END),
            MAX(CASE WHEN r.mes = @mes THEN CASE WHEN r.puntaje = 'NA' THEN r.valor ELSE ISNULL(r.valor, 0) END END),
            MAX(CASE WHEN r.mes = @mes THEN r.puntaje END),
            MAX(CASE WHEN r.mes = @mes THEN r.motivo_na END),

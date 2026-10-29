@@ -1,10 +1,15 @@
 """Consultas del TMI dinámico (procedimientos y tablas de src/resources/sql/tmi)."""
 
+import logging
+from typing import Optional
+
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.main.core.tmiConfig import TMI_DB, TMI_DIM, TMI_TOTALIZADO3
+
+logger = logging.getLogger(__name__)
 
 name_server = f"{TMI_DB}.dbo"
 
@@ -16,13 +21,15 @@ TABLAS = {
                             "periodo_desde", "periodo_hasta", "activo"],
     "tmi_indicador": ["grupo", "indicador", "codigo", "nombre_hoja", "titulo_hoja", "orden", "expr_numerador",
                       "expr_denominador", "tipo_calculo", "factor", "den_cero", "num_cero_na", "cero_si_letra_mes_0",
-                      "sin_datos_anio", "base_estandar", "sentido", "tipo_tolerancia", "tolerancia", "decimales",
+                      "sin_datos_anio", "base_estandar", "sentido", "tipo_tolerancia", "tolerancia", "tolerancia_menos", "decimales",
                       "cero_es_logro", "mostrar_no_aplica", "activo", "formato"],
     "tmi_indicador_variable": ["id_indicador", "letra", "id_variable"],
     "tmi_indicador_ambito": ["id_indicador", "red", "nivel", "categoria", "tipo", "codcentro", "incluir",
                              "periodo_desde", "periodo_hasta"],
     "tmi_indicador_estandar": ["id_indicador", "nivel", "categoria", "tipo", "periodo_desde", "periodo_hasta",
-                               "estandar", "acept", "acept_mas", "activo"],
+                               "estandar", "acept", "aceptmenos", "activo"],
+    "tmi_tipo_estandar": ["codigo", "descripcion", "orden", "activo"],
+    "tmi_estandar": ["tipo_estandar", "orden", "fuente", "clave", "descripcion", "prioridad", "activo"],
     "tmi_centro_estandar": ["codcentro", "id_indicador", "anio", "aplica", "est_01", "est_02", "est_03", "est_04",
                             "est_05", "est_06", "est_07", "est_08", "est_09", "est_10", "est_11", "est_12",
                             "acept", "sustento"],
@@ -164,7 +171,7 @@ def queryIndicadoresTMI(db: Session):
     return _consulta(db, f"""
         SELECT i.id, i.grupo, i.indicador, i.codigo, i.nombre_hoja, i.titulo_hoja, i.orden, i.expr_numerador,
                i.expr_denominador, i.tipo_calculo, i.factor, i.den_cero, i.num_cero_na, i.cero_si_letra_mes_0,
-               i.sin_datos_anio, i.base_estandar, i.sentido, i.tipo_tolerancia, i.tolerancia, i.decimales,
+               i.sin_datos_anio, i.base_estandar, i.sentido, i.tipo_tolerancia, i.tolerancia, i.tolerancia_menos, i.decimales,
                i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, g.descripcion AS grupo_descripcion,
                STUFF((SELECT ' | ' + x.txt FROM (
                     SELECT iv.letra,
@@ -202,6 +209,158 @@ def queryIndicadorLetrasTMI(db: Session, id_indicador: int):
         WHERE iv.id_indicador = :id ORDER BY iv.letra, v.nombre""", {"id": id_indicador})
 
 
+### Tablas maestras de estándares
+def queryTiposEstandarTMI(db: Session):
+    """Tipos de estándar con cuántas claves tienen y qué indicadores los usan."""
+    return _consulta(db, f"""
+        SELECT t.id, t.codigo, t.descripcion, t.orden, t.activo,
+               (SELECT COUNT(*) FROM {name_server}.tmi_estandar e WHERE e.tipo_estandar = t.codigo) AS claves,
+               STUFF((SELECT ', ' + i.codigo FROM {name_server}.tmi_indicador i WHERE i.base_estandar = t.codigo
+                      ORDER BY i.orden FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS indicadores
+        FROM {name_server}.tmi_tipo_estandar t
+        ORDER BY ISNULL(t.orden, 999), t.codigo""")
+
+
+def queryEstandarClavesTMI(db: Session):
+    """Claves de todos los tipos de estándar, con cuántos centros tienen ese valor hoy."""
+    return _consulta(db, f"""
+        SELECT e.id, e.tipo_estandar, e.orden, e.fuente, e.clave, e.descripcion, e.prioridad, e.activo,
+               (SELECT COUNT(DISTINCT c.codcentro) FROM {name_server}.vw_tmi_centro_base c
+                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END = e.clave) AS centros
+        FROM {name_server}.tmi_estandar e
+        ORDER BY e.tipo_estandar, ISNULL(e.orden, 999), e.prioridad DESC, e.clave""")
+
+
+def queryValoresEstandarIndicadorTMI(db: Session, id_indicador: int, anio: int):
+    """Claves del tipo de estándar del indicador con su valor por mes (de la tabla de su fuente)."""
+    meses = ", ".join(f"s.m{m:02d} AS est_{m:02d}" for m in range(1, 13))
+    return _consulta(db, f"""
+        SELECT e.id AS id_clave, e.orden, e.fuente, e.clave, e.descripcion, e.prioridad, e.activo, {meses},
+               (SELECT COUNT(DISTINCT c.codcentro) FROM {name_server}.vw_tmi_centro_base c
+                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END = e.clave) AS centros
+        FROM {name_server}.tmi_indicador i
+        JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar
+        OUTER APPLY (SELECT TOP 1 * FROM {name_server}.vw_tmi_std x
+                     WHERE x.id_estandar = i.id AND x.anio = :anio AND x.fuente = e.fuente AND x.clave = e.clave) s
+        WHERE i.id = :id
+        ORDER BY ISNULL(e.orden, 999), e.prioridad DESC, e.clave""", {"id": id_indicador, "anio": anio})
+
+
+def queryAceptacionTMI(db: Session, anio: int, mes: int):
+    """% Acept de los indicadores activos: su porcentaje y, por cada clave de su tipo de estándar, el estándar del mes
+    (el % Acept se calcula en pantalla igual que en usp_tmi_calcular)."""
+    indicadores = _consulta(db, f"""
+        SELECT i.id, i.orden, i.codigo, i.indicador, i.base_estandar, i.sentido, i.formato,
+               i.tipo_tolerancia, i.tolerancia, i.tolerancia_menos, g.descripcion AS grupo
+        FROM {name_server}.tmi_indicador i
+        LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
+        WHERE i.activo = 1
+        ORDER BY i.orden, i.id""")
+    claves = _consulta(db, f"""
+        SELECT i.id AS id_indicador, e.orden, e.fuente, e.clave, e.descripcion,
+               NULLIF(CHOOSE(:mes, s.m01, s.m02, s.m03, s.m04, s.m05, s.m06, s.m07, s.m08, s.m09, s.m10, s.m11, s.m12), 0) AS estandar
+        FROM {name_server}.tmi_indicador i
+        JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
+        OUTER APPLY (SELECT TOP 1 * FROM {name_server}.vw_tmi_std x
+                     WHERE x.id_estandar = i.id AND x.anio = :anio AND x.fuente = e.fuente AND x.clave = e.clave) s
+        WHERE i.activo = 1
+        ORDER BY i.id, ISNULL(e.orden, 999), e.clave""", {"anio": anio, "mes": mes})
+    por_indicador: dict = {}
+    for c in claves:
+        por_indicador.setdefault(c.pop("id_indicador"), []).append(c)
+    for i in indicadores:
+        i["claves"] = por_indicador.get(i["id"], [])
+    return indicadores
+
+
+def queryGuardarToleranciaTMI(db: Session, id_indicador: int, datos: dict, usuario: str = None):
+    """Guarda el porcentaje del % Acept del indicador (tipo, hacia arriba y, en banda, hacia abajo)."""
+    try:
+        r = db.execute(text(f"""
+            UPDATE {name_server}.tmi_indicador
+               SET tipo_tolerancia = :tipo_tolerancia, tolerancia = :tolerancia, tolerancia_menos = :tolerancia_menos,
+                   usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
+             WHERE id = :id"""), {**datos, "id": id_indicador, "usuario": usuario})
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    if r.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Indicador no encontrado")
+    return {"message": "% Acept guardado", "rows_updated": r.rowcount}
+
+
+# fuente -> tabla de valores, columna de la clave y DTO de tmiRep (que ya sabe guardar en las dos estructuras)
+FUENTES_ESTANDAR = {
+    "NIVEL": ("tmi_estandar_nivel", "nivel_centro", "tmiEstandarNivelDto"),
+    "TIPO": ("tmi_estandar_tipo", "tipo_centro", "tmiEstandarTipoDto"),
+    "CATEGORIA": ("tmi_estandar_categoria", "categoria_centro", "tmiEstandarCategoriaDto"),
+}
+
+
+def queryGuardarValorEstandarTMI(db: Session, id_indicador: int, datos: dict):
+    """Guarda (alta o edición) el estándar del indicador para una clave y año en la tabla de su fuente."""
+    from src.main.dtos import tmiDto
+    from src.main.repositories import tmiRep
+    tabla, columna, nombre_dto = FUENTES_ESTANDAR[datos["fuente"]]
+    meses = {f"est_{m:02d}": datos.get(f"est_{m:02d}") for m in range(1, 13)}
+    valores = [v for v in meses.values() if v is not None]
+    dto = getattr(tmiDto, nombre_dto)(id_indicador=id_indicador, anio=datos["anio"], **{columna: datos["clave"]},
+                                      est_fijo=valores[0] if valores and len(set(valores)) == 1 else None, **meses)
+    return tmiRep._guardar(db, tabla, columna, dto, "Estándar guardado")
+
+
+OPERADORES = {"+": "+", "-": "-", "*": "*", "/": "/"}
+
+
+def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula: dict, usuario: str = None):
+    """Fórmula en bloques -> letras automáticas (A, B, C... por orden de aparición; la misma variable usa la misma
+    letra en numerador y denominador), expr_numerador / expr_denominador y tmi_indicador_variable, en una transacción."""
+    letra_de: dict = {}
+
+    def expresion(bloques: list) -> str:
+        partes = []
+        for k, b in enumerate(bloques):
+            v = int(b["id_variable"])
+            if v not in letra_de:
+                if len(letra_de) == 26:
+                    raise HTTPException(status_code=400, detail="La fórmula admite como máximo 26 variables (A-Z).")
+                letra_de[v] = chr(ord("A") + len(letra_de))
+            if k:
+                partes.append(OPERADORES[b["op"]])
+            partes.append(letra_de[v])
+        return " ".join(partes)
+
+    num = expresion(formula["numerador"])
+    den = expresion(formula["denominador"]) if formula["denominador"] else "1"
+    existentes = {r[0] for r in db.execute(text(
+        f"SELECT id FROM {name_server}.tmi_variable WHERE id IN ({', '.join(str(v) for v in letra_de)})"))}
+    faltan = sorted(set(letra_de) - existentes)
+    if faltan:
+        raise HTTPException(status_code=400, detail=f"Variables que no existen: {faltan}")
+    try:
+        r = db.execute(text(f"""
+            UPDATE {name_server}.tmi_indicador
+               SET expr_numerador = :num, expr_denominador = :den,
+                   usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
+             WHERE id = :id"""), {"num": num, "den": den, "usuario": usuario, "id": id_indicador})
+        if r.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Indicador no encontrado")
+        db.execute(text(f"DELETE FROM {name_server}.tmi_indicador_variable WHERE id_indicador = :id"), {"id": id_indicador})
+        for v, letra in letra_de.items():
+            db.execute(text(f"""INSERT INTO {name_server}.tmi_indicador_variable (id_indicador, letra, id_variable)
+                                VALUES (:id, :letra, :v)"""), {"id": id_indicador, "letra": letra, "v": v})
+        db.commit()
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"expr_numerador": num, "expr_denominador": den,
+            "letras": [{"letra": l, "id_variable": v} for v, l in letra_de.items()]}
+
+
 def queryIndicadorAmbitoTMI(db: Session, id_indicador: int):
     return _consulta(db, f"""
         SELECT id, id_indicador, red, nivel, categoria, tipo, codcentro, incluir, periodo_desde, periodo_hasta
@@ -212,7 +371,7 @@ def queryIndicadorAmbitoTMI(db: Session, id_indicador: int):
 def queryIndicadorEstandaresTMI(db: Session, id_indicador: int):
     return _consulta(db, f"""
         SELECT id, id_indicador, nivel, categoria, tipo, periodo_desde, periodo_hasta,
-               estandar, acept, acept_mas, activo
+               estandar, acept, aceptmenos, activo
         FROM {name_server}.tmi_indicador_estandar
         WHERE id_indicador = :id
         ORDER BY periodo_desde DESC, tipo, categoria, nivel""", {"id": id_indicador})
@@ -232,21 +391,42 @@ def queryCentroEstandarTMI(db: Session, anio: int):
         WHERE ce.anio = :anio
         ORDER BY ce.{col}, ce.codcentro""", {"anio": anio})
 
-#Grupo, actividad y servicio con sus descripciones (para la lógica de variables)
+_CON_DIM_SERVICIO: Optional[bool] = None   # None = todavía no se comprobó si se puede leer DIM_SERVICIO
+
+
 def queryGrupoActividadServicioTMI(db: Session):
-    """Devuelve el grupo, actividad y servicio con sus descripciones (para la lógica de variables)."""
-    return _consulta(db, f"""
-       SELECT 
-gas.tipgrupo,
-gr.desctipgrupo,
-gas.actividad,
-act.desclarga,
-gas.servicio,
-serv.desclarga
-FROM pentahodevDW.dbo.DIM_GRUPOACTIVIDADSERVICIO gas
-JOIN pentahodevDW.dbo.DIM_GRUPO gr ON gas.tipgrupo = gr.tipgrupo
-JOIN pentahodevDW.dbo.DIM_ACTIVIDAD act on gas.actividad = act.actividad
-JOIN pentahodevDW.dbo.DIM_SERVICIO serv ON gas.servicio = serv.servicio""")
+    """Relación grupo -> actividad -> servicio (DIM_GRUPOACTIVIDADSERVICIO, sin las desactivadas) con sus
+    descripciones, para elegir la lógica de las variables en cascada. Si DIM_SERVICIO no se puede leer (no existe en
+    esa base), el servicio sale sin descripción."""
+    global _CON_DIM_SERVICIO
+
+    def consulta(con_servicio: bool) -> str:
+        serv = (f"LEFT JOIN {TMI_DIM}.DIM_SERVICIO serv ON serv.servicio = gas.servicio" if con_servicio else "")
+        desc_serv = "LTRIM(RTRIM(serv.desclarga))" if con_servicio else "CAST(NULL AS NVARCHAR(200))"
+        return f"""
+        SELECT gas.tipgrupo, LTRIM(RTRIM(gr.desctipgrupo)) AS desctipgrupo,
+               gas.actividad, COALESCE(NULLIF(LTRIM(RTRIM(act.desclarga)), ''), LTRIM(RTRIM(act.descactividad))) AS descactividad,
+               act.Proceso AS proceso, act.Recurso AS recurso,
+               gas.servicio, {desc_serv} AS descservicio
+        FROM {TMI_DIM}.DIM_GRUPOACTIVIDADSERVICIO gas
+        JOIN {TMI_DIM}.DIM_GRUPO gr ON gr.tipgrupo = gas.tipgrupo
+        JOIN {TMI_DIM}.DIM_ACTIVIDAD act ON act.actividad = gas.actividad
+        {serv}
+        WHERE ISNULL(gas.desactivado, 0) = 0
+        ORDER BY gas.tipgrupo, gas.actividad, gas.servicio"""
+
+    if _CON_DIM_SERVICIO is not False:
+        try:
+            filas = [dict(r) for r in db.execute(text(consulta(True))).mappings()]
+            _CON_DIM_SERVICIO = True
+            return filas
+        except Exception as e:
+            db.rollback()
+            if "DIM_SERVICIO" not in str(e):
+                raise HTTPException(status_code=500, detail=str(e))
+            logger.warning("No se puede leer %s.DIM_SERVICIO: los servicios se listan sin descripción", TMI_DIM)
+            _CON_DIM_SERVICIO = False
+    return _consulta(db, consulta(False))
 
 def queryCatalogoGruposTMI(db: Session):
     """Grupos de DIM_GRUPO (para la lógica de variables)."""
@@ -291,7 +471,7 @@ def queryCatalogoCentrosTMI(db: Session):
 
 
 _COLS_RESULTADO = ("periodo, anio, id_indicador, orden, orden_red, red, codcentro, centro, nivel, tipo, categoria, "
-                   "estandar, acept, acept_mas, total, "
+                   "estandar, acept, aceptmenos, total, "
                    + ", ".join(f"periodo_{m:02d}" for m in range(1, 13)) + ", puntaje, motivo_na, visible, fecha_calculo")
 
 
@@ -367,7 +547,7 @@ def queryIndicadoresActivosTMI(db: Session):
 def queryResultadoTMI(db: Session, periodo: int):
     try:
         result = db.execute(text(f"""
-            SELECT id_indicador, codcentro, mes, valor, estandar, verde, rojo, rojo_mas, puntaje, motivo_na, visible
+            SELECT id_indicador, codcentro, mes, valor, estandar, verde, acept, aceptmenos, puntaje, motivo_na, visible
             FROM {name_server}.tmi_resultado
             WHERE periodo_corte = :periodo
         """), {"periodo": periodo})

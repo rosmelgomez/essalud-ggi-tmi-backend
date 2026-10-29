@@ -12,10 +12,15 @@ from src.main.core.security import get_current_user
 from src.main.db.databaseConexion import get_db
 from src.main.dtos.tmiDinamicoDto import (
     tmiCentroEstandarDto,
+    tmiEstandarClaveDto,
+    tmiFormulaDto,
     tmiIndicadorAmbitoDto,
     tmiIndicadorDto,
     tmiIndicadorEstandarDto,
     tmiIndicadorVariableDto,
+    tmiTipoEstandarDto,
+    tmiToleranciaDto,
+    tmiValorEstandarDto,
     tmiVariableDto,
     tmiVariableLogicaDto,
 )
@@ -56,6 +61,12 @@ async def catalogoGruposReporte(db: Session = Depends(get_db)):
 @router.get("/catalogo/actividades")
 async def catalogoActividades(db: Session = Depends(get_db)):
     return rep.queryCatalogoActividadesTMI(db)
+
+
+@router.get("/catalogo/grupo-actividad-servicio")
+async def catalogoGrupoActividadServicio(db: Session = Depends(get_db)):
+    """Relación grupo -> actividad -> servicio para elegir la lógica de las variables en cascada."""
+    return rep.queryGrupoActividadServicioTMI(db)
 
 
 @router.get("/catalogo/servicios/{tipgrupo}/{actividad}")
@@ -117,6 +128,12 @@ async def eliminarLogica(id: int, db: Session = Depends(get_db)):
 
 
 # indicadores
+# la fórmula (expr_*) solo se cambia con PUT /indicadores/{id}/formula
+_SIN_FORMULA = {"expr_numerador", "expr_denominador"}
+# el % Acept (tolerancia) solo se cambia con PUT /indicadores/{id}/tolerancia (pestaña % Acept)
+_SIN_TOLERANCIA = {"tipo_tolerancia", "tolerancia", "tolerancia_menos"}
+
+
 @router.get("/indicadores")
 async def listaIndicadores(db: Session = Depends(get_db)):
     return rep.queryIndicadoresTMI(db)
@@ -125,13 +142,21 @@ async def listaIndicadores(db: Session = Depends(get_db)):
 @router.post("/indicadores")
 async def crearIndicador(dto: tmiIndicadorDto, db: Session = Depends(get_db),
                          current_user: dict = Depends(get_current_user)):
-    return rep.queryInsertarFila(db, "tmi_indicador", dto.model_dump(), _usuario(current_user))
+    return rep.queryInsertarFila(db, "tmi_indicador", dto.model_dump(exclude=_SIN_FORMULA), _usuario(current_user))
 
 
 @router.put("/indicadores/{id}")
 async def actualizarIndicador(id: int, dto: tmiIndicadorDto, db: Session = Depends(get_db),
                               current_user: dict = Depends(get_current_user)):
-    return rep.queryActualizarFila(db, "tmi_indicador", id, dto.model_dump(), _usuario(current_user))
+    return rep.queryActualizarFila(db, "tmi_indicador", id, dto.model_dump(exclude=_SIN_FORMULA | _SIN_TOLERANCIA),
+                                   _usuario(current_user))
+
+
+@router.put("/indicadores/{id}/formula")
+async def guardarFormulaIndicador(id: int, dto: tmiFormulaDto, db: Session = Depends(get_db),
+                                  current_user: dict = Depends(get_current_user)):
+    """Guarda la fórmula armada con bloques: letras automáticas, expresiones y variables de cada letra."""
+    return rep.queryGuardarFormulaTMI(db, id, dto.model_dump(), _usuario(current_user))
 
 
 @router.delete("/indicadores/{id}")
@@ -207,6 +232,72 @@ async def eliminarIndicadorEstandar(id: int, db: Session = Depends(get_db)):
 
 
 # estándares específicos de centro
+# tablas maestras de estándares: tipos (NIVEL, NIVEL_TIPO, TIPO, CATEGORIA...) y sus claves
+@router.get("/tipos-estandar")
+async def listaTiposEstandar(db: Session = Depends(get_db)):
+    return rep.queryTiposEstandarTMI(db)
+
+
+@router.post("/tipos-estandar")
+async def crearTipoEstandar(dto: tmiTipoEstandarDto, db: Session = Depends(get_db)):
+    return rep.queryInsertarFila(db, "tmi_tipo_estandar", dto.model_dump())
+
+
+@router.put("/tipos-estandar/{id}")
+async def actualizarTipoEstandar(id: int, dto: tmiTipoEstandarDto, db: Session = Depends(get_db)):
+    return rep.queryActualizarFila(db, "tmi_tipo_estandar", id, dto.model_dump())
+
+
+@router.delete("/tipos-estandar/{id}")
+async def eliminarTipoEstandar(id: int, db: Session = Depends(get_db)):
+    return rep.queryEliminarFila(db, "tmi_tipo_estandar", id)
+
+
+@router.get("/estandar-claves")
+async def listaEstandarClaves(db: Session = Depends(get_db)):
+    return rep.queryEstandarClavesTMI(db)
+
+
+@router.post("/estandar-claves")
+async def crearEstandarClave(dto: tmiEstandarClaveDto, db: Session = Depends(get_db)):
+    return rep.queryInsertarFila(db, "tmi_estandar", dto.model_dump())
+
+
+@router.put("/estandar-claves/{id}")
+async def actualizarEstandarClave(id: int, dto: tmiEstandarClaveDto, db: Session = Depends(get_db)):
+    return rep.queryActualizarFila(db, "tmi_estandar", id, dto.model_dump())
+
+
+@router.delete("/estandar-claves/{id}")
+async def eliminarEstandarClave(id: int, db: Session = Depends(get_db)):
+    return rep.queryEliminarFila(db, "tmi_estandar", id)
+
+
+@router.get("/indicadores/{id}/valores-estandar/{anio}")
+async def valoresEstandarIndicador(id: int, anio: int, db: Session = Depends(get_db)):
+    """Claves del tipo de estándar del indicador con su estándar por mes (tablas de nivel, tipo o categoría)."""
+    return rep.queryValoresEstandarIndicadorTMI(db, id, anio)
+
+
+@router.put("/indicadores/{id}/valores-estandar")
+async def guardarValorEstandarIndicador(id: int, dto: tmiValorEstandarDto, db: Session = Depends(get_db)):
+    return rep.queryGuardarValorEstandarTMI(db, id, dto.model_dump())
+
+
+@router.get("/aceptacion/{anio}/{mes}")
+async def aceptacionTMI(anio: int, mes: int, db: Session = Depends(get_db)):
+    """% Acept de los indicadores activos: porcentaje y estándar del mes por clave (el % Acept se calcula)."""
+    if not 1 <= mes <= 12:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El mes debe estar entre 1 y 12.")
+    return rep.queryAceptacionTMI(db, anio, mes)
+
+
+@router.put("/indicadores/{id}/tolerancia")
+async def guardarToleranciaIndicador(id: int, dto: tmiToleranciaDto, db: Session = Depends(get_db),
+                                     current_user: dict = Depends(get_current_user)):
+    return rep.queryGuardarToleranciaTMI(db, id, dto.model_dump(), _usuario(current_user))
+
+
 @router.get("/centro-estandar/{anio}")
 async def listaCentroEstandar(anio: int, db: Session = Depends(get_db)):
     return rep.queryCentroEstandarTMI(db, anio)
