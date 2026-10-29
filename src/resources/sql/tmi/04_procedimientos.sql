@@ -387,8 +387,11 @@ BEGIN
         OUTER APPLY (SELECT TOP 1 v.est, k.fuente, k.clave
                      FROM dbo.tmi_estandar k
                      JOIN dbo.vw_tmi_std x ON x.id_estandar = g.id AND x.anio = @anio AND x.fuente = k.fuente AND x.clave = k.clave
-                     CROSS APPLY (SELECT NULLIF(CHOOSE(g.mes, x.m01, x.m02, x.m03, x.m04, x.m05, x.m06, x.m07, x.m08,
-                                                       x.m09, x.m10, x.m11, x.m12), 0) AS est) v
+                     /* CASE en lugar de CHOOSE: el servidor no lo reconoce (compatibilidad anterior a SQL Server 2012) */
+                     CROSS APPLY (SELECT NULLIF(CASE g.mes WHEN 1 THEN x.m01 WHEN 2 THEN x.m02 WHEN 3 THEN x.m03
+                                                       WHEN 4 THEN x.m04 WHEN 5 THEN x.m05 WHEN 6 THEN x.m06
+                                                       WHEN 7 THEN x.m07 WHEN 8 THEN x.m08 WHEN 9 THEN x.m09
+                                                       WHEN 10 THEN x.m10 WHEN 11 THEN x.m11 WHEN 12 THEN x.m12 END, 0) AS est) v
                      WHERE k.tipo_estandar = g.base_estandar AND k.activo = 1 AND v.est IS NOT NULL
                        AND k.clave = CASE k.fuente WHEN 'NIVEL' THEN g.nivel WHEN 'TIPO' THEN g.tipo ELSE g.categoria END
                      ORDER BY k.prioridad DESC, k.orden) eb

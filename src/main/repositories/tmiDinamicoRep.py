@@ -256,9 +256,11 @@ def queryAceptacionTMI(db: Session, anio: int, mes: int):
         LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
         WHERE i.activo = 1
         ORDER BY i.orden, i.id""")
+    # CASE en lugar de CHOOSE: el servidor no lo reconoce (nivel de compatibilidad anterior a SQL Server 2012)
+    mes_valor = " ".join(f"WHEN {m} THEN s.m{m:02d}" for m in range(1, 13))
     claves = _consulta(db, f"""
         SELECT i.id AS id_indicador, e.orden, e.fuente, e.clave, e.descripcion,
-               NULLIF(CHOOSE(:mes, s.m01, s.m02, s.m03, s.m04, s.m05, s.m06, s.m07, s.m08, s.m09, s.m10, s.m11, s.m12), 0) AS estandar
+               NULLIF(CASE :mes {mes_valor} END, 0) AS estandar
         FROM {name_server}.tmi_indicador i
         JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
         OUTER APPLY (SELECT TOP 1 * FROM {name_server}.vw_tmi_std x
@@ -401,17 +403,16 @@ def queryGrupoActividadServicioTMI(db: Session):
     global _CON_DIM_SERVICIO
 
     def consulta(con_servicio: bool) -> str:
-        serv = (f"LEFT JOIN {TMI_DIM}.DIM_SERVICIO serv ON serv.servicio = gas.servicio" if con_servicio else "")
-        desc_serv = "LTRIM(RTRIM(serv.desclarga))" if con_servicio else "CAST(NULL AS NVARCHAR(200))"
+     
         return f"""
         SELECT gas.tipgrupo, LTRIM(RTRIM(gr.desctipgrupo)) AS desctipgrupo,
                gas.actividad, COALESCE(NULLIF(LTRIM(RTRIM(act.desclarga)), ''), LTRIM(RTRIM(act.descactividad))) AS descactividad,
                act.Proceso AS proceso, act.Recurso AS recurso,
-               gas.servicio, {desc_serv} AS descservicio
+               gas.servicio, LTRIM(RTRIM(serv.desclarga)) AS descservicio
         FROM {TMI_DIM}.DIM_GRUPOACTIVIDADSERVICIO gas
         JOIN {TMI_DIM}.DIM_GRUPO gr ON gr.tipgrupo = gas.tipgrupo
         JOIN {TMI_DIM}.DIM_ACTIVIDAD act ON act.actividad = gas.actividad
-        {serv}
+        JOIN {TMI_DIM}.DIM_SERVICIO serv ON serv.servicio = gas.servicio
         WHERE ISNULL(gas.desactivado, 0) = 0
         ORDER BY gas.tipgrupo, gas.actividad, gas.servicio"""
 
