@@ -319,6 +319,7 @@ BEGIN
            WHERE rn IN ((cnt + 1) / 2, (cnt + 2) / 2)
            GROUP BY id_indicador, codigo, codcentro, mes, servicio) m
     GROUP BY id_indicador, codcentro, mes, codigo;
+    CREATE CLUSTERED INDEX ix_letra_mes ON #letra_mes (id_indicador, codcentro, letra, mes);
 
     /* 2.2 Centros del reporte y situación de cada mes (exclusión por periodo)
            - Filas = centros de tmi_centro del año (o sin año) visibles en el mes de corte (flag del mes).
@@ -339,6 +340,15 @@ BEGIN
     WHERE (CASE @mes WHEN 1 THEN f01 WHEN 2 THEN f02 WHEN 3 THEN f03 WHEN 4 THEN f04 WHEN 5 THEN f05 WHEN 6 THEN f06
                      WHEN 7 THEN f07 WHEN 8 THEN f08 WHEN 9 THEN f09 WHEN 10 THEN f10 WHEN 11 THEN f11 WHEN 12 THEN f12 END) = 0;
 
+    /* Las vistas de exclusión y estándares (UNION y cruces con vw_tmi_centro_base) se consultan por cada centro,
+       indicador y mes: se copian una sola vez, solo del año, a tablas temporales con índice */
+    SELECT * INTO #excl FROM dbo.vw_tmi_exclusion WHERE anio = @anio;
+    CREATE CLUSTERED INDEX ix_excl ON #excl (codcentro, id_estandar);
+    SELECT * INTO #std FROM dbo.vw_tmi_std WHERE anio = @anio;
+    CREATE CLUSTERED INDEX ix_std ON #std (id_estandar, fuente);
+    SELECT * INTO #cest FROM dbo.vw_tmi_centro_estandar WHERE anio = @anio;
+    CREATE CLUSTERED INDEX ix_cest ON #cest (id_estandar, codcentro);
+
     SELECT i.id AS id_indicador, c.codcentro, c.red, c.orden, c.orden_tipo, c.id_centro, c.categoria, c.nivel, c.tipo, m.mes,
            CASE WHEN (CASE m.mes WHEN 1 THEN c.f01 WHEN 2 THEN c.f02 WHEN 3 THEN c.f03 WHEN 4 THEN c.f04 WHEN 5 THEN c.f05 WHEN 6 THEN c.f06
                                  WHEN 7 THEN c.f07 WHEN 8 THEN c.f08 WHEN 9 THEN c.f09 WHEN 10 THEN c.f10 WHEN 11 THEN c.f11 WHEN 12 THEN c.f12 END) = 0
@@ -347,17 +357,23 @@ BEGIN
                    que coinciden con alguna; una fila incluir = 0 que coincide lo deja fuera. Sin filas = todos los centros. */
                 WHEN (amb.lista_blanca = 1 AND amb.incluido = 0) OR amb.excluido = 1
                 THEN 'FUERA_DE_AMBITO' END AS motivo_centro,
-           ISNULL(x.excluido, 0) AS excluido
+           ISNULL(x.excluido, 0) AS excluido,
+           ISNULL(x.resultado, 'NA') AS excl_resultado
     INTO   #centro_ind_mes
     FROM   #centro c
     CROSS JOIN dbo.tmi_indicador i
     CROSS JOIN (SELECT v AS mes FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) z(v) WHERE v <= @mes) m
-    OUTER APPLY (SELECT MAX(q.v) AS excluido
+    /* resultado del mes excluido ('NA' o '0'): manda la exclusión del indicador sobre la de "todos los indicadores" */
+    OUTER APPLY (SELECT TOP 1 q.v AS excluido, q.resultado
                  FROM (SELECT CAST(CASE m.mes WHEN 1 THEN e.x01 WHEN 2 THEN e.x02 WHEN 3 THEN e.x03 WHEN 4 THEN e.x04 WHEN 5 THEN e.x05 WHEN 6 THEN e.x06
-                                              WHEN 7 THEN e.x07 WHEN 8 THEN e.x08 WHEN 9 THEN e.x09 WHEN 10 THEN e.x10 WHEN 11 THEN e.x11 WHEN 12 THEN e.x12 END AS INT) AS v
-                       FROM dbo.vw_tmi_exclusion e
-                       WHERE e.codcentro = c.codcentro AND e.anio = @anio
-                         AND (e.id_estandar = i.id OR e.id_estandar IS NULL)) q) x
+                                              WHEN 7 THEN e.x07 WHEN 8 THEN e.x08 WHEN 9 THEN e.x09 WHEN 10 THEN e.x10 WHEN 11 THEN e.x11 WHEN 12 THEN e.x12 END AS INT) AS v,
+                              e.resultado, e.id_estandar
+                       FROM #excl e
+                       WHERE e.codcentro = c.codcentro
+                         AND (e.id_estandar = i.id OR e.id_estandar IS NULL)) q
+                 WHERE q.v = 1
+                 ORDER BY CASE WHEN q.id_estandar IS NULL THEN 1 ELSE 0 END,
+                          CASE WHEN q.resultado = 'NA' THEN 0 ELSE 1 END) x
     OUTER APPLY (SELECT MAX(CASE WHEN a.incluir = 1 THEN 1 ELSE 0 END)                AS lista_blanca,
                         MAX(CASE WHEN a.incluir = 1 AND k.coincide = 1 THEN 1 ELSE 0 END) AS incluido,
                         MAX(CASE WHEN a.incluir = 0 AND k.coincide = 1 THEN 1 ELSE 0 END) AS excluido
@@ -369,6 +385,7 @@ BEGIN
                  WHERE a.id_indicador = i.id
                    AND @anio * 100 + m.mes BETWEEN a.periodo_desde AND a.periodo_hasta) amb
     WHERE  i.activo = 1;
+    CREATE CLUSTERED INDEX ix_centro_ind_mes ON #centro_ind_mes (id_indicador, codcentro, mes);
 
     /* 2.3 MENSUAL = valor del mes ; ACUMULADO = enero..mes, sin los meses excluidos / no vigentes
            Cada término del centro tiene todos los meses hasta el corte (un mes sin registros queda en NULL). */
@@ -432,13 +449,14 @@ BEGIN
         END
         CLOSE cur; DEALLOCATE cur;
     END
+    CREATE CLUSTERED INDEX ix_num_den ON #num_den (id_indicador, codcentro, mes);
 
     /* 2.6 Estándar y puntaje -> tmi_resultado (el valor es el de la fórmula, sin reglas de ceros) */
     BEGIN TRAN;
     DELETE dbo.tmi_resultado WHERE periodo_corte = @PERIODO;
 
     WITH malla AS (
-        SELECT c.codcentro, c.red, c.tipo, c.nivel, c.categoria, c.motivo_centro, c.excluido, c.mes,
+        SELECT c.codcentro, c.red, c.tipo, c.nivel, c.categoria, c.motivo_centro, c.excluido, c.excl_resultado, c.mes,
                i.id, i.sin_datos_anio, i.base_estandar, i.sentido,
                /* qué centros entran al indicador lo decide el estándar: el centro se une a la tabla de su tipo de estándar
                   (nivel, tipo o categoría); sin estándar (o 0) queda NA "Sin estándar" */
@@ -469,8 +487,8 @@ BEGIN
                                  WHEN 7 THEN sc.m07 WHEN 8 THEN sc.m08 WHEN 9 THEN sc.m09 WHEN 10 THEN sc.m10 WHEN 11 THEN sc.m11 WHEN 12 THEN sc.m12 END, 0) AS est_categoria
         FROM malla g
         LEFT JOIN #num_den d ON d.id_indicador = g.id AND d.codcentro = g.codcentro AND d.mes = g.mes
-        OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_centro_estandar x
-                     WHERE x.id_estandar = g.id AND x.codcentro = g.codcentro AND x.anio = @anio) ce
+        OUTER APPLY (SELECT TOP 1 * FROM #cest x
+                     WHERE x.id_estandar = g.id AND x.codcentro = g.codcentro) ce
         OUTER APPLY (SELECT TOP 1 x.estandar, x.acept, x.aceptmenos
                      FROM dbo.tmi_indicador_estandar x
                      WHERE x.id_indicador = g.id AND x.activo = 1
@@ -488,7 +506,7 @@ BEGIN
            centro (nivel, tipo o categoría según la fuente), la de mayor prioridad que tenga valor en su tabla. */
         OUTER APPLY (SELECT TOP 1 v.est, k.fuente, k.clave
                      FROM dbo.tmi_estandar k
-                     JOIN dbo.vw_tmi_std x ON x.id_estandar = g.id AND x.anio = @anio AND x.fuente = k.fuente AND x.clave = k.clave
+                     JOIN #std x ON x.id_estandar = g.id AND x.fuente = k.fuente AND x.clave = k.clave
                      /* CASE en lugar de CHOOSE: el servidor no lo reconoce (compatibilidad anterior a SQL Server 2012) */
                      CROSS APPLY (SELECT NULLIF(CASE g.mes WHEN 1 THEN x.m01 WHEN 2 THEN x.m02 WHEN 3 THEN x.m03
                                                        WHEN 4 THEN x.m04 WHEN 5 THEN x.m05 WHEN 6 THEN x.m06
@@ -497,11 +515,11 @@ BEGIN
                      WHERE k.tipo_estandar = g.base_estandar AND k.activo = 1 AND v.est IS NOT NULL
                        AND k.clave = CASE k.fuente WHEN 'NIVEL' THEN g.nivel WHEN 'TIPO' THEN g.tipo ELSE g.categoria END
                      ORDER BY k.prioridad DESC, k.orden) eb
-        OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_std x WHERE x.id_estandar = g.id AND x.anio = @anio
+        OUTER APPLY (SELECT TOP 1 * FROM #std x WHERE x.id_estandar = g.id
                        AND x.fuente = 'TIPO' AND x.clave = g.tipo) st
-        OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_std x WHERE x.id_estandar = g.id AND x.anio = @anio
+        OUTER APPLY (SELECT TOP 1 * FROM #std x WHERE x.id_estandar = g.id
                        AND x.fuente = 'NIVEL' AND x.clave = g.nivel) sn
-        OUTER APPLY (SELECT TOP 1 * FROM dbo.vw_tmi_std x WHERE x.id_estandar = g.id AND x.anio = @anio
+        OUTER APPLY (SELECT TOP 1 * FROM #std x WHERE x.id_estandar = g.id
                        AND x.fuente = 'CATEGORIA' AND x.clave = g.categoria) sc
     ),
     val AS (
@@ -536,6 +554,8 @@ BEGIN
                                                          ELSE v.estandar * (1 - v.tolerancia_menos) END) END AS aceptmenos,
                ROUND(v.valor, ISNULL(v.decimales, 15)) AS valor_eval,
                CASE WHEN v.motivo_centro IS NOT NULL                         THEN v.motivo_centro
+                    -- el usuario elige en la exclusión si el mes queda NA o con puntaje 0 (EXCLUIDO_CERO)
+                    WHEN v.excluido = 1 AND v.excl_resultado = '0'           THEN 'EXCLUIDO_CERO'
                     WHEN v.excluido = 1                                      THEN 'EXCLUIDO'
                     WHEN v.estandar IS NULL                                  THEN 'SIN_ESTANDAR'
                     WHEN v.datos_anio = 0 AND v.sin_datos_anio <> 'MOSTRAR'  THEN 'SIN_DATOS_ANIO'
@@ -544,8 +564,10 @@ BEGIN
     )
     INSERT INTO dbo.tmi_resultado (periodo_corte, id_indicador, codcentro, mes, numerador, denominador, valor,
                                    estandar, verde, acept, aceptmenos, puntaje, motivo_na, visible)
-    SELECT @PERIODO, l.id, l.codcentro, l.mes, NULL, NULL, l.valor, l.estandar, l.verde, l.acept, l.aceptmenos,
-           CASE WHEN l.motivo_na IS NOT NULL                   THEN 'NA'
+    SELECT @PERIODO, l.id, l.codcentro, l.mes, NULL, NULL,
+           CASE WHEN l.motivo_na = 'EXCLUIDO_CERO' THEN 0 ELSE l.valor END, l.estandar, l.verde, l.acept, l.aceptmenos,
+           CASE WHEN l.motivo_na = 'EXCLUIDO_CERO'             THEN '0'
+                WHEN l.motivo_na IS NOT NULL                   THEN 'NA'
                 WHEN l.valor_eval = 0 AND l.cero_es_logro = 0  THEN '0'
                 WHEN l.sentido = 'BANDA' THEN
                      CASE WHEN l.valor_eval BETWEEN (l.verde + l.aceptmenos) / 2 AND (l.verde + l.acept) / 2 THEN '5'

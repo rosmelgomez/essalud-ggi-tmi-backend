@@ -124,4 +124,5 @@ class tmi_exclusion_centro_indicador(Base):
     estandar_10 = Column(Boolean())
     estandar_11 = Column(Boolean())
     estandar_12 = Column(Boolean())
+    resultado = Column(String(2), default="NA")
 

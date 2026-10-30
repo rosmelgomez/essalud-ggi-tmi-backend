@@ -410,7 +410,8 @@ async def periodoCalculoTMI(db: Session = Depends(get_db)):
 
 
 @router.post("/calcular/{periodo}")
-async def calcularTMI(periodo: str, db: Session = Depends(get_db)):
+def calcularTMI(periodo: str, db: Session = Depends(get_db)):
+    # def (no async): FastAPI lo corre en un hilo aparte; el cálculo es largo y no debe bloquear el resto de la API
     p = _periodo(periodo)
     if not se_puede_calcular(periodo):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -423,13 +424,13 @@ async def calcularTMI(periodo: str, db: Session = Depends(get_db)):
 
 
 @router.get("/resultado/{periodo}/{id_indicador}")
-async def resultadoIndicador(periodo: str, id_indicador: int, db: Session = Depends(get_db)):
+def resultadoIndicador(periodo: str, id_indicador: int, db: Session = Depends(get_db)):
     return rep.queryResultadoIndicadorTMI(db, _periodo(periodo), id_indicador)
 
 
 @router.get("/generar-excel/{periodo}")
-async def generarExcelTMIDinamico(periodo: str, calcular: bool = True, indicadores: Optional[str] = None,
-                                  db: Session = Depends(get_db)):
+def generarExcelTMIDinamico(periodo: str, calcular: bool = True, indicadores: Optional[str] = None,
+                            db: Session = Depends(get_db)):
     """Excel del periodo. indicadores = ids separados por coma (1,4,7) para generar solo esas hojas; sin él, todos."""
     try:
         ids = [int(x) for x in indicadores.split(",") if x.strip()] if indicadores else None

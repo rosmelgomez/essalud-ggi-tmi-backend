@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 from xmlrpc.client import boolean
 from pydantic import BaseModel, model_validator
 
@@ -135,3 +135,5 @@ class tmiExclusionCentroEstandarDto(_conIndicador):
     excl_11: boolean = False
     excl_12: boolean = False
     motivo: Optional[str] = None
+    # cómo queda el mes excluido en el resultado final: 'NA' (no aplica) o '0' (puntaje 0)
+    resultado: Literal["NA", "0"] = "NA"

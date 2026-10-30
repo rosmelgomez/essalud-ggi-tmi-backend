@@ -55,6 +55,7 @@ COLS_VALORES = [COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT, COL_ACEPT_BANDA] 
 CODIGO_PUNTAJE = {5: 1, 3: 2, 1: 3, 0: 3}
 NA = "NA"
 # Motivos con los que la fila completa se muestra como NA (sin dato real del indicador)
+# EXCLUIDO_CERO no va aquí: el mes excluido con resultado '0' tiene puntaje 0, no NA
 MOTIVOS_FILA_NA = {"SIN_ESTANDAR", "SIN_DATOS_ANIO", "FUERA_DE_AMBITO", "NO_VIGENTE_MES", "NO_FUNCIONA", "EXCLUIDO"}
 
 

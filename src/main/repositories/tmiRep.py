@@ -119,11 +119,6 @@ def queryDeleteCentrosTMI(db: Session, id:int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-### tmi_estandar -> tmi_indicador
-# Las tablas de estándar y exclusión pueden venir de dos DDL:
-#   - actual (indicador_estandar.sql / centros_tmi.sql): id_indicador -> tmi_indicador, est_01..12
-#   - anterior: id_estandar -> tmi_estandar
-# Además tmi_estandar_tipo / _nivel pueden estar en formato largo (indicador por nombre, mes, estandar).
 MESES = [f"{m:02d}" for m in range(1, 13)]
 
 
@@ -423,13 +418,14 @@ def queryExclusionCentroEstandar(db: Session, anio: int):
         pre = "excl_" if _tiene_columna(db, tabla, "excl_01") else "estandar_"
         cod = "COALESCE(CAST(cen.codcentro AS VARCHAR(50)), exc.codcentro)" if _tiene_columna(db, tabla, "codcentro") else "cen.codcentro"
         motivo = "exc.motivo" if _tiene_columna(db, tabla, "motivo") else "CAST(NULL AS VARCHAR(300))"
+        resultado = "ISNULL(exc.resultado, 'NA')" if _tiene_columna(db, tabla, "resultado") else "'NA'"
         join, tipo, orden = _indicador_join(db, f"exc.{col}")
         join = join.replace("JOIN ", "LEFT JOIN ", 1) if join.startswith("JOIN ") else join
         meses = ", ".join(f"exc.{pre}{m} AS excl_{m}" for m in MESES)
         query = f"""
         SELECT exc.id, exc.id_centro, {cod} AS codcentro, cen.centro,
                {tipo} AS tipo, ISNULL(i.indicador, 'Todos los indicadores') AS indicador,
-               exc.{col} AS id_indicador, exc.{col} AS id_estandar, exc.anio, {meses}, {motivo} AS motivo
+               exc.{col} AS id_indicador, exc.{col} AS id_estandar, exc.anio, {meses}, {motivo} AS motivo, {resultado} AS resultado
         FROM {name_server}.tmi_exclusion_centro_indicador exc
         {join}
         LEFT JOIN {name_server}.vw_tmi_centro_base cen ON cen.id_centro = exc.id_centro
@@ -460,7 +456,9 @@ def _params_exclusion(db: Session, dto) -> tuple:
         cols["codcentro"] = f"COALESCE(:codcentro, (SELECT codcentro FROM {name_server}.tmi_centro WHERE id = :id_centro))"
     if _tiene_columna(db, tabla, "motivo"):
         cols["motivo"] = ":motivo"
-    for k in ("codcentro", "motivo", "id"):
+    if _tiene_columna(db, tabla, "resultado"):
+        cols["resultado"] = "ISNULL(:resultado, 'NA')"
+    for k in ("codcentro", "motivo", "id", "resultado"):
         params.setdefault(k, None)
     return params, cols, col
 

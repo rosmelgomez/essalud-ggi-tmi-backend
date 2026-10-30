@@ -406,6 +406,11 @@ IF COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'codcentro') IS NULL
     ALTER TABLE dbo.tmi_exclusion_centro_indicador ADD codcentro VARCHAR(50) NULL;
 IF COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'motivo') IS NULL
     ALTER TABLE dbo.tmi_exclusion_centro_indicador ADD motivo VARCHAR(300) NULL;
+-- resultado: cómo queda el mes excluido en el resultado final: 'NA' (no aplica, por defecto) o '0' (puntaje 0, valor 0)
+IF COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'resultado') IS NULL
+    ALTER TABLE dbo.tmi_exclusion_centro_indicador ADD resultado VARCHAR(2) NOT NULL
+        CONSTRAINT df_tmi_exclusion_resultado DEFAULT 'NA'
+        CONSTRAINT ck_tmi_exclusion_resultado CHECK (resultado IN ('NA', '0'));
 GO
 IF OBJECT_ID('dbo.tmi_exclusion_centro_estandar') IS NULL
     EXEC (N'CREATE SYNONYM dbo.tmi_exclusion_centro_estandar FOR dbo.tmi_exclusion_centro_indicador');

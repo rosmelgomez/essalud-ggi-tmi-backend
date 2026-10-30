@@ -41,7 +41,9 @@ BEGIN
         SET @id  = CASE WHEN COL_LENGTH('dbo.' + @t, 'id_estandar') IS NOT NULL THEN 'id_estandar' ELSE 'id_indicador' END;
         SELECT @cols = STUFF((
             SELECT ', ' + CASE WHEN COL_LENGTH('dbo.' + @t, 'est_fijo') IS NOT NULL
-                               THEN 'COALESCE(NULLIF(CAST(' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' AS FLOAT), 0), CAST([est_fijo] AS FLOAT))'
+                               -- un mes sin valor (aún no cerrado) queda vacío: el cierre del mes le copia est_fijo
+                               THEN 'CASE WHEN ' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' IS NOT NULL THEN COALESCE(NULLIF(CAST('
+                                    + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' AS FLOAT), 0), CAST([est_fijo] AS FLOAT)) END'
                                ELSE 'CAST(' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' AS FLOAT)' END
                    + ' AS m' + RIGHT('0' + CAST(n AS VARCHAR), 2)
             FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) x(n)
@@ -100,7 +102,7 @@ EXEC sp_executesql @sql;
 GO
 
 /* ---------- vw_tmi_exclusion: exclusión por centro, indicador (NULL = todos) y mes ---------- */
-DECLARE @sql NVARCHAR(MAX), @pre SYSNAME, @cols NVARCHAR(MAX), @cod NVARCHAR(400), @motivo NVARCHAR(100);
+DECLARE @sql NVARCHAR(MAX), @pre SYSNAME, @cols NVARCHAR(MAX), @cod NVARCHAR(400), @motivo NVARCHAR(100), @resultado NVARCHAR(100);
 SET @pre = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'excl_01') IS NOT NULL THEN 'excl_' ELSE 'estandar_' END;
 SELECT @cols = STUFF((
     SELECT ', CAST(ISNULL(e.' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ', 0) AS BIT) AS x'
@@ -111,11 +113,14 @@ SELECT @cols = STUFF((
 SET @cod = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'codcentro') IS NOT NULL
                 THEN N'COALESCE(CASE WHEN LTRIM(RTRIM(e.codcentro)) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(e.codcentro))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(e.codcentro)) AS INT) END, c.codcentro)' ELSE N'c.codcentro' END;
 SET @motivo = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'motivo') IS NOT NULL THEN N'e.motivo' ELSE N'CAST(NULL AS VARCHAR(300))' END;
+-- resultado del mes excluido: 'NA' (por defecto) o '0'
+SET @resultado = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'resultado') IS NOT NULL
+                      THEN N'CAST(ISNULL(e.resultado, ''NA'') AS VARCHAR(2))' ELSE N'CAST(''NA'' AS VARCHAR(2))' END;
 IF OBJECT_ID('dbo.vw_tmi_exclusion', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_exclusion;
 SET @sql = N'CREATE VIEW dbo.vw_tmi_exclusion AS
 SELECT ' + @cod + N' AS codcentro, e.' + CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'id_estandar') IS NOT NULL
                                               THEN N'id_estandar' ELSE N'id_indicador' END + N' AS id_estandar,
-       e.anio, ' + @cols + N', ' + @motivo + N' AS motivo
+       e.anio, ' + @cols + N', ' + @motivo + N' AS motivo, ' + @resultado + N' AS resultado
 FROM dbo.tmi_exclusion_centro_indicador e
 LEFT JOIN dbo.vw_tmi_centro_base c ON c.id_centro = e.id_centro';
 EXEC sp_executesql @sql;
