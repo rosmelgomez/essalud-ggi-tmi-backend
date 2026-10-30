@@ -1,12 +1,14 @@
 """Consultas del TMI dinámico (procedimientos y tablas de src/resources/sql/tmi)."""
 
 import logging
+from datetime import date
 from typing import Optional
 
 from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from src.main.core import tmiFormula
 from src.main.core.tmiConfig import TMI_DB, TMI_DIM, TMI_TOTALIZADO3
 
 logger = logging.getLogger(__name__)
@@ -16,14 +18,14 @@ name_server = f"{TMI_DB}.dbo"
 
 ### Mantenimiento (frontend). Tablas y columnas fijas: nunca vienen del usuario.
 TABLAS = {
-    "tmi_variable": ["nombre", "descripcion", "total_anual", "activo"],
-    "tmi_variable_logica": ["id_variable", "tipgrupo", "actividad", "servicio", "condicion_hoja", "agregacion",
+    "tmi_variable": ["nombre", "descripcion", "agregacion", "total_anual", "activo"],
+    "tmi_variable_logica": ["id_variable", "tipgrupo", "actividad", "servicio", "condicion_hoja",
                             "periodo_desde", "periodo_hasta", "activo"],
-    "tmi_indicador": ["grupo", "indicador", "codigo", "nombre_hoja", "titulo_hoja", "orden", "expr_numerador",
-                      "expr_denominador", "tipo_calculo", "factor", "den_cero", "num_cero_na", "cero_si_letra_mes_0",
+    "tmi_indicador": ["grupo", "indicador", "codigo", "nombre_hoja", "titulo_hoja", "orden", "tipo_calculo",
                       "sin_datos_anio", "base_estandar", "sentido", "tipo_tolerancia", "tolerancia", "tolerancia_menos", "decimales",
                       "cero_es_logro", "mostrar_no_aplica", "activo", "formato"],
     "tmi_indicador_variable": ["id_indicador", "letra", "id_variable"],
+    "tmi_variable_componente": ["id_variable", "id_variable_componente", "activo"],
     "tmi_indicador_ambito": ["id_indicador", "red", "nivel", "categoria", "tipo", "codcentro", "incluir",
                              "periodo_desde", "periodo_hasta"],
     "tmi_indicador_estandar": ["id_indicador", "nivel", "categoria", "tipo", "periodo_desde", "periodo_hasta",
@@ -121,8 +123,15 @@ def queryEliminarVariable(db: Session, id: int):
     if usada:
         raise HTTPException(status_code=400, detail="La variable se usa en los indicadores: "
                             + ", ".join(sorted(u["codigo"] or "" for u in usada)))
+    padres = _consulta(db, f"""
+        SELECT v.nombre FROM {name_server}.tmi_variable_componente c
+        JOIN {name_server}.tmi_variable v ON v.id = c.id_variable WHERE c.id_variable_componente = :id""", {"id": id})
+    if padres:
+        raise HTTPException(status_code=400, detail="La variable es componente de: "
+                            + ", ".join(sorted(p["nombre"] for p in padres)))
     try:
         db.execute(text(f"DELETE FROM {name_server}.tmi_variable_logica WHERE id_variable = :id"), {"id": id})
+        db.execute(text(f"DELETE FROM {name_server}.tmi_variable_componente WHERE id_variable = :id"), {"id": id})
         db.execute(text(f"DELETE FROM {name_server}.tmi_variable_pivot WHERE id_variable = :id"), {"id": id})
         db.commit()
     except Exception as e:
@@ -133,8 +142,8 @@ def queryEliminarVariable(db: Session, id: int):
 
 def queryEliminarIndicador(db: Session, id: int):
     try:
-        for tabla in ("tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar", "tmi_resultado"):
-            db.execute(text(f"DELETE FROM {name_server}.{tabla} WHERE id_indicador = :id"), {"id": id})
+        for tabla in ("tmi_indicador_tolerancia", "tmi_indicador_termino", "tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar", "tmi_resultado"):
+            db.execute(text(f"IF OBJECT_ID('{name_server}.{tabla}') IS NOT NULL DELETE FROM {name_server}.{tabla} WHERE id_indicador = :id"), {"id": id})
         db.commit()
     except Exception as e:
         db.rollback()
@@ -144,8 +153,9 @@ def queryEliminarIndicador(db: Session, id: int):
 
 def queryVariablesTMI(db: Session):
     return _consulta(db, f"""
-        SELECT v.id, v.nombre, v.descripcion, v.total_anual, v.activo,
+        SELECT v.id, v.nombre, v.descripcion, v.agregacion, v.total_anual, v.activo,
                (SELECT COUNT(*) FROM {name_server}.tmi_variable_logica l WHERE l.id_variable = v.id) AS filas_logica,
+               (SELECT COUNT(*) FROM {name_server}.tmi_variable_componente c WHERE c.id_variable = v.id) AS componentes,
                STUFF((SELECT ', ' + x.codigo FROM (SELECT DISTINCT i.codigo FROM {name_server}.tmi_indicador_variable iv
                     JOIN {name_server}.tmi_indicador i ON i.id = iv.id_indicador
                     WHERE iv.id_variable = v.id AND i.codigo IS NOT NULL) x
@@ -154,9 +164,57 @@ def queryVariablesTMI(db: Session):
         ORDER BY v.nombre""")
 
 
+def queryActualizarVariableTMI(db: Session, id: int, datos: dict, usuario: str = None):
+    """Actualiza la variable si su nuevo cálculo coincide con el de las variables que suma y las que la suman."""
+    distintas = _consulta(db, f"""
+        SELECT v.nombre FROM {name_server}.tmi_variable_componente c
+        JOIN {name_server}.tmi_variable v ON v.id = CASE WHEN c.id_variable = :id THEN c.id_variable_componente ELSE c.id_variable END
+        WHERE (c.id_variable = :id OR c.id_variable_componente = :id) AND v.agregacion <> :agregacion""",
+        {"id": id, "agregacion": datos["agregacion"]})
+    if distintas:
+        raise HTTPException(status_code=400, detail=f"No se puede cambiar el cálculo a {datos['agregacion']}: la variable suma "
+                            "o es sumada por variables con otro cálculo: " + ", ".join(sorted(d["nombre"] for d in distintas)))
+    return queryActualizarFila(db, "tmi_variable", id, datos, usuario)
+
+
+def queryVariableComponentesTMI(db: Session, id_variable: int):
+    """Componentes de una variable compuesta, con lo que suma cada uno."""
+    return _consulta(db, f"""
+        SELECT c.id, c.id_variable, c.id_variable_componente, c.activo, v.nombre AS componente, v.activo AS componente_activo,
+               v.agregacion,
+               (SELECT COUNT(*) FROM {name_server}.tmi_variable_logica l WHERE l.id_variable = v.id AND l.activo = 1) AS filas_logica,
+               (SELECT COUNT(*) FROM {name_server}.tmi_variable_componente c2 WHERE c2.id_variable = v.id) AS componentes
+        FROM {name_server}.tmi_variable_componente c
+        JOIN {name_server}.tmi_variable v ON v.id = c.id_variable_componente
+        WHERE c.id_variable = :id
+        ORDER BY v.nombre""", {"id": id_variable})
+
+
+def queryInsertarComponenteTMI(db: Session, datos: dict):
+    """Agrega un componente si no forma un ciclo (la variable no puede contenerse a sí misma)."""
+    ciclo = db.execute(text(f"""
+        ;WITH arbol AS (
+            SELECT :comp AS id_var, 0 AS nivel
+            UNION ALL
+            SELECT c.id_variable_componente, a.nivel + 1
+            FROM arbol a JOIN {name_server}.tmi_variable_componente c ON c.id_variable = a.id_var AND c.activo = 1
+            WHERE a.nivel < 10)
+        SELECT COUNT(*) FROM arbol WHERE id_var = :var OPTION (MAXRECURSION 20)"""),
+        {"comp": datos["id_variable_componente"], "var": datos["id_variable"]}).scalar()
+    if datos["id_variable"] == datos["id_variable_componente"] or ciclo:
+        raise HTTPException(status_code=400, detail="Ese componente contiene a la variable: se formaría un ciclo.")
+    calculos = db.execute(text(f"""
+        SELECT COUNT(DISTINCT agregacion) FROM {name_server}.tmi_variable WHERE id IN (:var, :comp)"""),
+        {"comp": datos["id_variable_componente"], "var": datos["id_variable"]}).scalar()
+    if calculos > 1:
+        raise HTTPException(status_code=400, detail="La variable y el componente tienen distinto cálculo (SUMA y MEDIANA): "
+                                                    "no se pueden sumar.")
+    return queryInsertarFila(db, "tmi_variable_componente", datos)
+
+
 def queryVariableLogicaTMI(db: Session, id_variable: int):
     return _consulta(db, f"""
-        SELECT l.id, l.id_variable, l.tipgrupo, l.actividad, l.servicio, l.condicion_hoja, l.agregacion,
+        SELECT l.id, l.id_variable, l.tipgrupo, l.actividad, l.servicio, l.condicion_hoja,
                l.periodo_desde, l.periodo_hasta, l.activo, g.desctipgrupo,
                a.descactividad AS descactividad_corta, a.desclarga, a.Recurso, a.Proceso,
                COALESCE(NULLIF(LTRIM(RTRIM(a.desclarga)), ''), a.descactividad) AS descactividad
@@ -169,22 +227,10 @@ def queryVariableLogicaTMI(db: Session, id_variable: int):
 
 def queryIndicadoresTMI(db: Session):
     return _consulta(db, f"""
-        SELECT i.id, i.grupo, i.indicador, i.codigo, i.nombre_hoja, i.titulo_hoja, i.orden, i.expr_numerador,
-               i.expr_denominador, i.tipo_calculo, i.factor, i.den_cero, i.num_cero_na, i.cero_si_letra_mes_0,
+        SELECT i.id, i.grupo, i.indicador, i.codigo, i.nombre_hoja, i.titulo_hoja, i.orden, i.formula_alias, i.formula,
+               i.tipo_calculo,
                i.sin_datos_anio, i.base_estandar, i.sentido, i.tipo_tolerancia, i.tolerancia, i.tolerancia_menos, i.decimales,
-               i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, g.descripcion AS grupo_descripcion,
-               STUFF((SELECT ' | ' + x.txt FROM (
-                    SELECT iv.letra,
-                           iv.letra + ' = ' + ISNULL(STUFF((
-                               SELECT ' + ' + v.nombre
-                               FROM {name_server}.tmi_indicador_variable iv2
-                               JOIN {name_server}.tmi_variable v ON v.id = iv2.id_variable
-                               WHERE iv2.id_indicador = i.id AND iv2.letra = iv.letra
-                               ORDER BY v.nombre
-                               FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, ''), '') AS txt
-                    FROM {name_server}.tmi_indicador_variable iv
-                    WHERE iv.id_indicador = i.id GROUP BY iv.letra) x
-                    ORDER BY x.letra FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, '') AS letras
+               i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, g.descripcion AS grupo_descripcion
         FROM {name_server}.tmi_indicador i
         LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
         ORDER BY i.orden, i.id""")
@@ -192,12 +238,12 @@ def queryIndicadoresTMI(db: Session):
 
 def queryIndicadorLetrasTMI(db: Session, id_indicador: int):
     return _consulta(db, f"""
-        SELECT iv.id, iv.id_indicador, iv.letra, iv.id_variable, v.nombre AS variable, v.total_anual,
+        SELECT iv.id, iv.id_indicador, iv.letra, iv.id_variable, v.nombre AS variable, v.agregacion, v.total_anual,
                (SELECT COUNT(*) FROM {name_server}.tmi_variable_logica l WHERE l.id_variable = v.id) AS filas_logica,
                STUFF((SELECT ' | ' + (
                     CAST(l.tipgrupo AS VARCHAR) + '·' + ISNULL(LTRIM(RTRIM(g.desctipgrupo)), '')
                     + ' / ' + CAST(l.actividad AS VARCHAR) + '·' + ISNULL(COALESCE(NULLIF(LTRIM(RTRIM(a.desclarga)), ''), LTRIM(RTRIM(a.descactividad))), '')
-                    + ' (Serv: ' + ISNULL(CAST(l.servicio AS VARCHAR), 'Todos') + ', ' + l.agregacion + ')')
+                    + ' (Serv: ' + ISNULL(CAST(l.servicio AS VARCHAR), 'Todos') + ')')
                 FROM {name_server}.tmi_variable_logica l
                 LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = l.tipgrupo
                 LEFT JOIN {TMI_DIM}.DIM_ACTIVIDAD a ON a.actividad = l.actividad
@@ -246,16 +292,172 @@ def queryValoresEstandarIndicadorTMI(db: Session, id_indicador: int, anio: int):
         ORDER BY ISNULL(e.orden, 999), e.prioridad DESC, e.clave""", {"id": id_indicador, "anio": anio})
 
 
+def _asegurar_tabla_tolerancia(db: Session):
+    """Crea tmi_indicador_tolerancia (mes = 0 fijo del año; mes = 1..12 valor de cada mes) si aún no existe."""
+    db.execute(text(f"""
+        IF OBJECT_ID('{name_server}.tmi_indicador_tolerancia') IS NULL
+        CREATE TABLE {name_server}.tmi_indicador_tolerancia (
+            id                   INT IDENTITY(1,1) PRIMARY KEY,
+            id_indicador         INT NOT NULL REFERENCES {name_server}.tmi_indicador(id),
+            anio                 INT NOT NULL,
+            mes                  INT NOT NULL CONSTRAINT CK_tmi_indicador_tolerancia_mes CHECK (mes BETWEEN 0 AND 12),
+            tipo_tolerancia      VARCHAR(3) NOT NULL DEFAULT 'REL' CHECK (tipo_tolerancia IN ('REL', 'ABS')),
+            tolerancia           FLOAT NOT NULL,
+            tolerancia_menos     FLOAT NULL,
+            usuario_modificacion VARCHAR(200) NULL,
+            fecha_modificacion   DATETIME NULL,
+            CONSTRAINT UX_tmi_indicador_tolerancia UNIQUE (id_indicador, anio, mes)
+        )
+        ELSE IF NOT EXISTS (
+            SELECT 1 FROM {TMI_DB}.sys.check_constraints
+            WHERE parent_object_id = OBJECT_ID('{name_server}.tmi_indicador_tolerancia')
+              AND definition LIKE '%0%'
+        )
+        BEGIN
+            DECLARE @ck SYSNAME;
+            SELECT TOP 1 @ck = name FROM {TMI_DB}.sys.check_constraints
+            WHERE parent_object_id = OBJECT_ID('{name_server}.tmi_indicador_tolerancia')
+              AND COL_NAME(parent_object_id, parent_column_id) = 'mes';
+            IF @ck IS NOT NULL
+                EXEC('ALTER TABLE {name_server}.tmi_indicador_tolerancia DROP CONSTRAINT [' + @ck + ']');
+            ALTER TABLE {name_server}.tmi_indicador_tolerancia
+                ADD CONSTRAINT CK_tmi_indicador_tolerancia_mes CHECK (mes BETWEEN 0 AND 12);
+        END"""))
+    db.commit()
+
+
+def _asegurar_fijo_anio(db: Session, anio: int):
+    """Garantiza que cada indicador tenga su % Acept fijo del año (mes = 0), copiando del año anterior o de tmi_indicador."""
+    db.execute(text(f"""
+        INSERT INTO {name_server}.tmi_indicador_tolerancia
+            (id_indicador, anio, mes, tipo_tolerancia, tolerancia, tolerancia_menos, fecha_modificacion)
+        SELECT i.id, :anio, 0,
+               COALESCE(ant.tipo_tolerancia, i.tipo_tolerancia, 'REL'),
+               COALESCE(ant.tolerancia, i.tolerancia, 0),
+               CASE WHEN ant.id IS NOT NULL THEN ant.tolerancia_menos ELSE i.tolerancia_menos END,
+               GETDATE()
+        FROM {name_server}.tmi_indicador i
+        LEFT JOIN {name_server}.tmi_indicador_tolerancia ant
+               ON ant.id_indicador = i.id AND ant.anio = :anio - 1 AND ant.mes = 0
+        WHERE NOT EXISTS (
+            SELECT 1 FROM {name_server}.tmi_indicador_tolerancia f
+            WHERE f.id_indicador = i.id AND f.anio = :anio AND f.mes = 0
+        )"""), {"anio": anio})
+    db.commit()
+
+
+def aplicarCierrePeriodoTMI(db: Session, periodo: str) -> int:
+    """Al cumplirse la fecha de cierre de un periodo (AAAAMM):
+    1) En las tablas de estándares (tipo, nivel, categoría), el mes del periodo toma su est_fijo si aún no tiene valor.
+    2) En tmi_indicador_tolerancia, el mes del periodo toma el % Acept fijo del año (mes = 0) si aún no fue definido."""
+    p = str(periodo).strip()
+    if len(p) != 6 or not p.isdigit():
+        return 0
+    anio, mes = int(p[:4]), int(p[4:])
+    if not 1 <= mes <= 12:
+        return 0
+    _asegurar_tabla_tolerancia(db)
+    _asegurar_fijo_anio(db, anio)
+    afectadas = 0
+    col_mes = f"est_{mes:02d}"
+    for tabla, clave in (("tmi_estandar_tipo", "tipo_centro"),
+                         ("tmi_estandar_nivel", "nivel_centro"),
+                         ("tmi_estandar_categoria", "categoria_centro")):
+        tiene_fijo = db.execute(text("SELECT COL_LENGTH(:t, 'est_fijo')"), {"t": f"{name_server}.{tabla}"}).scalar()
+        tiene_mes = db.execute(text("SELECT COL_LENGTH(:t, :c)"), {"t": f"{name_server}.{tabla}", "c": col_mes}).scalar()
+        if tiene_fijo is None or tiene_mes is None:
+            continue
+        col_ind = "id_indicador" if db.execute(
+            text("SELECT COL_LENGTH(:t, 'id_indicador')"), {"t": f"{name_server}.{tabla}"}
+        ).scalar() is not None else "id_estandar"
+        # Si es un año nuevo sin filas aún, copia las filas base (con su est_fijo) del año anterior
+        db.execute(text(f"""
+            IF NOT EXISTS (SELECT 1 FROM {name_server}.{tabla} WHERE anio = :anio)
+            INSERT INTO {name_server}.{tabla} ({col_ind}, {clave}, anio, est_fijo)
+            SELECT {col_ind}, {clave}, :anio, est_fijo
+            FROM {name_server}.{tabla}
+            WHERE anio = :anio - 1"""), {"anio": anio})
+        r_est = db.execute(text(f"""
+            UPDATE {name_server}.{tabla}
+               SET {col_mes} = est_fijo
+             WHERE anio = :anio
+               AND est_fijo IS NOT NULL
+               AND ({col_mes} IS NULL OR {col_mes} = 0)"""), {"anio": anio})
+        afectadas += r_est.rowcount or 0
+
+    r_tol = db.execute(text(f"""
+        INSERT INTO {name_server}.tmi_indicador_tolerancia
+            (id_indicador, anio, mes, tipo_tolerancia, tolerancia, tolerancia_menos, fecha_modificacion)
+        SELECT f.id_indicador, :anio, :mes, f.tipo_tolerancia, f.tolerancia, f.tolerancia_menos, GETDATE()
+        FROM {name_server}.tmi_indicador_tolerancia f
+        WHERE f.anio = :anio AND f.mes = 0
+          AND NOT EXISTS (
+              SELECT 1 FROM {name_server}.tmi_indicador_tolerancia m
+              WHERE m.id_indicador = f.id_indicador AND m.anio = :anio AND m.mes = :mes
+          )"""), {"anio": anio, "mes": mes})
+    afectadas += r_tol.rowcount or 0
+    db.commit()
+    return afectadas
+
+
+def _periodo_alcanzo_cierre(db: Session, anio: int, mes: int) -> bool:
+    """True si el periodo AAAAMM ya alcanzó su fecha de cierre (en la tabla cierre o por ser <= mes anterior al actual)."""
+    from src.main.repositories.cierreRep import CIERRE_TABLA
+    periodo = f"{anio}{mes:02d}"
+    fila = _consulta(db, f"""
+        IF OBJECT_ID('{CIERRE_TABLA}', 'U') IS NOT NULL
+            SELECT fecha_cierre, estado FROM {CIERRE_TABLA} WHERE periodo = :periodo
+        ELSE
+            SELECT CAST(NULL AS DATE) AS fecha_cierre, CAST(NULL AS VARCHAR(20)) AS estado WHERE 1 = 0""",
+        {"periodo": periodo})
+    hoy = date.today()
+    if fila and fila[0].get("fecha_cierre"):
+        fc = fila[0]["fecha_cierre"]
+        if isinstance(fc, str):
+            fc = date.fromisoformat(fc[:10])
+        elif hasattr(fc, "date"):
+            fc = fc.date()
+        return fc <= hoy or fila[0].get("estado") == "EJECUTADO"
+    periodo_mes_anterior = f"{hoy.year - 1}12" if hoy.month == 1 else f"{hoy.year}{hoy.month - 1:02d}"
+    return periodo <= periodo_mes_anterior
+
+
 def queryAceptacionTMI(db: Session, anio: int, mes: int):
-    """% Acept de los indicadores activos: su porcentaje y, por cada clave de su tipo de estándar, el estándar del mes
-    (el % Acept se calcula en pantalla igual que en usp_tmi_calcular)."""
+    """% Acept de los indicadores activos para el año y mes seleccionados:
+    - Si el periodo ya alcanzó su fecha de cierre, materializa su valor desde el fijo del año (mes = 0).
+    - Devuelve tanto el % Acept fijo del año como el % Acept del mes seleccionado."""
+    _asegurar_tabla_tolerancia(db)
+    _asegurar_fijo_anio(db, anio)
+    # Meses que aún no llegan a su fecha de cierre no tienen valor propio: usan el fijo. Las filas de esos meses que
+    # creó la versión anterior al guardar "todo el año" se quitan para que tomen el fijo en su cierre.
+    abiertos = [m for m in range(1, 13) if not _periodo_alcanzo_cierre(db, anio, m)]
+    if abiertos:
+        db.execute(text(f"""
+            DELETE FROM {name_server}.tmi_indicador_tolerancia
+            WHERE anio = :anio AND mes IN ({", ".join(map(str, abiertos))})"""), {"anio": anio})
+        db.commit()
+    cerrado = mes not in abiertos
+    if cerrado:
+        aplicarCierrePeriodoTMI(db, f"{anio}{mes:02d}")
     indicadores = _consulta(db, f"""
         SELECT i.id, i.orden, i.codigo, i.indicador, i.base_estandar, i.sentido, i.formato,
-               i.tipo_tolerancia, i.tolerancia, i.tolerancia_menos, g.descripcion AS grupo
+               COALESCE(m.tipo_tolerancia, f.tipo_tolerancia, i.tipo_tolerancia) AS tipo_tolerancia,
+               COALESCE(f.tolerancia, i.tolerancia) AS tolerancia_fijo,
+               CASE WHEN f.id IS NOT NULL THEN f.tolerancia_menos ELSE i.tolerancia_menos END AS tolerancia_menos_fijo,
+               COALESCE(m.tolerancia, f.tolerancia, i.tolerancia) AS tolerancia,
+               CASE WHEN m.id IS NOT NULL THEN m.tolerancia_menos
+                    WHEN f.id IS NOT NULL THEN f.tolerancia_menos
+                    ELSE i.tolerancia_menos END AS tolerancia_menos,
+               CAST(CASE WHEN m.id IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS mes_cerrado,
+               g.descripcion AS grupo
         FROM {name_server}.tmi_indicador i
         LEFT JOIN {name_server}.tmi_grupo g ON g.id = i.grupo
+        LEFT JOIN {name_server}.tmi_indicador_tolerancia f
+               ON f.id_indicador = i.id AND f.anio = :anio AND f.mes = 0
+        LEFT JOIN {name_server}.tmi_indicador_tolerancia m
+               ON m.id_indicador = i.id AND m.anio = :anio AND m.mes = :mes
         WHERE i.activo = 1
-        ORDER BY i.orden, i.id""")
+        ORDER BY i.orden, i.id""", {"anio": anio, "mes": mes})
     # CASE en lugar de CHOOSE: el servidor no lo reconoce (nivel de compatibilidad anterior a SQL Server 2012)
     mes_valor = " ".join(f"WHEN {m} THEN s.m{m:02d}" for m in range(1, 13))
     claves = _consulta(db, f"""
@@ -272,23 +474,60 @@ def queryAceptacionTMI(db: Session, anio: int, mes: int):
         por_indicador.setdefault(c.pop("id_indicador"), []).append(c)
     for i in indicadores:
         i["claves"] = por_indicador.get(i["id"], [])
+        i["mes_cerrado"] = cerrado
     return indicadores
 
 
 def queryGuardarToleranciaTMI(db: Session, id_indicador: int, datos: dict, usuario: str = None):
-    """Guarda el porcentaje del % Acept del indicador (tipo, hacia arriba y, en banda, hacia abajo)."""
+    """Guarda el % Acept del indicador para un año:
+    - tolerancia_fijo / tolerancia_menos_fijo: el fijo del año (mes = 0), que cada mes toma en su fecha de cierre.
+    - tolerancia / tolerancia_menos: el valor del mes, solo si el mes ya alcanzó su fecha de cierre (antes usa el fijo).
+    Sin año, guarda el valor base del indicador."""
+    _asegurar_tabla_tolerancia(db)
+    existe = _consulta(db, f"SELECT id FROM {name_server}.tmi_indicador WHERE id = :id", {"id": id_indicador})
+    if not existe:
+        raise HTTPException(status_code=404, detail="Indicador no encontrado")
+    anio = datos.get("anio")
+    mes = datos.get("mes")
+    params = {
+        "id": id_indicador,
+        "tipo_tolerancia": datos["tipo_tolerancia"],
+        "tolerancia": datos["tolerancia"],
+        "tolerancia_menos": datos.get("tolerancia_menos"),
+        "usuario": usuario,
+        "anio": anio,
+    }
+    guardar_fila = f"""
+        UPDATE {name_server}.tmi_indicador_tolerancia
+           SET tipo_tolerancia = :tipo_tolerancia, tolerancia = :tolerancia, tolerancia_menos = :tolerancia_menos,
+               usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
+         WHERE id_indicador = :id AND anio = :anio AND mes = :mes;
+        IF @@ROWCOUNT = 0
+            INSERT INTO {name_server}.tmi_indicador_tolerancia
+                (id_indicador, anio, mes, tipo_tolerancia, tolerancia, tolerancia_menos, usuario_modificacion, fecha_modificacion)
+            VALUES (:id, :anio, :mes, :tipo_tolerancia, :tolerancia, :tolerancia_menos, :usuario, GETDATE());"""
+    filas = 0
     try:
-        r = db.execute(text(f"""
-            UPDATE {name_server}.tmi_indicador
-               SET tipo_tolerancia = :tipo_tolerancia, tolerancia = :tolerancia, tolerancia_menos = :tolerancia_menos,
-                   usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
-             WHERE id = :id"""), {**datos, "id": id_indicador, "usuario": usuario})
+        if anio is not None:
+            if datos.get("tolerancia_fijo") is not None:
+                db.execute(text(guardar_fila), {**params, "mes": 0, "tolerancia": datos["tolerancia_fijo"],
+                                                "tolerancia_menos": datos.get("tolerancia_menos_fijo")})
+                filas += 1
+            if mes and _periodo_alcanzo_cierre(db, anio, mes):
+                db.execute(text(guardar_fila), {**params, "mes": mes})
+                filas += 1
+            db.commit()
+            return {"message": "% Acept guardado", "rows_updated": filas}
+        else:
+            r = db.execute(text(f"""
+                UPDATE {name_server}.tmi_indicador
+                   SET tipo_tolerancia = :tipo_tolerancia, tolerancia = :tolerancia, tolerancia_menos = :tolerancia_menos,
+                       usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
+                 WHERE id = :id"""), params)
         db.commit()
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-    if r.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Indicador no encontrado")
     return {"message": "% Acept guardado", "rows_updated": r.rowcount}
 
 
@@ -312,46 +551,109 @@ def queryGuardarValorEstandarTMI(db: Session, id_indicador: int, datos: dict):
     return tmiRep._guardar(db, tabla, columna, dto, "Estándar guardado")
 
 
-OPERADORES = {"+": "+", "-": "-", "*": "*", "/": "/"}
+def _analizar(texto: str) -> tmiFormula.Formula:
+    try:
+        return tmiFormula.analizar(texto)
+    except tmiFormula.ErrorFormula as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula: dict, usuario: str = None):
-    """Fórmula en bloques -> letras automáticas (A, B, C... por orden de aparición; la misma variable usa la misma
-    letra en numerador y denominador), expr_numerador / expr_denominador y tmi_indicador_variable, en una transacción."""
-    letra_de: dict = {}
+def _analizarTokens(db: Session, texto: str):
+    """Términos de la fórmula interna (T1, T2...) con la descripción del grupo, la actividad y los servicios (DIM)."""
+    f = _analizar(texto)
+    grupos = {t.tipgrupo for t in f.terminos}
+    actividades = {t.actividad for t in f.terminos}
+    servicios = {s for t in f.terminos for s in t.servicios}
+    desc_g = {r["tipgrupo"]: r["d"] for r in _consulta(db, f"""
+        SELECT tipgrupo, LTRIM(RTRIM(desctipgrupo)) AS d FROM {TMI_DIM}.DIM_GRUPO
+        WHERE tipgrupo IN ({", ".join(map(str, grupos))})""")}
+    desc_a = {r["actividad"]: r["d"] for r in _consulta(db, f"""
+        SELECT actividad, COALESCE(NULLIF(LTRIM(RTRIM(desclarga)), ''), LTRIM(RTRIM(descactividad))) AS d
+        FROM {TMI_DIM}.DIM_ACTIVIDAD WHERE actividad IN ({", ".join(map(str, actividades))})""")}
+    desc_s = {}
+    if servicios and _CON_DIM_SERVICIO is not False:
+        try:
+            desc_s = {r["servicio"]: r["d"] for r in db.execute(text(f"""
+                SELECT servicio, LTRIM(RTRIM(desclarga)) AS d FROM {TMI_DIM}.DIM_SERVICIO
+                WHERE servicio IN ({", ".join(map(str, servicios))})""")).mappings()}
+        except Exception:
+            db.rollback()
+    terminos = []
+    for t in f.terminos:
+        problemas = [x for x, ok in (("grupo no existe en DIM_GRUPO", t.tipgrupo in desc_g),
+                                     ("actividad no existe en DIM_ACTIVIDAD", t.actividad in desc_a)) if not ok]
+        terminos.append({
+            "codigo": f.codigo(t), "texto": t.texto, "tipgrupo": t.tipgrupo, "grupo": desc_g.get(t.tipgrupo),
+            "actividad": t.actividad, "descactividad": desc_a.get(t.actividad),
+            "servicios": [{"servicio": s, "descservicio": desc_s.get(s)} for s in t.servicios],
+            "mediana": t.mediana, "problema": "; ".join(problemas) or None})
+    return {"formula": f.texto, "formula_sql": f.sql, "terminos": terminos}
 
-    def expresion(bloques: list) -> str:
-        partes = []
-        for k, b in enumerate(bloques):
-            v = int(b["id_variable"])
-            if v not in letra_de:
-                if len(letra_de) == 26:
-                    raise HTTPException(status_code=400, detail="La fórmula admite como máximo 26 variables (A-Z).")
-                letra_de[v] = chr(ord("A") + len(letra_de))
-            if k:
-                partes.append(OPERADORES[b["op"]])
-            partes.append(letra_de[v])
-        return " ".join(partes)
 
-    num = expresion(formula["numerador"])
-    den = expresion(formula["denominador"]) if formula["denominador"] else "1"
-    existentes = {r[0] for r in db.execute(text(
-        f"SELECT id FROM {name_server}.tmi_variable WHERE id IN ({', '.join(str(v) for v in letra_de)})"))}
-    faltan = sorted(set(letra_de) - existentes)
-    if faltan:
-        raise HTTPException(status_code=400, detail=f"Variables que no existen: {faltan}")
+def _expandir(db: Session, formula_alias: str, variables: dict):
+    """Fórmula con letras -> fórmula interna con términos de TOTALIZADO3, y el detalle de la variable de cada letra."""
+    usadas = set(tmiFormula.letras_usadas(formula_alias))
+    filas = {r["id"]: r for r in _consulta(db, f"""
+        SELECT id, nombre, agregacion FROM {name_server}.tmi_variable
+        WHERE id IN ({", ".join(str(int(v)) for v in variables.values()) or "NULL"})""")}
+    mapa, detalle = {}, []
+    for letra, id_var in sorted(variables.items()):
+        v = filas.get(id_var)
+        if not v:
+            raise HTTPException(status_code=400, detail=f"La variable de la letra {letra} no existe.")
+        conjuntos = db.execute(text(tmiFormula.SQL_CONJUNTOS.format(esq=name_server, p=":id")), {"id": id_var}).all()
+        try:
+            expr, aviso = tmiFormula.expresion_variable(v["nombre"], v["agregacion"], conjuntos)
+        except tmiFormula.ErrorFormula as e:
+            if letra in usadas:
+                raise HTTPException(status_code=400, detail=f"{letra}: {e}")
+            expr, aviso = None, str(e)
+        if expr:
+            mapa[letra] = expr
+        detalle.append({"letra": letra, "id_variable": id_var, "nombre": v["nombre"], "agregacion": v["agregacion"],
+                        "expresion": expr, "aviso": aviso, "usada": letra in usadas})
+    try:
+        formula = tmiFormula.expandir_alias(formula_alias, mapa)
+    except tmiFormula.ErrorFormula as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return formula, detalle
+
+
+def queryAnalizarFormulaTMI(db: Session, formula_alias: str, variables: dict):
+    """Fórmula con letras ((A - B) / C): fórmula interna, variables de cada letra y términos de TOTALIZADO3."""
+    formula, detalle = _expandir(db, formula_alias, variables)
+    analisis = _analizarTokens(db, formula)
+    return {"formula_alias": formula_alias.strip(), "variables": detalle, **analisis}
+
+
+def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula_alias: str, variables: dict, usuario: str = None):
+    """Guarda la fórmula con letras, la variable de cada letra usada (tmi_indicador_variable) y la fórmula interna
+    generada ([3;50#0] - [3;49#0]) / [3;47#0] con sus términos (tmi_indicador_termino) y formula_sql, en una transacción."""
+    analisis = queryAnalizarFormulaTMI(db, formula_alias, variables)
+    malos = [f"{t['texto']}: {t['problema']}" for t in analisis["terminos"] if t["problema"]]
+    if malos:
+        raise HTTPException(status_code=400, detail="; ".join(malos))
+    f = _analizar(analisis["formula"])
+    usadas = [v for v in analisis["variables"] if v["usada"]]
     try:
         r = db.execute(text(f"""
             UPDATE {name_server}.tmi_indicador
-               SET expr_numerador = :num, expr_denominador = :den,
+               SET formula_alias = :alias, formula = :formula, formula_sql = :sql,
                    usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
-             WHERE id = :id"""), {"num": num, "den": den, "usuario": usuario, "id": id_indicador})
+             WHERE id = :id"""), {"alias": analisis["formula_alias"], "formula": f.texto, "sql": f.sql,
+                                   "usuario": usuario, "id": id_indicador})
         if r.rowcount == 0:
             raise HTTPException(status_code=404, detail="Indicador no encontrado")
+        db.execute(text(f"DELETE FROM {name_server}.tmi_indicador_termino WHERE id_indicador = :id"), {"id": id_indicador})
+        for t in tmiFormula.filas_termino(f):
+            db.execute(text(f"""INSERT INTO {name_server}.tmi_indicador_termino
+                                    (id_indicador, codigo, tipgrupo, actividad, servicio, mediana, texto)
+                                VALUES (:id, :codigo, :tipgrupo, :actividad, :servicio, :mediana, :texto)"""),
+                       {"id": id_indicador, **t})
         db.execute(text(f"DELETE FROM {name_server}.tmi_indicador_variable WHERE id_indicador = :id"), {"id": id_indicador})
-        for v, letra in letra_de.items():
+        for v in usadas:
             db.execute(text(f"""INSERT INTO {name_server}.tmi_indicador_variable (id_indicador, letra, id_variable)
-                                VALUES (:id, :letra, :v)"""), {"id": id_indicador, "letra": letra, "v": v})
+                                VALUES (:id, :letra, :v)"""), {"id": id_indicador, "letra": v["letra"], "v": v["id_variable"]})
         db.commit()
     except HTTPException:
         db.rollback()
@@ -359,8 +661,79 @@ def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula: dict, usuari
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-    return {"expr_numerador": num, "expr_denominador": den,
-            "letras": [{"letra": l, "id_variable": v} for v, l in letra_de.items()]}
+    analisis["variables"] = usadas
+    return analisis
+
+
+def queryVariableDeFila(db: Session, tabla: str, id: int):
+    """Variable dueña de una fila de lógica o de componente (para regenerar fórmulas después de borrarla)."""
+    if tabla not in ("tmi_variable_logica", "tmi_variable_componente"):
+        raise ValueError(tabla)
+    return db.execute(text(f"SELECT id_variable FROM {name_server}.{tabla} WHERE id = :id"), {"id": id}).scalar()
+
+
+def regenerarFormulasVariable(db: Session, id_variable: int) -> None:
+    """Una variable cambió (conjuntos, componentes o cálculo): se vuelve a generar la fórmula interna de los indicadores
+    que la usan, directo o dentro de una variable compuesta. Si no se puede (p. ej. quedó sin conjuntos), el indicador
+    conserva su fórmula anterior y se avisa en el log."""
+    try:
+        ids = [r[0] for r in db.execute(text(f"""
+            WITH arriba AS (
+                SELECT CAST(:id AS INT) AS id_var, 0 AS nivel
+                UNION ALL
+                SELECT c.id_variable, a.nivel + 1
+                FROM arriba a JOIN {name_server}.tmi_variable_componente c ON c.id_variable_componente = a.id_var
+                WHERE a.nivel < 10
+            )
+            SELECT DISTINCT iv.id_indicador
+            FROM {name_server}.tmi_indicador_variable iv
+            JOIN {name_server}.tmi_indicador i ON i.id = iv.id_indicador AND i.formula_alias IS NOT NULL
+            WHERE iv.id_variable IN (SELECT id_var FROM arriba)
+            OPTION (MAXRECURSION 20)"""), {"id": id_variable}).all()]
+    except Exception as e:
+        db.rollback()
+        logger.warning("No se pudo buscar los indicadores de la variable %s: %s", id_variable, e)
+        return
+    for id_ind in ids:
+        try:
+            alias = db.execute(text(f"SELECT formula_alias FROM {name_server}.tmi_indicador WHERE id = :id"),
+                               {"id": id_ind}).scalar()
+            letras = {r[0]: r[1] for r in db.execute(text(f"""SELECT letra, id_variable FROM {name_server}.tmi_indicador_variable
+                                                             WHERE id_indicador = :id"""), {"id": id_ind}).all()}
+            queryGuardarFormulaTMI(db, id_ind, alias, letras, "sistema")
+        except Exception as e:
+            db.rollback()
+            logger.warning("No se pudo regenerar la fórmula del indicador %s: %s", id_ind, getattr(e, "detail", e))
+
+
+def _consulta_indicador(db: Session, id_indicador: int, periodo: int) -> str:
+    if periodo % 100 not in range(1, 13):
+        raise HTTPException(status_code=400, detail="El periodo debe tener formato AAAAMM.")
+    fila = db.execute(text(f"""SELECT codigo, indicador, formula, tipo_calculo FROM {name_server}.tmi_indicador
+                               WHERE id = :id"""), {"id": id_indicador}).mappings().first()
+    if not fila:
+        raise HTTPException(status_code=404, detail="Indicador no encontrado")
+    if not fila["formula"]:
+        raise HTTPException(status_code=400, detail="El indicador no tiene fórmula.")
+    return tmiFormula.consulta_sql(_analizar(fila["formula"]), TMI_TOTALIZADO3, fila["tipo_calculo"] or "MENSUAL",
+                                   periodo, f"{fila['codigo']} - {fila['indicador']}",
+                                   centros=f"{name_server}.vw_tmi_centro_base")
+
+
+def queryConsultaIndicadorTMI(db: Session, id_indicador: int, periodo: int):
+    """Texto del query que calcula el indicador directo de TOTALIZADO3 (para verlo o copiarlo)."""
+    return {"sql": _consulta_indicador(db, id_indicador, periodo)}
+
+
+def queryResultadoDirectoTMI(db: Session, id_indicador: int, periodo: int):
+    """Ejecuta ese query: valor de la fórmula por centro y mes, sin estándares ni exclusiones."""
+    sql = _consulta_indicador(db, id_indicador, periodo)
+    try:
+        filas = [dict(r) for r in db.execute(text(sql)).mappings()]
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"sql": sql, "filas": filas}
 
 
 def queryIndicadorAmbitoTMI(db: Session, id_indicador: int):
@@ -380,18 +753,41 @@ def queryIndicadorEstandaresTMI(db: Session, id_indicador: int):
 
 
 def queryCentroEstandarTMI(db: Session, anio: int):
+    """Estándares propios de centro del año. acept_defecto = % Acept que se usa cuando el centro no tiene uno propio:
+    su estándar del periodo de consulta ± el % Acept del indicador en ese periodo (como usp_tmi_calcular)."""
     col = _columna_indicador(db, "tmi_centro_estandar")
+    _asegurar_tabla_tolerancia(db)
+    hoy = date.today()
+    anterior = (hoy.year - 1, 12) if hoy.month == 1 else (hoy.year, hoy.month - 1)
+    # periodo de consulta: el último que se calcula (mes anterior) en su año; en otros años, diciembre
+    mes = anterior[1] if anio == anterior[0] else 12
     return _consulta(db, f"""
         SELECT ce.id, ce.codcentro, ce.{col} AS id_indicador, ce.anio, ce.aplica,
                ce.est_01, ce.est_02, ce.est_03, ce.est_04, ce.est_05, ce.est_06,
                ce.est_07, ce.est_08, ce.est_09, ce.est_10, ce.est_11, ce.est_12, ce.acept, ce.sustento,
-               i.indicador, c.centro, c.red
+               i.indicador, c.centro, c.red, :mes AS mes_consulta,
+               CASE WHEN i.sentido IN ('MENOR', 'BANDA')
+                    THEN CASE t.tipo WHEN 'ABS' THEN e.est + t.tol ELSE e.est * (1 + t.tol) END
+                    ELSE CASE t.tipo WHEN 'ABS' THEN e.est - t.tol ELSE e.est * (1 - t.tol) END END AS acept_defecto
         FROM {name_server}.tmi_centro_estandar ce
         LEFT JOIN {name_server}.tmi_indicador i ON i.id = ce.{col}
         OUTER APPLY (SELECT TOP 1 b.centro, b.red FROM {name_server}.vw_tmi_centro_base b
                      WHERE CAST(b.codcentro AS VARCHAR(50)) = LTRIM(RTRIM(ce.codcentro))) c
+        CROSS APPLY (SELECT NULLIF(CASE :mes WHEN 1 THEN ce.est_01 WHEN 2 THEN ce.est_02 WHEN 3 THEN ce.est_03
+                                             WHEN 4 THEN ce.est_04 WHEN 5 THEN ce.est_05 WHEN 6 THEN ce.est_06
+                                             WHEN 7 THEN ce.est_07 WHEN 8 THEN ce.est_08 WHEN 9 THEN ce.est_09
+                                             WHEN 10 THEN ce.est_10 WHEN 11 THEN ce.est_11 WHEN 12 THEN ce.est_12 END, 0) AS est) e
+        OUTER APPLY (SELECT TOP 1 x.tipo_tolerancia AS tipo, x.tolerancia AS tol
+                     FROM (SELECT tipo_tolerancia, tolerancia, 1 AS p FROM {name_server}.tmi_indicador_tolerancia
+                           WHERE id_indicador = i.id AND anio = :anio AND mes = :mes
+                           UNION ALL
+                           SELECT tipo_tolerancia, tolerancia, 2 FROM {name_server}.tmi_indicador_tolerancia
+                           WHERE id_indicador = i.id AND anio = :anio AND mes = 0
+                           UNION ALL
+                           SELECT i.tipo_tolerancia, i.tolerancia, 3) x
+                     ORDER BY x.p) t
         WHERE ce.anio = :anio
-        ORDER BY ce.{col}, ce.codcentro""", {"anio": anio})
+        ORDER BY ce.{col}, ce.codcentro""", {"anio": anio, "mes": mes})
 
 _CON_DIM_SERVICIO: Optional[bool] = None   # None = todavía no se comprobó si se puede leer DIM_SERVICIO
 
@@ -513,9 +909,8 @@ def queryValidarConfigTMI(db: Session):
 
 
 def queryCalcularTMI(db: Session, periodo: int):
-    """Genera el pivot de variables y calcula los indicadores del periodo (AAAAMM) en tmi_resultado."""
+    """Calcula los indicadores del periodo (AAAAMM) en tmi_resultado: la fórmula de cada indicador sobre TOTALIZADO3."""
     try:
-        db.execute(text(f"EXEC {name_server}.usp_tmi_generar_pivot :periodo"), {"periodo": periodo})
         db.execute(text(f"EXEC {name_server}.usp_tmi_calcular :periodo"), {"periodo": periodo})
         db.commit()
         result = db.execute(text(f"""

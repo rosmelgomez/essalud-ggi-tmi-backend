@@ -250,9 +250,11 @@ def _actualizar_resumen(wb, anio: str, mes: int) -> None:
                     celda.value = NA
 
 
-def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True) -> io.BytesIO:
+def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
+                               ids: Optional[List[int]] = None) -> io.BytesIO:
     """Genera el libro TMI del periodo AAAAMM con el resultado final guardado de ese periodo.
-    Si calcular=True ejecuta antes el pivot y el cálculo (solo para el periodo abierto, ver apiTmiDinamico)."""
+    Si calcular=True ejecuta antes el pivot y el cálculo (solo para el periodo abierto, ver apiTmiDinamico).
+    ids: indicadores que lleva el Excel (sus hojas y los puntajes); None = todos los calculados."""
     from src.main.service.excelPuntajesServ import llenar_puntajes
 
     p = _validar_periodo(periodo)
@@ -275,6 +277,10 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True)
     indicadores = [i for i in queryIndicadoresActivosTMI(db) if i["id"] in final]
     if not indicadores:
         raise ValueError(f"Los indicadores calculados en {periodo} ya no están activos en tmi_indicador.")
+    if ids is not None:
+        indicadores = [i for i in indicadores if i["id"] in set(ids)]
+        if not indicadores:
+            raise ValueError(f"Ninguno de los indicadores elegidos tiene resultado guardado en {periodo}.")
     res: Dict[int, Dict[int, Dict[int, Dict[str, Any]]]] = defaultdict(lambda: defaultdict(dict))
     for r in queryResultadoTMI(db, p):
         res[r["id_indicador"]][r["codcentro"]][r["mes"]] = r

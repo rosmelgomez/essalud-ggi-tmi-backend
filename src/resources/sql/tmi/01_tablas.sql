@@ -10,7 +10,8 @@ CREATE TABLE dbo.tmi_variable (
     id                   INT IDENTITY(1,1) PRIMARY KEY,
     nombre               VARCHAR(200) NOT NULL UNIQUE,
     descripcion          VARCHAR(200) NULL,
-    total_anual          VARCHAR(15)  NOT NULL DEFAULT 'SUMA_MESES',   -- SUMA_MESES | MEDIANA_PERIODO
+    agregacion           VARCHAR(10)  NOT NULL DEFAULT 'SUMA',         -- SUMA | MEDIANA (cálculo de la variable)
+    total_anual          VARCHAR(15)  NOT NULL DEFAULT 'SUMA_MESES',   -- SUMA_MESES | MEDIANA_PERIODO (solo MEDIANA)
     activo               BIT NOT NULL DEFAULT 1,
     usuario_creacion     VARCHAR(200) NULL,
     fecha_creacion       DATETIME NOT NULL DEFAULT GETDATE(),
@@ -21,6 +22,8 @@ GO
 -- Si la tabla ya existía con la versión de variables_calculo.sql (nombre, descripcion), se completan columnas
 IF COL_LENGTH('dbo.tmi_variable', 'total_anual') IS NULL
     ALTER TABLE dbo.tmi_variable ADD total_anual VARCHAR(15) NOT NULL CONSTRAINT DF_tmi_variable_total DEFAULT 'SUMA_MESES';
+IF COL_LENGTH('dbo.tmi_variable', 'agregacion') IS NULL
+    ALTER TABLE dbo.tmi_variable ADD agregacion VARCHAR(10) NOT NULL CONSTRAINT DF_tmi_variable_agregacion DEFAULT 'SUMA';
 IF COL_LENGTH('dbo.tmi_variable', 'activo') IS NULL
     ALTER TABLE dbo.tmi_variable ADD activo BIT NOT NULL CONSTRAINT DF_tmi_variable_activo DEFAULT 1;
 IF COL_LENGTH('dbo.tmi_variable', 'usuario_creacion') IS NULL
@@ -36,19 +39,54 @@ CREATE TABLE dbo.tmi_variable_logica (
     actividad      INT NOT NULL,                  -- DIM_ACTIVIDAD.actividad
     servicio       INT NULL,                      -- TOTALIZADO3.servicio ; NULL = todos
     condicion_hoja VARCHAR(20) NULL,              -- DIM_HOJA.condicion ; NULL = todas
-    agregacion     VARCHAR(10) NOT NULL DEFAULT 'SUMA',   -- SUMA | MEDIANA
     periodo_desde  INT NOT NULL DEFAULT 200001,
     periodo_hasta  INT NOT NULL DEFAULT 999912,
     activo         BIT NOT NULL DEFAULT 1
 );
 GO
-IF COL_LENGTH('dbo.tmi_variable_logica', 'agregacion') IS NULL
+
+/* Variables compuestas: la variable suma, además de sus filas de lógica, el valor de otras variables (componentes).
+   Ej.: Consolidado de Consultas = Consultas + Teleconsulta + CAI + ... (Generar_pivot.sql lo hacía con un OR).
+   El cálculo abre los componentes en sus conjuntos (también los de componentes compuestos). */
+IF OBJECT_ID('dbo.tmi_variable_componente') IS NULL
+CREATE TABLE dbo.tmi_variable_componente (
+    id                     INT IDENTITY(1,1) PRIMARY KEY,
+    id_variable            INT NOT NULL CONSTRAINT FK_tmi_var_comp_variable REFERENCES dbo.tmi_variable(id),
+    id_variable_componente INT NOT NULL CONSTRAINT FK_tmi_var_comp_componente REFERENCES dbo.tmi_variable(id),
+    activo                 BIT NOT NULL DEFAULT 1,
+    CONSTRAINT UX_tmi_variable_componente UNIQUE (id_variable, id_variable_componente),
+    CONSTRAINT CK_tmi_variable_componente CHECK (id_variable <> id_variable_componente)
+);
+GO
+IF COL_LENGTH('dbo.tmi_variable_logica', 'condicion_hoja') IS NULL
     ALTER TABLE dbo.tmi_variable_logica ADD
         condicion_hoja VARCHAR(20) NULL,
-        agregacion     VARCHAR(10) NOT NULL CONSTRAINT DF_tmi_vl_agregacion DEFAULT 'SUMA',
         periodo_desde  INT NOT NULL CONSTRAINT DF_tmi_vl_desde DEFAULT 200001,
         periodo_hasta  INT NOT NULL CONSTRAINT DF_tmi_vl_hasta DEFAULT 999912,
         activo         BIT NOT NULL CONSTRAINT DF_tmi_vl_activo DEFAULT 1;
+GO
+
+/* El cálculo (SUMA | MEDIANA) es de la variable y no de cada conjunto, como en Generar_pivot.sql.
+   Migración de una sola vez: la variable toma MEDIANA si alguna de sus filas la tenía y se quita la columna de la lógica. */
+IF COL_LENGTH('dbo.tmi_variable_logica', 'agregacion') IS NOT NULL
+BEGIN
+    EXEC('UPDATE v SET agregacion = ''MEDIANA'' FROM dbo.tmi_variable v
+          WHERE EXISTS (SELECT 1 FROM dbo.tmi_variable_logica l WHERE l.id_variable = v.id AND l.agregacion = ''MEDIANA'')');
+    DECLARE @df SYSNAME = (SELECT d.name FROM sys.default_constraints d
+                           JOIN sys.columns c ON c.object_id = d.parent_object_id AND c.column_id = d.parent_column_id
+                           WHERE d.parent_object_id = OBJECT_ID('dbo.tmi_variable_logica') AND c.name = 'agregacion');
+    IF @df IS NOT NULL EXEC('ALTER TABLE dbo.tmi_variable_logica DROP CONSTRAINT [' + @df + ']');
+    EXEC('ALTER TABLE dbo.tmi_variable_logica DROP COLUMN agregacion');
+END
+GO
+-- La mediana del periodo solo tiene sentido en una variable MEDIANA
+IF OBJECT_ID('dbo.CK_tmi_variable_calculo') IS NULL
+BEGIN
+    UPDATE dbo.tmi_variable SET total_anual = 'SUMA_MESES' WHERE agregacion = 'SUMA' AND total_anual <> 'SUMA_MESES';
+    ALTER TABLE dbo.tmi_variable ADD CONSTRAINT CK_tmi_variable_calculo
+        CHECK (agregacion IN ('SUMA', 'MEDIANA') AND total_anual IN ('SUMA_MESES', 'MEDIANA_PERIODO')
+               AND (agregacion = 'MEDIANA' OR total_anual = 'SUMA_MESES'));
+END
 GO
 
 /* ---------- Parte 2. Indicadores definidos por el usuario ---------- */
@@ -87,12 +125,7 @@ IF COL_LENGTH('dbo.tmi_indicador', 'codigo') IS NULL
         nombre_hoja         VARCHAR(31)  NULL,      -- nombre de la hoja (máx. 31, sin []:*?/\)
         titulo_hoja         VARCHAR(200) NULL,
         orden               INT          NULL,
-        expr_numerador      VARCHAR(200) NULL,      -- letras A..Z, números, + - * . ( )
-        expr_denominador    VARCHAR(200) NULL,
         tipo_calculo        VARCHAR(20)  NULL,      -- tmi_tipo_calculo: MENSUAL | ACUMULADO
-        factor              FLOAT        NOT NULL CONSTRAINT DF_tmi_ind_factor DEFAULT 1,
-        den_cero            VARCHAR(4)   NOT NULL CONSTRAINT DF_tmi_ind_dencero DEFAULT 'CERO',     -- CERO | NA
-        cero_si_letra_mes_0 BIT          NOT NULL CONSTRAINT DF_tmi_ind_letra0 DEFAULT 0,
         sin_datos_anio      VARCHAR(7)   NOT NULL CONSTRAINT DF_tmi_ind_sindatos DEFAULT 'NA',      -- centro sin datos del indicador en el año: MOSTRAR (0) | NA | OCULTAR
         base_estandar       VARCHAR(10)  NULL,      -- TIPO | NIVEL | CATEGORIA | TIPO_NIVEL
         sentido             VARCHAR(5)   NULL,      -- MENOR | MAYOR | BANDA
@@ -104,13 +137,53 @@ IF COL_LENGTH('dbo.tmi_indicador', 'codigo') IS NULL
         activo              BIT          NOT NULL CONSTRAINT DF_tmi_ind_activo DEFAULT 1;
 GO
 
--- 1 = numerador 0 -> NA (el Excel actual pone NA a los centros con partos y 0 cesáreas)
 -- % Acept hacia abajo en los indicadores de banda (NULL = el mismo porcentaje que hacia arriba)
 IF COL_LENGTH('dbo.tmi_indicador', 'tolerancia_menos') IS NULL
     ALTER TABLE dbo.tmi_indicador ADD tolerancia_menos FLOAT NULL;
 GO
-IF COL_LENGTH('dbo.tmi_indicador', 'num_cero_na') IS NULL
-    ALTER TABLE dbo.tmi_indicador ADD num_cero_na BIT NOT NULL CONSTRAINT DF_tmi_ind_numcero DEFAULT 0;
+
+/* Fórmula del indicador con términos de TOTALIZADO3, como la columna de fórmulas de TMI_SQL:
+     ([3;50#0] - [3;49#0]) / [3;47#0]        [grupo;actividad#servicio], #0 = todos; MEDIANA([..]) para recursos
+   El backend la analiza (src/main/core/tmiFormula.py) y guarda sus términos en tmi_indicador_termino (T1, T2...) y la
+   expresión SQL sobre esos códigos en formula_sql. Reemplaza al numerador/denominador por letras y a sus reglas. */
+IF COL_LENGTH('dbo.tmi_indicador', 'formula') IS NULL
+    ALTER TABLE dbo.tmi_indicador ADD formula NVARCHAR(2000) NULL, formula_sql NVARCHAR(MAX) NULL;
+GO
+/* El usuario escribe la fórmula con letras: formula_alias = (A - B) / C, y la variable de cada letra
+   en tmi_indicador_variable (una variable por letra). formula (términos) se genera desde ellas. */
+IF COL_LENGTH('dbo.tmi_indicador', 'formula_alias') IS NULL
+    ALTER TABLE dbo.tmi_indicador ADD formula_alias NVARCHAR(500) NULL;
+GO
+DECLARE @col SYSNAME, @df SYSNAME;
+DECLARE c CURSOR LOCAL FAST_FORWARD FOR
+    SELECT c.name FROM sys.columns c
+    WHERE  c.object_id = OBJECT_ID('dbo.tmi_indicador')
+      AND  c.name IN ('expr_numerador', 'expr_denominador', 'factor', 'den_cero', 'num_cero_na', 'cero_si_letra_mes_0');
+OPEN c;
+FETCH NEXT FROM c INTO @col;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @df = (SELECT d.name FROM sys.default_constraints d
+               JOIN sys.columns x ON x.object_id = d.parent_object_id AND x.column_id = d.parent_column_id
+               WHERE d.parent_object_id = OBJECT_ID('dbo.tmi_indicador') AND x.name = @col);
+    IF @df IS NOT NULL EXEC ('ALTER TABLE dbo.tmi_indicador DROP CONSTRAINT [' + @df + ']');
+    EXEC ('ALTER TABLE dbo.tmi_indicador DROP COLUMN [' + @col + ']');
+    FETCH NEXT FROM c INTO @col;
+END
+CLOSE c; DEALLOCATE c;
+GO
+-- Términos de la fórmula: una fila por término y servicio (servicio NULL = todos los servicios)
+IF OBJECT_ID('dbo.tmi_indicador_termino') IS NULL
+CREATE TABLE dbo.tmi_indicador_termino (
+    id           INT IDENTITY(1,1) PRIMARY KEY,
+    id_indicador INT NOT NULL REFERENCES dbo.tmi_indicador(id),
+    codigo       VARCHAR(5)  NOT NULL,          -- T1, T2... (columna de la fórmula en formula_sql)
+    tipgrupo     INT NOT NULL,
+    actividad    INT NOT NULL,
+    servicio     INT NULL,
+    mediana      BIT NOT NULL DEFAULT 0,        -- 1 = MEDIANA([..]): mediana de cada servicio en el mes, sumada
+    texto        VARCHAR(60) NOT NULL           -- [g;a#s] como está en la fórmula
+);
 GO
 -- Ampliar base_estandar para permitir combinaciones: TIPO, NIVEL, CATEGORIA, TIPO_NIVEL, TIPO_CATEGORIA, NIVEL_CATEGORIA, TIPO_NIVEL_CATEGORIA
 IF COL_LENGTH('dbo.tmi_indicador', 'base_estandar') IS NOT NULL AND COL_LENGTH('dbo.tmi_indicador', 'base_estandar') < 30
@@ -297,6 +370,22 @@ BEGIN
     ELSE IF @con_valores = 0
         DROP TABLE dbo.tmi_estandar_acept;
 END
+GO
+
+-- % Acept por año (mes = 0 es el fijo del año; mes = 1..12 es el valor de cada mes, que toma el fijo en su fecha de cierre).
+IF OBJECT_ID('dbo.tmi_indicador_tolerancia') IS NULL
+CREATE TABLE dbo.tmi_indicador_tolerancia (
+    id                   INT IDENTITY(1,1) PRIMARY KEY,
+    id_indicador         INT NOT NULL REFERENCES dbo.tmi_indicador(id),
+    anio                 INT NOT NULL,
+    mes                  INT NOT NULL CONSTRAINT CK_tmi_indicador_tolerancia_mes CHECK (mes BETWEEN 0 AND 12),
+    tipo_tolerancia      VARCHAR(3) NOT NULL DEFAULT 'REL' CHECK (tipo_tolerancia IN ('REL', 'ABS')),
+    tolerancia           FLOAT NOT NULL,
+    tolerancia_menos     FLOAT NULL,
+    usuario_modificacion VARCHAR(200) NULL,
+    fecha_modificacion   DATETIME NULL,
+    CONSTRAINT UX_tmi_indicador_tolerancia UNIQUE (id_indicador, anio, mes)
+);
 GO
 
 -- Exclusión por periodo: excl_MM = 1 -> NA ese mes. id_indicador NULL = todos los indicadores del centro.

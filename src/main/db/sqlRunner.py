@@ -23,6 +23,7 @@ from typing import Dict, List
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
+from src.main.core import tmiFormula
 from src.main.core.tmiConfig import TMI_DB, TMI_DIM, TMI_TOTALIZADO3
 from src.main.db.databaseConexion import SQLALCHEMY_DATABASE_URL
 
@@ -36,6 +37,7 @@ SQL_SCRIPTS = [
     "01_tablas.sql",
     "02_vistas_adaptadoras.sql",
     "03_datos.sql",
+    "05_variables_pivot.sql",   # variables de Generar_pivot.sql (una sola vez; no pisa cambios del usuario)
     "04_procedimientos.sql",
 ]
 
@@ -103,6 +105,8 @@ def ejecutar_scripts(scripts: List[str] = None) -> Dict[str, str]:
             if script == "04_procedimientos.sql" and scripts is None:
                 _cargar_semillas(cursor, resultado)
             _ejecutar(cursor, script, SQL_DIR, resultado)
+        if scripts is None or "03_datos.sql" in scripts:
+            _sincronizar_formulas(cursor, resultado)
     finally:
         conexion.close()
         engine.dispose()
@@ -123,6 +127,47 @@ def _ejecutar(cursor, script: str, carpeta: Path, resultado: Dict[str, str]) -> 
     except Exception as e:
         resultado[script] = f"ERROR {e}"
         logger.error("Error al ejecutar el script SQL %s: %s", script, e)
+
+
+def _sincronizar_formulas(cursor, resultado: Dict[str, str]) -> None:
+    """Regenera la fórmula interna de cada indicador: desde la fórmula con letras (formula_alias) y las variables
+    actuales de cada letra cuando la tiene, y luego sus términos (tmi_indicador_termino) y formula_sql."""
+    errores = []
+    try:
+        if cursor.execute("SELECT COL_LENGTH('dbo.tmi_indicador', 'formula_alias')").fetchone()[0] is None:
+            return
+        for id_ind, codigo, alias in cursor.execute(
+                "SELECT id, codigo, formula_alias FROM dbo.tmi_indicador WHERE NULLIF(LTRIM(formula_alias), '') IS NOT NULL").fetchall():
+            try:
+                mapa = {}
+                for letra, nombre, agregacion, id_var in cursor.execute(
+                        """SELECT iv.letra, v.nombre, v.agregacion, v.id FROM dbo.tmi_indicador_variable iv
+                           JOIN dbo.tmi_variable v ON v.id = iv.id_variable WHERE iv.id_indicador = ?""", id_ind).fetchall():
+                    conjuntos = cursor.execute(tmiFormula.SQL_CONJUNTOS.format(esq="dbo", p="?"), id_var, id_var).fetchall()
+                    mapa[letra] = tmiFormula.expresion_variable(nombre, agregacion, conjuntos)[0]
+                formula = tmiFormula.expandir_alias(alias, mapa)
+                cursor.execute("UPDATE dbo.tmi_indicador SET formula = ? WHERE id = ?", formula, id_ind)
+            except tmiFormula.ErrorFormula as e:
+                errores.append(f"{codigo}: {e} (se mantiene la fórmula anterior)")
+        for id_ind, codigo, texto in cursor.execute(
+                "SELECT id, codigo, formula FROM dbo.tmi_indicador WHERE NULLIF(LTRIM(formula), '') IS NOT NULL").fetchall():
+            try:
+                f = tmiFormula.analizar(texto)
+            except tmiFormula.ErrorFormula as e:
+                errores.append(f"{codigo}: {e}")
+                cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = NULL WHERE id = ?", id_ind)
+                cursor.execute("DELETE FROM dbo.tmi_indicador_termino WHERE id_indicador = ?", id_ind)
+                continue
+            cursor.execute("DELETE FROM dbo.tmi_indicador_termino WHERE id_indicador = ?", id_ind)
+            for r in tmiFormula.filas_termino(f):
+                cursor.execute("""INSERT INTO dbo.tmi_indicador_termino (id_indicador, codigo, tipgrupo, actividad, servicio,
+                                  mediana, texto) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                               id_ind, r["codigo"], r["tipgrupo"], r["actividad"], r["servicio"], r["mediana"], r["texto"])
+            cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = ? WHERE id = ?", f.sql, id_ind)
+        resultado["formulas"] = "OK" if not errores else "AVISO: " + "; ".join(errores)
+    except Exception as e:
+        resultado["formulas"] = f"ERROR {e}"
+        logger.error("Error al regenerar las fórmulas de los indicadores: %s", e)
 
 
 def _cargar_semillas(cursor, resultado: Dict[str, str]) -> None:

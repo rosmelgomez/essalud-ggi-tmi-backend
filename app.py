@@ -3,10 +3,9 @@ import contextlib
 import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.main.controller import apiTmi, apiCierre, apiTmiDinamico
-from src.main.core.security import agregar_cookie_access_token
 from src.main.core.tmiConfig import TMI_EJECUTAR_SQL
 from src.main.db.sqlRunner import ejecutar_scripts
 from src.main.service.cierreServ import tareaCierre
@@ -37,14 +36,6 @@ app = FastAPI(
     redoc_url=None if is_production else "/redoc",
     openapi_url=None if is_production else "/openapi.json",
 )
-
-
-# si get_current_user regeneró el access_token con el api_token, se envía en la respuesta como cookie
-@app.middleware("http")
-async def refrescar_access_token(request: Request, call_next):
-    response = await call_next(request)
-    agregar_cookie_access_token(request, response)
-    return response
 
 
 cors_origins_env = os.getenv("CORS_ORIGINS")

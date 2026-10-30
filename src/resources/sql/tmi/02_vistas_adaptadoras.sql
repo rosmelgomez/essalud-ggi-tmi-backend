@@ -40,8 +40,10 @@ BEGIN
         SET @pre = CASE WHEN COL_LENGTH('dbo.' + @t, 'est_01') IS NOT NULL THEN 'est_' ELSE 'estandar_' END;
         SET @id  = CASE WHEN COL_LENGTH('dbo.' + @t, 'id_estandar') IS NOT NULL THEN 'id_estandar' ELSE 'id_indicador' END;
         SELECT @cols = STUFF((
-            SELECT ', CAST(' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' AS FLOAT) AS m'
-                   + RIGHT('0' + CAST(n AS VARCHAR), 2)
+            SELECT ', ' + CASE WHEN COL_LENGTH('dbo.' + @t, 'est_fijo') IS NOT NULL
+                               THEN 'COALESCE(NULLIF(CAST(' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' AS FLOAT), 0), CAST([est_fijo] AS FLOAT))'
+                               ELSE 'CAST(' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ' AS FLOAT)' END
+                   + ' AS m' + RIGHT('0' + CAST(n AS VARCHAR), 2)
             FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) x(n)
             ORDER BY n
             FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');

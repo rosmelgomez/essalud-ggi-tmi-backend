@@ -3,6 +3,7 @@ cálculo y Excel desde la plantilla vacía (src/resources/sql/tmi)."""
 
 import asyncio
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -19,6 +20,7 @@ from src.main.dtos.tmiDinamicoDto import (
     tmiIndicadorEstandarDto,
     tmiIndicadorVariableDto,
     tmiTipoEstandarDto,
+    tmiVariableComponenteDto,
     tmiToleranciaDto,
     tmiValorEstandarDto,
     tmiVariableDto,
@@ -99,12 +101,36 @@ async def crearVariable(dto: tmiVariableDto, db: Session = Depends(get_db),
 @router.put("/variables/{id}")
 async def actualizarVariable(id: int, dto: tmiVariableDto, db: Session = Depends(get_db),
                              current_user: dict = Depends(get_current_user)):
-    return rep.queryActualizarFila(db, "tmi_variable", id, dto.model_dump(), _usuario(current_user))
+    r = rep.queryActualizarVariableTMI(db, id, dto.model_dump(), _usuario(current_user))
+    rep.regenerarFormulasVariable(db, id)
+    return r
 
 
 @router.delete("/variables/{id}")
 async def eliminarVariable(id: int, db: Session = Depends(get_db)):
     return rep.queryEliminarVariable(db, id)
+
+
+@router.get("/variables/{id}/componentes")
+async def listaComponentes(id: int, db: Session = Depends(get_db)):
+    """Variables que suma una variable compuesta."""
+    return rep.queryVariableComponentesTMI(db, id)
+
+
+@router.post("/componentes")
+async def crearComponente(dto: tmiVariableComponenteDto, db: Session = Depends(get_db)):
+    r = rep.queryInsertarComponenteTMI(db, dto.model_dump())
+    rep.regenerarFormulasVariable(db, dto.id_variable)
+    return r
+
+
+@router.delete("/componentes/{id}")
+async def eliminarComponente(id: int, db: Session = Depends(get_db)):
+    id_var = rep.queryVariableDeFila(db, "tmi_variable_componente", id)
+    r = rep.queryEliminarFila(db, "tmi_variable_componente", id)
+    if id_var:
+        rep.regenerarFormulasVariable(db, id_var)
+    return r
 
 
 @router.get("/variables/{id}/logica")
@@ -114,22 +140,28 @@ async def listaLogica(id: int, db: Session = Depends(get_db)):
 
 @router.post("/logica")
 async def crearLogica(dto: tmiVariableLogicaDto, db: Session = Depends(get_db)):
-    return rep.queryInsertarFila(db, "tmi_variable_logica", dto.model_dump())
+    r = rep.queryInsertarFila(db, "tmi_variable_logica", dto.model_dump())
+    rep.regenerarFormulasVariable(db, dto.id_variable)
+    return r
 
 
 @router.put("/logica/{id}")
 async def actualizarLogica(id: int, dto: tmiVariableLogicaDto, db: Session = Depends(get_db)):
-    return rep.queryActualizarFila(db, "tmi_variable_logica", id, dto.model_dump())
+    r = rep.queryActualizarFila(db, "tmi_variable_logica", id, dto.model_dump())
+    rep.regenerarFormulasVariable(db, dto.id_variable)
+    return r
 
 
 @router.delete("/logica/{id}")
 async def eliminarLogica(id: int, db: Session = Depends(get_db)):
-    return rep.queryEliminarFila(db, "tmi_variable_logica", id)
+    id_var = rep.queryVariableDeFila(db, "tmi_variable_logica", id)
+    r = rep.queryEliminarFila(db, "tmi_variable_logica", id)
+    if id_var:
+        rep.regenerarFormulasVariable(db, id_var)
+    return r
 
 
 # indicadores
-# la fórmula (expr_*) solo se cambia con PUT /indicadores/{id}/formula
-_SIN_FORMULA = {"expr_numerador", "expr_denominador"}
 # el % Acept (tolerancia) solo se cambia con PUT /indicadores/{id}/tolerancia (pestaña % Acept)
 _SIN_TOLERANCIA = {"tipo_tolerancia", "tolerancia", "tolerancia_menos"}
 
@@ -142,21 +174,39 @@ async def listaIndicadores(db: Session = Depends(get_db)):
 @router.post("/indicadores")
 async def crearIndicador(dto: tmiIndicadorDto, db: Session = Depends(get_db),
                          current_user: dict = Depends(get_current_user)):
-    return rep.queryInsertarFila(db, "tmi_indicador", dto.model_dump(exclude=_SIN_FORMULA), _usuario(current_user))
+    return rep.queryInsertarFila(db, "tmi_indicador", dto.model_dump(), _usuario(current_user))
 
 
 @router.put("/indicadores/{id}")
 async def actualizarIndicador(id: int, dto: tmiIndicadorDto, db: Session = Depends(get_db),
                               current_user: dict = Depends(get_current_user)):
-    return rep.queryActualizarFila(db, "tmi_indicador", id, dto.model_dump(exclude=_SIN_FORMULA | _SIN_TOLERANCIA),
+    return rep.queryActualizarFila(db, "tmi_indicador", id, dto.model_dump(exclude=_SIN_TOLERANCIA),
                                    _usuario(current_user))
 
 
 @router.put("/indicadores/{id}/formula")
 async def guardarFormulaIndicador(id: int, dto: tmiFormulaDto, db: Session = Depends(get_db),
                                   current_user: dict = Depends(get_current_user)):
-    """Guarda la fórmula armada con bloques: letras automáticas, expresiones y variables de cada letra."""
-    return rep.queryGuardarFormulaTMI(db, id, dto.model_dump(), _usuario(current_user))
+    """Guarda la fórmula con letras ((A - B) / C), la variable de cada letra y la fórmula interna que genera."""
+    return rep.queryGuardarFormulaTMI(db, id, dto.formula_alias, dto.variables, _usuario(current_user))
+
+
+@router.post("/formula/analizar")
+async def analizarFormula(dto: tmiFormulaDto, db: Session = Depends(get_db)):
+    """Valida la fórmula con letras y devuelve la fórmula interna y sus términos con la descripción de la DIM."""
+    return rep.queryAnalizarFormulaTMI(db, dto.formula_alias, dto.variables)
+
+
+@router.get("/indicadores/{id}/consulta/{periodo}")
+async def consultaIndicador(id: int, periodo: int, db: Session = Depends(get_db)):
+    """Query que calcula el indicador directo de TOTALIZADO3 para el periodo (AAAAMM)."""
+    return rep.queryConsultaIndicadorTMI(db, id, periodo)
+
+
+@router.get("/indicadores/{id}/resultado-directo/{periodo}")
+async def resultadoDirectoIndicador(id: int, periodo: int, db: Session = Depends(get_db)):
+    """Ejecuta ese query: valor de la fórmula por centro y mes (sin estándares ni exclusiones)."""
+    return rep.queryResultadoDirectoTMI(db, id, periodo)
 
 
 @router.delete("/indicadores/{id}")
@@ -342,8 +392,12 @@ def periodo_calculable() -> str:
 
 
 def se_puede_calcular(periodo: str) -> bool:
+    """Se calcula cualquier periodo hasta el mes anterior (nunca uno futuro). Con TMI_CALCULO_SOLO_PERIODO_ANTERIOR=true,
+    solo el mes anterior."""
     from src.main.core.tmiConfig import TMI_CALCULO_SOLO_PERIODO_ANTERIOR
-    return not TMI_CALCULO_SOLO_PERIODO_ANTERIOR or periodo == periodo_calculable()
+    if TMI_CALCULO_SOLO_PERIODO_ANTERIOR:
+        return periodo == periodo_calculable()
+    return periodo <= periodo_calculable()
 
 
 @router.get("/periodo-calculo")
@@ -360,8 +414,8 @@ async def calcularTMI(periodo: str, db: Session = Depends(get_db)):
     p = _periodo(periodo)
     if not se_puede_calcular(periodo):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Solo se puede calcular el periodo {periodo_calculable()}: {periodo} ya pasó su "
-                                   "fecha de cierre. Su Excel se genera con el resultado guardado.")
+                            detail=f"No se puede calcular {periodo}: el último periodo que se puede calcular es "
+                                   f"{periodo_calculable()}.")
     errores = rep.queryValidarConfigTMI(db)
     if errores:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=errores)
@@ -374,12 +428,15 @@ async def resultadoIndicador(periodo: str, id_indicador: int, db: Session = Depe
 
 
 @router.get("/generar-excel/{periodo}")
-async def generarExcelTMIDinamico(periodo: str, calcular: bool = True, db: Session = Depends(get_db)):
+async def generarExcelTMIDinamico(periodo: str, calcular: bool = True, indicadores: Optional[str] = None,
+                                  db: Session = Depends(get_db)):
+    """Excel del periodo. indicadores = ids separados por coma (1,4,7) para generar solo esas hojas; sin él, todos."""
     try:
+        ids = [int(x) for x in indicadores.split(",") if x.strip()] if indicadores else None
         from src.main.service.excelServ import MESES_NOMBRE
         from src.main.service.excelDinamicoServ import generar_excel_tmi_dinamico
         # los periodos cerrados no se recalculan: el Excel sale del resultado guardado
-        buffer = generar_excel_tmi_dinamico(db, periodo, calcular=calcular and se_puede_calcular(periodo))
+        buffer = generar_excel_tmi_dinamico(db, periodo, calcular=calcular and se_puede_calcular(periodo), ids=ids)
         filename = f"TMI_Prelim_Salud_{MESES_NOMBRE[int(periodo[4:]) - 1].capitalize()}_{periodo[:4]}.xlsx"
         return StreamingResponse(
             buffer,

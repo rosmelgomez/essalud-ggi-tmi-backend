@@ -1,14 +1,31 @@
 """DTOs del TMI dinámico (tablas de src/resources/sql/tmi)."""
 
-from typing import List, Literal, Optional
+import re
+from typing import Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class tmiVariableDto(BaseModel):
+    """El cálculo es de la variable (como en Generar_pivot.sql): todos sus conjuntos se combinan con OR y se
+    calcula SUMA o MEDIANA por servicio. La mediana del periodo como total anual solo aplica a MEDIANA."""
     nombre: str = Field(min_length=1, max_length=200)
     descripcion: Optional[str] = Field(default=None, max_length=200)
+    agregacion: Literal["SUMA", "MEDIANA"] = "SUMA"
     total_anual: Literal["SUMA_MESES", "MEDIANA_PERIODO"] = "SUMA_MESES"
+    activo: bool = True
+
+    @model_validator(mode="after")
+    def _total_segun_calculo(self):
+        if self.agregacion == "SUMA":
+            self.total_anual = "SUMA_MESES"
+        return self
+
+
+class tmiVariableComponenteDto(BaseModel):
+    """Variable compuesta: id_variable suma el valor de id_variable_componente (además de su propia lógica)."""
+    id_variable: int
+    id_variable_componente: int
     activo: bool = True
 
 
@@ -18,7 +35,6 @@ class tmiVariableLogicaDto(BaseModel):
     actividad: int
     servicio: Optional[int] = None
     condicion_hoja: Optional[str] = Field(default=None, max_length=20)
-    agregacion: Literal["SUMA", "MEDIANA"] = "SUMA"
     periodo_desde: int = Field(default=200001, ge=200001, le=999912)
     periodo_hasta: int = Field(default=999912, ge=200001, le=999912)
     activo: bool = True
@@ -31,14 +47,8 @@ class tmiIndicadorDto(BaseModel):
     nombre_hoja: str = Field(min_length=1, max_length=31, pattern=r"^[^\[\]:*?/\\]+$")
     titulo_hoja: Optional[str] = Field(default=None, max_length=200)
     orden: int = 1
-    # La fórmula se arma con bloques (PUT /indicadores/{id}/formula); crear o editar el indicador no la cambia.
-    expr_numerador: Optional[str] = Field(default=None, max_length=200, pattern=r"^[A-Z0-9 ().+*/-]+$")
-    expr_denominador: Optional[str] = Field(default=None, max_length=200, pattern=r"^[A-Z0-9 ().+*/-]+$")
+    # La fórmula se guarda con PUT /indicadores/{id}/formula; crear o editar el indicador no la cambia.
     tipo_calculo: str = "MENSUAL"
-    factor: float = 1
-    den_cero: Literal["CERO", "NA"] = "CERO"
-    num_cero_na: bool = False
-    cero_si_letra_mes_0: bool = False
     sin_datos_anio: Literal["MOSTRAR", "NA", "OCULTAR"] = "NA"
     base_estandar: str = Field(default="TIPO", min_length=1, max_length=30)   # tmi_tipo_estandar.codigo (FK)
     sentido: Literal["MENOR", "MAYOR", "BANDA"] = "MENOR"
@@ -96,19 +106,27 @@ class tmiToleranciaDto(BaseModel):
     tipo_tolerancia: Literal["REL", "ABS"] = "REL"
     tolerancia: float = Field(ge=0, le=100)
     tolerancia_menos: Optional[float] = Field(default=None, ge=0, le=100)
-
-
-class tmiFormulaBloqueDto(BaseModel):
-    """Un bloque de la fórmula: operación con el bloque anterior + variable (la del primer bloque se ignora)."""
-    op: Literal["+", "-", "*", "/"] = "+"
-    id_variable: int
+    tolerancia_fijo: Optional[float] = Field(default=None, ge=0, le=100)
+    tolerancia_menos_fijo: Optional[float] = Field(default=None, ge=0, le=100)
+    anio: Optional[int] = Field(default=None, ge=2000, le=2100)
+    mes: Optional[int] = Field(default=None, ge=1, le=12)
 
 
 class tmiFormulaDto(BaseModel):
-    """Fórmula en bloques. Cada variable recibe una letra automática (A, B, C...) en orden de aparición;
-    la misma variable en numerador y denominador usa la misma letra. Sin denominador = 1."""
-    numerador: List[tmiFormulaBloqueDto] = Field(min_length=1)
-    denominador: List[tmiFormulaBloqueDto] = Field(default_factory=list)
+    """Fórmula del indicador escrita con letras: (A - B) / C, y la variable de cada letra {"A": id_variable}.
+    El backend la expande a términos de TOTALIZADO3 (src/main/core/tmiFormula.py)."""
+    formula_alias: str = Field(min_length=1, max_length=500)
+    variables: Dict[str, int] = Field(default_factory=dict)
+
+    @field_validator("variables")
+    @classmethod
+    def _letras(cls, v: Dict[str, int]) -> Dict[str, int]:
+        malas = [k for k in v if not re.fullmatch(r"[A-Z]", k)]
+        if malas:
+            raise ValueError(f"Letras no válidas: {malas} (solo A-Z)")
+        if len(set(v.values())) < len(v):
+            raise ValueError("Una variable solo puede tener una letra")
+        return v
 
 
 class tmiIndicadorVariableDto(BaseModel):

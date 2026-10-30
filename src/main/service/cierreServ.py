@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from src.main.db.databaseConexion import SessionLocal
-from src.main.repositories import cierreRep, tmiRep
+from src.main.repositories import cierreRep, tmiDinamicoRep, tmiRep
 from src.main.service.tmiServ import calcular_periodo_anterior
 
 logger = logging.getLogger(__name__)
@@ -175,6 +175,12 @@ def ejecutarCierreServ(db: Session, hoy: date | None = None):
             logger.error("Error en cierre %s: %s", periodo, _detalle(e), exc_info=True)
             cierreRep.queryFinalizarCierre(db, cierre["id"], "ERROR", None, _detalle(e))
             resultados.append({"periodo": periodo, "estado": "ERROR", "mensaje": _detalle(e)})
+        # al llegar la fecha de cierre, el mes toma el estándar fijo y el % Acept fijo del año (si aún no tiene valor)
+        try:
+            tmiDinamicoRep.aplicarCierrePeriodoTMI(db, periodo)
+        except Exception as e:
+            db.rollback()
+            logger.error("Cierre %s: no se pudo aplicar el estándar y el %% Acept fijos: %s", periodo, _detalle(e))
     # cada vez que se guardan datos nuevos en las tablas, se actualizan las filas de cada periodo
     _actualizarFilasCierres(db)
     return resultados

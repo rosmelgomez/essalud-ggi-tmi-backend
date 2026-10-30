@@ -30,7 +30,7 @@ SELECT DISTINCT
         WHEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(B.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(B.[202602],0) ELSE 0 END +
-            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +r
+            CASE WHEN @Mes>=3  AND (D.excl_03 = 0 OR D.excl_03 IS NULL) THEN ISNULL(B.[202603],0) ELSE 0 END +
             CASE WHEN @Mes>=4  AND (D.excl_04 = 0 OR D.excl_04 IS NULL) THEN ISNULL(B.[202604],0) ELSE 0 END +
             CASE WHEN @Mes>=5  AND (D.excl_05 = 0 OR D.excl_05 IS NULL) THEN ISNULL(B.[202605],0) ELSE 0 END +
             CASE WHEN @Mes>=6  AND (D.excl_06 = 0 OR D.excl_06 IS NULL) THEN ISNULL(B.[202606],0) ELSE 0 END +
@@ -39,7 +39,7 @@ SELECT DISTINCT
             CASE WHEN @Mes>=10 AND (D.excl_10 = 0 OR D.excl_10 IS NULL) THEN ISNULL(B.[202610],0) ELSE 0 END +
             CASE WHEN @Mes>=11 AND (D.excl_11 = 0 OR D.excl_11 IS NULL) THEN ISNULL(B.[202611],0) ELSE 0 END +
             CASE WHEN @Mes>=12 AND (D.excl_12 = 0 OR D.excl_12 IS NULL) THEN ISNULL(B.[202612],0) ELSE 0 END
-        ) > 0
+        ) <> 0
         THEN (
             CASE WHEN @Mes>=1  AND (D.excl_01 = 0 OR D.excl_01 IS NULL) THEN ISNULL(A.[202601],0) ELSE 0 END +
             CASE WHEN @Mes>=2  AND (D.excl_02 = 0 OR D.excl_02 IS NULL) THEN ISNULL(A.[202602],0) ELSE 0 END +

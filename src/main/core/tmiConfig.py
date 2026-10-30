@@ -46,4 +46,4 @@ TMI_DIM = os.getenv("TMI_DIM", "pentahodevDW.dbo").strip()
 TMI_EJECUTAR_SQL = os.getenv("TMI_EJECUTAR_SQL", "true").lower() in {"1", "true", "yes"}
 # Solo se calcula el periodo anterior al mes actual (hoy 2026-10 -> 202609): los anteriores ya pasaron su
 # fecha de cierre y su Excel se arma con el resultado guardado. false = permite recalcular cualquier periodo.
-TMI_CALCULO_SOLO_PERIODO_ANTERIOR = os.getenv("TMI_CALCULO_SOLO_PERIODO_ANTERIOR", "true").lower() in {"1", "true", "yes"}
+TMI_CALCULO_SOLO_PERIODO_ANTERIOR = os.getenv("TMI_CALCULO_SOLO_PERIODO_ANTERIOR", "false").lower() in {"1", "true", "yes"}
