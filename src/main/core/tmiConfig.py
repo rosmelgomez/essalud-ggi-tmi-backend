@@ -17,9 +17,10 @@ def require_env(name: str, *, min_length: int = 1) -> str:
 # (DB_NAME), nunca en otra; las fuentes (TOTALIZADO3 y DIM_*) solo se leen
 TMI_DB = require_env("DB_NAME")
 # Fuentes del data warehouse (TOTALIZADO3 y DIM_*): vienen del mismo servidor, una sola variable base.esquema
-TMI_DW = os.getenv("pentahodevDW", "pentahodev_dw.dbo").strip()
-TMI_TOTALIZADO3 = f"{TMI_DW}.TOTALIZADO3"
-TMI_DIM = TMI_DW
+DIM = os.getenv("TMI_DIM", "pentahodevDW.dbo").strip()
+TOTALIZADO3 = os.getenv("TMI_TOTALIZADO3", "pentahodev.dbo").strip()
+TMI_TOTALIZADO3 = f"{TOTALIZADO3}.TOTALIZADO3"
+TMI_DIM = f"{DIM}"
 # Ejecutar los scripts SQL al iniciar la aplicación (como ExecuteQuery de essalud-gcpp-backend)
 TMI_EJECUTAR_SQL = os.getenv("TMI_EJECUTAR_SQL", "true").lower() in {"1", "true", "yes"}
 # Solo se calcula el periodo anterior al mes actual (hoy 2026-10 -> 202609): los anteriores ya pasaron su
