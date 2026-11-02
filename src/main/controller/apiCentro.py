@@ -142,11 +142,30 @@ async def queryCreateExclusionCentroEstandar(
             detail="Ocurrió un error al agregar la exclusión de centro estándar.",
         )
 
+@router.put("/update-exclusion-centro-estandar")
+async def queryUpdateExclusionCentroEstandar(
+    dto: tmiExclusionCentroEstandarDto,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' actualizando exclusión de centro estándar en año %s", current_user.get("username"), dto.anio)
+        from src.main.service.centroServ import queryUpdateExclusionCentroEstandarServ
+        return queryUpdateExclusionCentroEstandarServ(db, dto)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al actualizar la exclusión de centro estándar: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al actualizar la exclusión de centro estándar.",
+        )
+
+
 
 @routerDinamico.get("/catalogo/centros")
 async def catalogoCentros(db: Session = Depends(get_db)):
     return centroRep.queryCatalogoCentrosTMI(db)
-
 
 @routerDinamico.get("/centro-estandar/{anio}")
 async def listaCentroEstandar(anio: int, db: Session = Depends(get_db)):
