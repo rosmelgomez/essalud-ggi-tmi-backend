@@ -4,15 +4,16 @@ Se llama al iniciar la aplicación (app.py) y también se puede correr a mano:
 
     python -m src.main.db.sqlRunner
 
-Los scripts son idempotentes: crean tablas, vistas y procedimientos si faltan, y cargan los datos
+Antes de los scripts se crean las tablas que falten desde los modelos (src/main/model/tablas.py).
+Los scripts son idempotentes: crean vistas y procedimientos si faltan, y cargan los datos
 iniciales sin pisar lo que el usuario ya modificó. Separan lotes con GO, como en SSMS.
-Si se borra una tabla, al reiniciar se vuelve a crear y se carga su semilla (SEMILLAS) porque queda vacía.
+Si se borra una tabla, al reiniciar el modelo la vuelve a crear y se carga su semilla (SEMILLAS) porque queda vacía.
 Marcadores que se reemplazan antes de ejecutar:
-    {{TMI_DB}}       base de las tablas tmi_*                 (TMI_DB, por defecto DB_NAME)
-    {{TOTALIZADO3}}  tabla de hechos                          (TMI_TOTALIZADO3)
-    {{DIM}}          base.esquema de DIM_GRUPO / DIM_ACTIVIDAD (TMI_DIM)
+    {{TMI_DB}}       base de todas las tablas del sistema      (la de la conexión: DB_NAME)
+    {{TOTALIZADO3}}  tabla de hechos                          (pentahodevDW + .TOTALIZADO3)
+    {{DIM}}          base.esquema de DIM_GRUPO / DIM_ACTIVIDAD (pentahodevDW)
 TOTALIZADO3 y las DIM pueden estar en otro servidor: se usa un servidor vinculado y nombre de 4 partes en el .env
-(TMI_TOTALIZADO3 = [SRV_DW].pentahodev_dw.dbo.TOTALIZADO3 ; TMI_DIM = [SRV_DW].pentahodev_dw.dbo).
+(pentahodevDW = [SRV_DW].pentahodev_dw.dbo).
 """
 
 import logging
@@ -26,6 +27,7 @@ from sqlalchemy.pool import NullPool
 from src.main.core import tmiFormula
 from src.main.core.tmiConfig import TMI_DB, TMI_DIM, TMI_TOTALIZADO3
 from src.main.db.databaseConexion import SQLALCHEMY_DATABASE_URL
+from src.main.model.tablas import crear_tablas
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,6 @@ SQL_DIR = RESOURCES_DIR / "sql" / "tmi"
 
 # Orden de ejecución
 SQL_SCRIPTS = [
-    "01_tablas.sql",
     "02_vistas_adaptadoras.sql",
     "03_datos.sql",
     "05_variables_pivot.sql",   # variables de Generar_pivot.sql (una sola vez; no pisa cambios del usuario)
@@ -65,8 +66,8 @@ def _validar_nombre(valor: str, variable: str) -> str:
 def _marcadores() -> Dict[str, str]:
     return {
         "{{TMI_DB}}": _validar_nombre(TMI_DB, "TMI_DB"),
-        "{{TOTALIZADO3}}": _validar_nombre(TMI_TOTALIZADO3, "TMI_TOTALIZADO3"),
-        "{{DIM}}": _validar_nombre(TMI_DIM, "TMI_DIM"),
+        "{{TOTALIZADO3}}": _validar_nombre(TMI_TOTALIZADO3, "pentahodevDW"),
+        "{{DIM}}": _validar_nombre(TMI_DIM, "pentahodevDW"),
     }
 
 
@@ -82,6 +83,12 @@ def ejecutar_scripts(scripts: List[str] = None) -> Dict[str, str]:
     """Ejecuta los scripts en orden. Si un lote falla se registra el error, se detiene ese script y se
     sigue con el siguiente (como ExecuteQuery, que no detiene el arranque de la aplicación)."""
     resultado: Dict[str, str] = {}
+    try:
+        crear_tablas()
+        resultado["tablas"] = "OK"
+    except Exception as e:
+        resultado["tablas"] = f"ERROR {e}"
+        logger.error("Error al crear las tablas del TMI desde los modelos: %s", e)
     # Conexión propia (sin pool): el USE no debe quedar en las conexiones que usa la API
     engine = create_engine(SQLALCHEMY_DATABASE_URL, poolclass=NullPool)
     conexion = engine.raw_connection()
@@ -92,7 +99,7 @@ def ejecutar_scripts(scripts: List[str] = None) -> Dict[str, str]:
         cursor = dbapi.cursor()
         cursor.execute(f"USE [{_validar_nombre(TMI_DB, 'TMI_DB').strip('[]')}]")
         # Las fuentes se resuelven recién al ejecutar los procedimientos: se avisa aquí si no existen
-        for variable, objeto in (("TMI_TOTALIZADO3", TMI_TOTALIZADO3), ("TMI_DIM", f"{TMI_DIM}.DIM_GRUPO")):
+        for variable, objeto in (("pentahodevDW", TMI_TOTALIZADO3), ("pentahodevDW", f"{TMI_DIM}.DIM_GRUPO")):
             # se consulta la tabla (OBJECT_ID no ve las tablas de un servidor vinculado)
             try:
                 cursor.execute(f"SELECT TOP 0 1 FROM {_validar_nombre(objeto, variable)}")

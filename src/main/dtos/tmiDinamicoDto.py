@@ -1,7 +1,7 @@
 """DTOs del TMI dinámico (tablas de src/resources/sql/tmi)."""
 
 import re
-from typing import Dict, List, Literal, Optional
+from typing import Dict, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from src.main.core.tmiConfig import require_env
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
@@ -48,7 +48,6 @@ engine = create_engine(
     pool_timeout=int(os.getenv("DB_POOL_TIMEOUT", "30")),
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 
 def get_db():

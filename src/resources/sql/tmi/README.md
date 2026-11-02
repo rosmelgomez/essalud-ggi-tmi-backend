@@ -7,12 +7,12 @@ essalud-gcpp-backend. También se pueden correr a mano:
 python -m src.main.db.sqlRunner
 ```
 
-O con `POST /tmi/dinamico/ejecutar-sql`. Todos los scripts son idempotentes: crean lo que falta y no pisan los
-datos que el usuario ya cambió.
+O con `POST /tmi/dinamico/ejecutar-sql`. Antes de los scripts se crean las tablas que falten desde los modelos de `src/main/model` (como `ddl-auto` de
+Spring Boot). Todos los scripts son idempotentes: crean lo que falta y no pisan los datos que el usuario ya cambió.
 
 | Orden | Script | Contenido |
 |------:|--------|-----------|
-| 1 | `01_tablas.sql` | `tmi_variable`, `tmi_variable_logica`, `tmi_grupo`, `tmi_tipo_calculo`, `tmi_indicador` (+ columnas de cálculo y `formula`), `tmi_indicador_termino`, `tmi_indicador_variable`, `tmi_indicador_ambito`, `tmi_centro_estandar`, `tmi_estandar_acept`, `tmi_exclusion_centro_indicador`, `tmi_variable_pivot`, `tmi_resultado` |
+| 1 | `src/main/model/*.py` | Tablas `tmi_*` y `cierre`: `Base.metadata.create_all` crea las que faltan (no agrega columnas a las que ya existen) |
 | 2 | `02_vistas_adaptadoras.sql` | Vistas `vw_tmi_*` que leen las tablas existentes con sus columnas reales (`est_01` o `estandar_01`, `flag` o `flag_01..12`, `excl_01`…) |
 | 3 | `03_datos.sql` | Datos iniciales: tipos de cálculo, grupos, 37 variables y su lógica, 21 indicadores con su fórmula (`[grupo;actividad#servicio]`), estándares por centro, ámbito de Emergencia |
 | 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `usp_tmi_generar_pivot`, `usp_tmi_calcular` |
@@ -21,20 +21,19 @@ datos que el usuario ya cambió.
 
 | Variable | Por defecto | Uso |
 |----------|-------------|-----|
-| `TMI_DB` | `DB_NAME` | Base donde están las tablas `tmi_*` |
-| `TMI_TOTALIZADO3` | `pentahodev.dbo.TOTALIZADO3` | Tabla de hechos |
-| `TMI_DIM` | `pentahodevDW.dbo` | Base.esquema de `DIM_GRUPO`, `DIM_ACTIVIDAD`, `DIM_HOJA` |
+| (DB_NAME) | — | Base de la conexión: ahí se crean todas las tablas del sistema (`tmi_*`, `cierre`, `cierre_calendario`); no se configura aparte |
+| `pentahodevDW` | `pentahodev_dw.dbo` | Base.esquema del data warehouse: de ahí se leen `TOTALIZADO3` y las `DIM_*` (vienen del mismo servidor) |
 | `TMI_EJECUTAR_SQL` | `true` | `false` = no ejecutar los scripts al iniciar |
 | `TMI_CALCULO_SOLO_PERIODO_ANTERIOR` | `true` | `false` = permite recalcular periodos cerrados |
 
 En la máquina local las fuentes están en `pentahodev_dw`:
-`TMI_TOTALIZADO3=pentahodev_dw.dbo.TOTALIZADO3` y `TMI_DIM=pentahodev_dw.dbo`.
+`pentahodevDW=pentahodev_dw.dbo`.
 
 ### TOTALIZADO3 o las DIM en otro servidor
 
-Las tablas `tmi_*` van en `TMI_DB`. TOTALIZADO3 y las DIM pueden estar en otro servidor SQL Server:
+Todas las tablas del sistema van en la base de la conexión (`DB_NAME`). TOTALIZADO3 y las DIM pueden estar en otro servidor SQL Server:
 
-1. El DBA crea, en el servidor de `TMI_DB`, un servidor vinculado al servidor de TOTALIZADO3 (una sola vez),
+1. El DBA crea, en el servidor de `DB_NAME`, un servidor vinculado al servidor de TOTALIZADO3 (una sola vez),
    con un usuario de solo lectura:
    ```sql
    EXEC sp_addlinkedserver @server = 'SRV_DW', @srvproduct = '', @provider = 'MSOLEDBSQL',
@@ -42,10 +41,9 @@ Las tablas `tmi_*` van en `TMI_DB`. TOTALIZADO3 y las DIM pueden estar en otro s
    EXEC sp_addlinkedsrvlogin @rmtsrvname = 'SRV_DW', @useself = 'FALSE',
         @rmtuser = 'usuario_lectura', @rmtpassword = '****';
    ```
-2. En el `.env` se usa nombre de 4 partes (servidor.base.esquema.tabla):
+2. En el `.env` se usa el nombre con el servidor (servidor.base.esquema):
    ```
-   TMI_TOTALIZADO3 = [SRV_DW].pentahodev_dw.dbo.TOTALIZADO3
-   TMI_DIM = [SRV_DW].pentahodev_dw.dbo
+   pentahodevDW = [SRV_DW].pentahodev_dw.dbo
    ```
 3. Reiniciar el backend (o "Ejecutar scripts" en la pestaña Calcular) para que los procedimientos tomen el nombre nuevo.
 

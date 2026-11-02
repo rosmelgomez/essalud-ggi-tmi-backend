@@ -9,6 +9,12 @@
    Compatible con SQL Server 2008 R2+.
    ===================================================================================================== */
 
+/* ---------- Sinónimo con el nombre anterior de tmi_exclusion_centro_indicador ----------
+   Para las consultas existentes (002/003_TMI_CONSULTAS_VISTA.sql, Pentaho...). La tabla la crea src/main/model. */
+IF OBJECT_ID('dbo.tmi_exclusion_centro_estandar') IS NULL
+    EXEC (N'CREATE SYNONYM dbo.tmi_exclusion_centro_estandar FOR dbo.tmi_exclusion_centro_indicador');
+GO
+
 /* ---------- vw_tmi_std: estándar por TIPO / NIVEL / CATEGORIA en formato común ---------- */
 DECLARE @sql NVARCHAR(MAX) = N'', @t SYSNAME, @fuente VARCHAR(10), @clave SYSNAME, @pre SYSNAME, @id SYSNAME, @cols NVARCHAR(MAX);
 DECLARE @tablas TABLE (tabla SYSNAME, fuente VARCHAR(10), clave SYSNAME);

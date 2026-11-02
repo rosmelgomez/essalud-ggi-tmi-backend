@@ -5,9 +5,10 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.main.controller import apiTmi, apiCierre, apiTmiDinamico
+from src.main.controller import apiCentro, apiCierre, apiEstandar, apiIndicador, apiTmiDinamico, apiVariable
 from src.main.core.tmiConfig import TMI_EJECUTAR_SQL
 from src.main.db.sqlRunner import ejecutar_scripts
+from src.main.model.tablas import crear_tablas
 from src.main.service.cierreServ import tareaCierre
 
 load_dotenv()
@@ -17,10 +18,12 @@ is_production = os.getenv("APP_ENV", "development").strip().lower() == "producti
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # scripts del TMI dinámico (tablas, vistas, datos iniciales y procedimientos), como ExecuteQuery del gcpp
+    # tablas desde src/main/model (como ddl-auto) y scripts del TMI dinámico (datos iniciales, vistas y procedimientos)
     if TMI_EJECUTAR_SQL:
         await asyncio.to_thread(ejecutar_scripts)
-    # crea la tabla cierre, inserta la fecha por defecto y revisa el cierre periódicamente
+    else:
+        await asyncio.to_thread(crear_tablas)
+    # inserta la fecha de cierre por defecto y revisa el cierre periódicamente
     tarea = asyncio.create_task(tareaCierre())
     yield
     tarea.cancel()
@@ -59,7 +62,12 @@ else:
         expose_headers=["Content-Disposition"],  # nombre del Excel descargado
     )
 
-app.include_router(apiTmi.router)
+app.include_router(apiCentro.router)
+app.include_router(apiEstandar.router)
 app.include_router(apiCierre.router)
 app.include_router(apiTmiDinamico.router)
+app.include_router(apiVariable.router)
+app.include_router(apiIndicador.router)
+app.include_router(apiEstandar.routerDinamico)
+app.include_router(apiCentro.routerDinamico)
 

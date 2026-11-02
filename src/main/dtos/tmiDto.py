@@ -1,7 +1,7 @@
 from datetime import date, datetime
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 from xmlrpc.client import boolean
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class _conIndicador(BaseModel):
@@ -17,19 +17,24 @@ class _conIndicador(BaseModel):
             self.id_estandar = self.id_indicador
         return self
 
-class cierreDto(BaseModel):
-    id: int
-    periodo: str
-    fecha_cierre: date
-    estado: str
-    fecha_ejecucion: Optional[datetime] = None
-    filas_insertadas: Optional[int] = None
-    mensaje: Optional[str] = None
-    fecha_creacion: Optional[datetime] = None
-    usuario_modifica: Optional[str] = None
+_Dia = Optional[Annotated[int, Field(ge=1, le=31)]]
 
-class cierreUpdateDto(BaseModel):
-    fecha_cierre: date
+
+class cierreCalendarioDto(BaseModel):
+    """Día de cierre de cada periodo del año: dia_fijo para todos; dia_MM solo donde ese periodo se cierra otro día."""
+    dia_fijo: Annotated[int, Field(ge=1, le=31)]
+    dia_01: _Dia = None
+    dia_02: _Dia = None
+    dia_03: _Dia = None
+    dia_04: _Dia = None
+    dia_05: _Dia = None
+    dia_06: _Dia = None
+    dia_07: _Dia = None
+    dia_08: _Dia = None
+    dia_09: _Dia = None
+    dia_10: _Dia = None
+    dia_11: _Dia = None
+    dia_12: _Dia = None
 
 class tmiEstandarDto(BaseModel):
     id: Optional[int] = None

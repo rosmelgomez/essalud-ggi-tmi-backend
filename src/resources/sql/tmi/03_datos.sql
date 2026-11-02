@@ -10,87 +10,12 @@ IF NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_calculo WHERE codigo = 'ACUMULADO')
     INSERT INTO dbo.tmi_tipo_calculo (codigo, descripcion) VALUES ('ACUMULADO', 'Cada letra toma la suma de enero al mes n');
 GO
 
-/* ---------- Grupos (= DIM_GRUPO; orden = orden de las secciones del reporte) ---------- */
-SET IDENTITY_INSERT dbo.tmi_grupo ON;
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 1) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (1, 'Consulta Externa', 1, 1);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 3) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (3, 'Hospitalización', 1, 2);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 2) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (2, 'Partos', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 6) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (6, 'Intervenciones Quirúrgicas', 1, 3);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 7) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (7, 'Trasplante de Órganos', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 8) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (8, 'Emergencias', 1, 4);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 9) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (9, 'Actividades Intermedias', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 10) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (10, 'Medicina Física', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 11) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (11, 'Diálisis', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 12) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (12, 'Procedimientos Especiales', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 13) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (13, 'Atenciones Tópico C.E.', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 14) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (14, 'Programas Externos', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 15) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (15, 'Vacunas', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 16) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (16, 'Historias Clínicas', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 17) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (17, 'Referencias', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 18) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (18, 'Satep', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 19) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (19, 'Serv. Odontología', 1, 5);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 20) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (20, 'Serv. Psicología', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 21) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (21, 'Serv. Obstetricia', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 22) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (22, 'Aten. Enfermería', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 23) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (23, 'Personal', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 24) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (24, '(CRIP) Pacientes Crónicos', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 25) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (25, 'MAR', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 26) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (26, 'CAI', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 27) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (27, 'Cons. Apoyo Desc (Itinerante)', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 28) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (28, 'Padomi', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 29) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (29, 'U.C.I.', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 30) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (30, 'Cuidados Intermedios', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 31) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (31, 'Vigilancia Intensiva', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 32) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (32, 'SCTR', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 33) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (33, 'Chequeos', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 34) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (34, 'Controles', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 35) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (35, 'Otros Servicios de Salud', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 36) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (36, 'Control Post Hosp. Domicilio', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 37) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (37, 'Medicina Complementaria', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 38) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (38, 'Banco de Órganos', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 39) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (39, 'Banco de Sangre', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 40) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (40, 'Tratamientos Especializados', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 41) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (41, 'Servicios Contratados', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 42) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (42, 'Contrareferencias', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 43) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (43, 'Atenciones no médicas', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 44) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (44, 'Diagnósticos Resueltos', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 45) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (45, 'Persona Atendida', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 46) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (46, 'Procura de Órganos', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 47) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (47, 'Promoción de la Salud', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 48) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (48, 'Campaña de Promoción de la Salud', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 49) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (49, 'Intervención de Salud Ocupacional', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 50) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (50, 'Consulta de Atención Inmediata', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 52) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (52, 'Otras Variables de Gestión', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 53) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (53, 'Atención Primaria - Salud Individual', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 54) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (54, 'Atención Primaria - Salud Colectiva', 1, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 55) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (55, 'Servicios de Salud Colectiva', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 56) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (56, 'Terapias', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 57) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (57, 'Atención Domiciliaria', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 58) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (58, 'Teleconsultas', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 59) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (59, 'Telemonitoreo', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 60) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (60, 'Teleorientación', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 61) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (61, 'Teleinterconsultas', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 62) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (62, 'COVID-19- Consulta Externa', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 63) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (63, 'COVID-19- Hospitalización', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 64) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (64, 'COVID-19 - UCI', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 65) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (65, 'COVID-19 - Cuidados Intermedios', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 66) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (66, 'COVID-19 - Emergencia', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 67) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (67, 'COVID-19 - Actividades Intermedias', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 68) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (68, 'COVID-19 - Atenciones no Médicas', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 69) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (69, 'COVID-19 - Consulta de Atención Inmediata', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 70) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (70, 'COVID-19 - Atención Primaria Colectiva', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 71) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (71, 'COVID-19 - Telemonitoreo', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 72) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (72, 'COVID-19 - Teleorientación', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 73) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (73, 'Villa Essalud', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 74) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (74, 'Telemedicina - MEC', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 75) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (75, 'SALOG', 0, NULL);
-IF NOT EXISTS (SELECT 1 FROM dbo.tmi_grupo WHERE id = 76) INSERT INTO dbo.tmi_grupo (id, descripcion, visible, orden) VALUES (76, 'Teletaller', 0, NULL);
-SET IDENTITY_INSERT dbo.tmi_grupo OFF;
-UPDATE dbo.tmi_grupo SET orden = 1 WHERE id = 1 AND orden IS NULL;
-UPDATE dbo.tmi_grupo SET orden = 2 WHERE id = 3 AND orden IS NULL;
-UPDATE dbo.tmi_grupo SET orden = 3 WHERE id = 6 AND orden IS NULL;
-UPDATE dbo.tmi_grupo SET orden = 4 WHERE id = 8 AND orden IS NULL;
-UPDATE dbo.tmi_grupo SET orden = 5 WHERE id = 19 AND orden IS NULL;
+/* ---------- Secciones del reporte: se leen de DIM_GRUPO (tmi_indicador.grupo = DIM_GRUPO.tipgrupo) ---------- */
+-- bases creadas antes: quita la FK de tmi_indicador.grupo hacia tmi_grupo (la tabla ya no se usa)
+DECLARE @fk_grupo sysname = (SELECT TOP 1 name FROM sys.foreign_keys
+                             WHERE parent_object_id = OBJECT_ID('dbo.tmi_indicador')
+                               AND referenced_object_id = OBJECT_ID('dbo.tmi_grupo'));
+IF @fk_grupo IS NOT NULL EXEC('ALTER TABLE dbo.tmi_indicador DROP CONSTRAINT ' + @fk_grupo);
 GO
 
 /* ---------- Variables y su lógica (grupo / actividad / servicio de TOTALIZADO3) ---------- */

@@ -2,12 +2,12 @@ import base64
 import logging
 import os
 import time
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import warnings
 import jwt
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import HTTPException, Request, status
 
 warnings.filterwarnings("ignore", category=jwt.InsecureKeyLengthWarning)
 
@@ -137,16 +137,5 @@ def _avisar_diferencia_reloj(token: str, tipo: str) -> None:
         pass
 
 
-def require_role(required_role: str):
-    """
-    Dependencia para requerir un rol específico (e.g. 'ADMIN', 'ADMIN_RED', 'USER').
-    """
-    def role_checker(current_user: Dict = Depends(get_current_user)):
-        roles = current_user.get("authorities", [])
-        if required_role not in roles and "ADMIN" not in roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permiso denegado: requiere el rol '{required_role}'.",
-            )
-        return current_user
-    return role_checker
+def nombre_usuario(current_user: dict) -> str:
+    return (current_user or {}).get("username")

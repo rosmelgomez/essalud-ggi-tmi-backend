@@ -23,9 +23,9 @@ from openpyxl.drawing.image import Image
 from openpyxl.formatting.rule import Rule
 from sqlalchemy.orm import Session
 
+from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
 from src.main.repositories.tmiDinamicoRep import (
     queryCalcularTMI,
-    queryIndicadoresActivosTMI,
     queryResultadoFinalTMI,
     queryResultadoTMI,
 )
@@ -83,6 +83,13 @@ def _copiar_fila(origen, destino, fila_origen: int, fila_destino: int, ultima_co
     altura = origen.row_dimensions[fila_origen].height
     if altura:
         destino.row_dimensions[fila_destino].height = altura
+
+
+def reiniciar_filas(ws, desde: int) -> None:
+    """Quita alto, ocultamiento y agrupación de las filas >= desde. delete_rows/limpiar no mueven row_dimensions:
+    las filas ocultas y agrupadas de la plantilla quedaban sobre otros centros (se veían menos y mal agrupados)."""
+    for r in [r for r in ws.row_dimensions if r >= desde]:
+        del ws.row_dimensions[r]
 
 
 def _copiar_imagenes(origen, destino) -> None:
@@ -167,6 +174,7 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
     # filas de la plantilla copiada: se rehacen desde la fila de datos
     if ws.max_row >= FILA_DATOS:
         ws.delete_rows(FILA_DATOS, ws.max_row - FILA_DATOS + 1)
+    reiniciar_filas(ws, FILA_DATOS)
 
     por_red: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for c in centros:
@@ -200,6 +208,10 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
             ws.cell(fila, COL_MARCA, value="=")
             ws.cell(fila, COL_COD, value=c["codcentro"])
             ws.cell(fila, COL_CENTRO, value=c["centro"])
+            if es_red:   # centros agrupados bajo la fila de su red (resumen arriba)
+                ws.row_dimensions[fila].outline_level = 1
+            if p == NA:  # centro NA: queda en el Excel pero oculto
+                ws.row_dimensions[fila].hidden = True
             if fila_na:
                 for col in (COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT):
                     ws.cell(fila, col, value=NA)
@@ -229,6 +241,9 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
                      for i in range(12)]
             ws.cell(fila_red, COL_PUNTAJE, value=p_red)
             puntajes_red[red] = {"p": p_red, "m": m_red}
+        if all(puntajes_centro[c["codcentro"]]["p"] == NA for c in miembros):
+            for f in range(fila_red, fila + 1):   # red sin ningún centro con puntaje: red y fila en blanco ocultas
+                ws.row_dimensions[f].hidden = True
         fila += 1   # fila en blanco entre redes
 
     # TOTAL NACIONAL = promedio de las redes, sin las redes "- APP"
@@ -305,7 +320,8 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
                 continue
             datos_red = [r["redes"].get(red, {"p": NA, "m": [NA] * 12}) for r in resultados]
             fila_red = {"tipo_fila": "RED", "codcentro": None, "nombre": red, "nivel": None, "tipo": None,
-                        "puntajes": [d["p"] for d in datos_red], "mensuales": [d["m"] for d in datos_red]}
+                        "puntajes": [d["p"] for d in datos_red], "mensuales": [d["m"] for d in datos_red],
+                        "oculto": all(d["p"] == NA for d in datos_red)}
             filas_centro.append(fila_red)
             filas_red.append(dict(fila_red))
         for c in (c for c in centros if (c["red"] or "") == red):
@@ -314,8 +330,9 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
                 continue
             datos = [d or {"p": NA, "m": [NA] * 12} for d in datos]
             fila = {"tipo_fila": "CENTRO", "codcentro": c["codcentro"], "nombre": c["centro"],
-                    "nivel": c["nivel"], "tipo": c["categoria"],
-                    "puntajes": [d["p"] for d in datos], "mensuales": [d["m"] for d in datos]}
+                    "nivel": c["nivel"], "tipo": c["categoria"], "agrupar": _es_red(red),
+                    "puntajes": [d["p"] for d in datos], "mensuales": [d["m"] for d in datos],
+                    "oculto": all(d["p"] == NA for d in datos)}   # NA en todos los indicadores: fila oculta
             filas_centro.append(fila)
             if not _es_red(red):   # institutos: en Puntajes_RED van como fila propia
                 filas_red.append(dict(fila, tipo_fila="RED"))

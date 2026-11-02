@@ -1,54 +1,25 @@
-import os
-import re
 from datetime import date
 
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-# Tabla de cierre (base.esquema.tabla). Configurable por .env
-CIERRE_TABLA = os.getenv("CIERRE_TABLA", "pentahodev_prueba_01.dbo.cierre").strip()
-if not re.fullmatch(r"[A-Za-z0-9_]+(\.[A-Za-z0-9_]+){0,2}", CIERRE_TABLA):
-    raise RuntimeError("CIERRE_TABLA tiene un formato inválido")
+from src.main.repositories.tmiBaseRep import name_server
+
+# Tablas del cierre: en la misma base que las tablas tmi_* (TMI_DB)
+CIERRE_TABLA = f"{name_server}.cierre"
+# Calendario de cierre por año
+CALENDARIO_TABLA = f"{name_server}.cierre_calendario"
+COLS_DIAS = ", ".join(f"dia_{m:02d}" for m in range(1, 13))
 
 # Tablas que se copian del periodo anterior en el cierre (solo lectura aquí)
 TABLAS_CIERRE = {
-    #"tmi_centro": "pentahodev_prueba_01.dbo.tmi_centro",
-    #"tmi_estandar_tipo": "pentahodev_prueba_01.dbo.tmi_estandar_tipo",
-    #"tmi_estandar_nivel": "pentahodev_prueba_01.dbo.tmi_estandar_nivel",
+    #"tmi_centro": f"{name_server}.tmi_centro",
+    #"tmi_estandar_tipo": f"{name_server}.tmi_estandar_tipo",
+    #"tmi_estandar_nivel": f"{name_server}.tmi_estandar_nivel",
     # desactivado por ahora: tmi_estandar_categoria aún no tiene datos
-    # "tmi_estandar_categoria": "pentahodev_prueba_01.dbo.tmi_estandar_categoria",
+    # "tmi_estandar_categoria": f"{name_server}.tmi_estandar_categoria",
 }
-
-
-### crear tabla cierre si no existe
-def queryCrearTablaCierre(db: Session):
-    query = f"""
-    IF OBJECT_ID('{CIERRE_TABLA}', 'U') IS NULL
-    BEGIN
-        CREATE TABLE {CIERRE_TABLA} (
-            id               INT IDENTITY(1,1) PRIMARY KEY,
-            periodo          CHAR(6)        NOT NULL,
-            fecha_cierre     DATE           NOT NULL,
-            estado           VARCHAR(20)    NOT NULL CONSTRAINT DF_cierre_estado DEFAULT 'PENDIENTE',
-            fecha_ejecucion  DATETIME2      NULL,
-            filas_insertadas INT            NULL,
-            mensaje          NVARCHAR(4000) NULL,
-            fecha_creacion   DATETIME2      NOT NULL CONSTRAINT DF_cierre_fecha_creacion DEFAULT SYSDATETIME(),
-            usuario_modifica VARCHAR(100)   NULL,
-            CONSTRAINT UQ_cierre_periodo UNIQUE (periodo),
-            CONSTRAINT CK_cierre_estado CHECK (estado IN ('PENDIENTE','EN_PROCESO','EJECUTADO','ERROR'))
-        )
-    END
-    """
-    try:
-        db.execute(text(query))
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        # otro worker la creó al mismo tiempo (error 2714: el objeto ya existe)
-        if "2714" not in str(e):
-            raise
 
 
 ### insertar fecha de cierre por defecto del periodo si no existe
@@ -80,19 +51,71 @@ def queryListaCierre(db: Session):
     return [dict(row) for row in result.mappings()]
 
 
-### actualizar fecha de cierre (no se permite si ya se ejecutó)
-def queryUpdateFechaCierre(db: Session, periodo: str, fecha_cierre: date, usuario: str | None):
+### reprogramar la fecha de un cierre que aún no se ejecutó (el calendario cambió)
+def queryReprogramarCierre(db: Session, periodo: str, fecha_cierre: date, usuario: str | None) -> int:
     query = f"""
     UPDATE {CIERRE_TABLA}
        SET fecha_cierre = :fecha_cierre,
            estado = 'PENDIENTE',
            mensaje = NULL,
            usuario_modifica = :usuario
-     WHERE periodo = :periodo AND estado <> 'EJECUTADO'
+     WHERE periodo = :periodo AND estado IN ('PENDIENTE', 'ERROR') AND fecha_cierre <> :fecha_cierre
     """
     result = db.execute(text(query), {"periodo": periodo, "fecha_cierre": fecha_cierre, "usuario": usuario})
     db.commit()
     return result.rowcount
+
+
+### hay cierres pendientes cuya fecha ya llegó
+def queryHayCierresPorEjecutar(db: Session, hoy: date) -> bool:
+    query = f"SELECT COUNT(1) FROM {CIERRE_TABLA} WHERE estado = 'PENDIENTE' AND fecha_cierre <= :hoy"
+    return (db.execute(text(query), {"hoy": hoy}).scalar() or 0) > 0
+
+
+### calendario de cierre: todos los años o uno
+def queryCalendario(db: Session, anio: int | None = None):
+    query = f"""
+    SELECT id, anio, dia_fijo, {COLS_DIAS}, fecha_modificacion, usuario_modifica
+    FROM {CALENDARIO_TABLA}
+    {"WHERE anio = :anio" if anio is not None else ""}
+    ORDER BY anio DESC
+    """
+    result = db.execute(text(query), {"anio": anio})
+    return [dict(row) for row in result.mappings()]
+
+
+### crea el calendario del año si no existe: el día general del año anterior o el día por defecto
+def queryAsegurarCalendario(db: Session, anio: int, dia_defecto: int) -> bool:
+    query = f"""
+    INSERT INTO {CALENDARIO_TABLA} (anio, dia_fijo)
+    SELECT :anio, COALESCE((SELECT dia_fijo FROM {CALENDARIO_TABLA} WHERE anio = :anio - 1), :dia)
+    WHERE NOT EXISTS (SELECT 1 FROM {CALENDARIO_TABLA} WHERE anio = :anio)
+    """
+    try:
+        result = db.execute(text(query), {"anio": anio, "dia": dia_defecto})
+        db.commit()
+        return result.rowcount > 0
+    except IntegrityError:
+        db.rollback()
+        return False
+
+
+### guardar el calendario del año (día general y día de cada periodo)
+def queryGuardarCalendario(db: Session, anio: int, dia_fijo: int, dias: dict[str, int | None], usuario: str | None):
+    params = {"anio": anio, "dia_fijo": dia_fijo, "usuario": usuario, **dias}
+    sets = ", ".join(f"{c} = :{c}" for c in dias)
+    result = db.execute(text(f"""
+    UPDATE {CALENDARIO_TABLA}
+       SET dia_fijo = :dia_fijo, {sets}, usuario_modifica = :usuario, fecha_modificacion = SYSDATETIME()
+     WHERE anio = :anio
+    """), params)
+    if result.rowcount == 0:
+        cols = ", ".join(dias)
+        db.execute(text(f"""
+        INSERT INTO {CALENDARIO_TABLA} (anio, dia_fijo, {cols}, usuario_modifica)
+        VALUES (:anio, :dia_fijo, {", ".join(":" + c for c in dias)}, :usuario)
+        """), params)
+    db.commit()
 
 
 ### tomar los cierres cuya fecha ya llegó o ya pasó, de cualquier periodo (solo un worker los obtiene)

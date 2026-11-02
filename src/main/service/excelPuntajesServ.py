@@ -47,7 +47,7 @@ def _es_num(valor: Any) -> bool:
 
 
 def calcular_totales(puntajes: List[Any], mensuales: List[List[Any]], mes: int) -> List[float]:
-    """[cantidad, total, máximo, %, puntaje/20] + 12 notas mensuales (misma regla que excelServ)."""
+    """[cantidad, total, máximo, %, puntaje/20] + 12 notas mensuales."""
     nums = [_num(p) for p in puntajes if _es_num(p)]
     cantidad, total = len(nums), sum(nums)
     maximo = cantidad * 5
@@ -195,6 +195,8 @@ def llenar_puntajes(wb, nombre_modelo: str, nombre_hoja: str, indicadores: List[
     for r in range(FILA_DATOS, max_row + 1):
         for c in range(1, max_col + 1):
             _limpiar(ws.cell(r, c))
+    for fr in [fr for fr in ws.row_dimensions if fr >= FILA_DATOS]:   # ocultas/agrupadas de la plantilla
+        del ws.row_dimensions[fr]
 
     fila_modelo_centro = FILA_MODELO_CENTRO if por_centro else FILA_MODELO_RED
     r = FILA_DATOS
@@ -202,13 +204,19 @@ def llenar_puntajes(wb, nombre_modelo: str, nombre_hoja: str, indicadores: List[
     for fila in filas:
         es_red = str(fila.get("tipo_fila", "")).upper() == "RED"
         if por_centro and es_red and anterior == "CENTRO":
+            if fila.get("oculto"):
+                ws.row_dimensions[r].hidden = True
             r += 1  # fila en blanco antes de la siguiente red
-        rm = FILA_MODELO_RED if es_red else fila_modelo_centro
+        rm =FILA_MODELO_RED if es_red else fila_modelo_centro
         for c in range(1, ultima + 1):
             _copiar_estilo(modelo.cell(rm, col_modelo(c)), ws.cell(r, c))
         altura = modelo.row_dimensions[rm].height
         if altura is not None:
             ws.row_dimensions[r].height = altura
+        if por_centro and not es_red and fila.get("agrupar"):   # centro agrupado bajo la fila de su red
+            ws.row_dimensions[r].outline_level = 1
+        if fila.get("oculto"):   # NA en todos los indicadores: queda en la hoja pero oculta
+            ws.row_dimensions[r].hidden = True
 
         ws.cell(r, col_nombre, value=fila.get("nombre"))
         if por_centro and not es_red:
