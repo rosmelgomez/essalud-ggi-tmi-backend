@@ -9,7 +9,12 @@ import jwt
 from dotenv import load_dotenv
 from fastapi import HTTPException, Request, status
 
-warnings.filterwarnings("ignore", category=jwt.InsecureKeyLengthWarning)
+# InsecureKeyLengthWarning solo existe en versiones recientes de PyJWT
+_insecure_key_warning = getattr(jwt, "InsecureKeyLengthWarning", None) or getattr(
+    getattr(jwt, "warnings", None), "InsecureKeyLengthWarning", None
+)
+if _insecure_key_warning is not None:
+    warnings.filterwarnings("ignore", category=_insecure_key_warning)
 
 load_dotenv()
 
