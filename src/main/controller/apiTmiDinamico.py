@@ -122,6 +122,16 @@ def resultadoIndicador(periodo: str, id_indicador: int, db: Session = Depends(ge
     return tmiDinamicoRep.queryResultadoIndicadorTMI(db, _periodo(periodo), id_indicador)
 
 
+@router.get("/dashboard/{periodo}")
+def dashboardTMI(periodo: str, db: Session = Depends(get_db)):
+    """Datos del dashboard: resultado final guardado del periodo, con los puntajes calculados como en el Excel."""
+    from src.main.service.dashboardServ import dashboard_tmi
+    try:
+        return dashboard_tmi(db, periodo)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
 @router.get("/generar-excel/{periodo}")
 def generarExcelTMIDinamico(periodo: str, calcular: bool = True, indicadores: Optional[str] = None,
                             db: Session = Depends(get_db)):

@@ -116,6 +116,19 @@ def queryResultadoFinalTMI(db: Session, periodo: int):
         ORDER BY orden_red, orden, codcentro""", {"periodo": periodo})
 
 
+def queryCentrosActivosTMI(db: Session, periodo: int):
+    """Códigos de los centros activos en el mes del periodo (flag del mes = 1 en tmi_centro), con la misma regla de
+    año que usp_tmi_calcular: los del año o, si el año no tiene centros, los sin año."""
+    anio, mes = periodo // 100, periodo % 100
+    filas = _consulta(db, f"""
+        SELECT DISTINCT c.codcentro
+        FROM {name_server}.vw_tmi_centro_base c
+        WHERE (c.anio = :anio OR (c.anio IS NULL AND NOT EXISTS (
+                   SELECT 1 FROM {name_server}.vw_tmi_centro_base x WHERE x.anio = :anio)))
+          AND c.codcentro IS NOT NULL AND c.f{mes:02d} = 1""", {"anio": anio})
+    return {r["codcentro"] for r in filas}
+
+
 def queryPeriodosResultadoTMI(db: Session):
     """Periodos que tienen resultado final guardado, del más reciente al más antiguo."""
     return _consulta(db, f"""
