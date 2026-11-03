@@ -86,7 +86,6 @@ LEFT OUTER JOIN A ON CEN.codcentro = A.codcentro
 LEFT OUTER JOIN B ON CEN.codcentro = B.codcentro
 LEFT OUTER JOIN (        
 SELECT cen.id,
-       g.desctipgrupo AS tipo_indicador,
        est.indicador,
        CASE @Mes
          WHEN 1  THEN en.est_01
@@ -107,7 +106,7 @@ SELECT cen.id,
        exc.excl_07, exc.excl_08, exc.excl_09, exc.excl_10, exc.excl_11, exc.excl_12
 FROM pentahodev_prueba.dbo.tmi_estandar_nivel en
 JOIN pentahodev_prueba.dbo.tmi_indicador est ON est.id = en.id_indicador
-LEFT JOIN [pentahodevDW].[dbo].[DIM_GRUPO] g  ON g.id = est.grupo
+
 JOIN pentahodev_prueba.dbo.tmi_centro cen    ON cen.nivel = en.nivel_centro
 LEFT JOIN pentahodev_prueba.dbo.tmi_exclusion_centro_estandar exc
        ON exc.id_centro = cen.id AND exc.anio = @Anio

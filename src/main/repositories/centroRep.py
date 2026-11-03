@@ -179,19 +179,29 @@ def _params_exclusion(db: Session, dto) -> tuple:
         cols["resultado"] = "ISNULL(:resultado, 'NA')"
     for k in ("codcentro", "motivo", "id", "resultado"):
         params.setdefault(k, None)
+    params.pop("ids_indicador", None)
     return params, cols, col
 
 
 def queryInsertExclusionCentroEstandar(db: Session, dto:tmiExclusionCentroEstandarDto):
+    """ids_indicador con valores: un registro por indicador; si el centro ya tiene exclusión de ese indicador en el año,
+    se actualiza en lugar de duplicarla. Sin ids_indicador: un solo registro con id_indicador (NULL = todos)."""
     try:
-        params, cols, _ = _params_exclusion(db, dto)
+        params, cols, col = _params_exclusion(db, dto)
+        ids = list(dict.fromkeys(dto.ids_indicador or [])) or [params["id_indicador"]]
+        sets = ", ".join(f"{c} = {v}" for c, v in cols.items())
         query = f"""
-        INSERT INTO {name_server}.tmi_exclusion_centro_indicador ({', '.join(cols)})
-        VALUES ({', '.join(cols.values())})
+        UPDATE {name_server}.tmi_exclusion_centro_indicador SET {sets}
+        WHERE id_centro = :id_centro AND anio = :anio
+          AND ({col} = :id_indicador OR ({col} IS NULL AND :id_indicador IS NULL));
+        IF @@ROWCOUNT = 0
+            INSERT INTO {name_server}.tmi_exclusion_centro_indicador ({', '.join(cols)})
+            VALUES ({', '.join(cols.values())});
         """
-        result = db.execute(text(query), params)
+        for id_indicador in ids:
+            db.execute(text(query), {**params, "id_indicador": id_indicador, "id_estandar": id_indicador})
         db.commit()
-        return {"message": "Exclusión de centro por indicador guardada correctamente", "rows_inserted": result.rowcount}
+        return {"message": f"Exclusión de centro guardada correctamente para {len(ids)} indicador(es)", "rows_inserted": len(ids)}
     except HTTPException:
         raise
     except Exception as e:

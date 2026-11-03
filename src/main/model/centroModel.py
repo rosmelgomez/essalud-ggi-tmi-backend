@@ -20,7 +20,7 @@ class TmiCentro(Base):
     categoria = Column(String(50))
     nivel = Column(String(50))
     tipo = Column(String(50))
-    flag = Column(BIT)                                         # 0 = el centro no se muestra
+    flag = Column(BIT)                                   
 
 
 class TmiCentroEstandar(_EstandarMensual, Base):

@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from src.main.core.security import get_current_user
+from src.main.security.jwtRequestFilter import get_current_user
 from src.main.db.databaseConexion import get_db
 from src.main.dtos.tmiDinamicoDto import tmiCentroEstandarDto
 from src.main.dtos.tmiDto import tmiCentroDto, tmiExclusionCentroEstandarDto

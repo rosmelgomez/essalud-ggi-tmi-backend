@@ -46,6 +46,7 @@ SQL_SCRIPTS = [
 # Van después de 03_datos.sql porque los estándares referencian a tmi_indicador.
 SEMILLAS = [
     ("tmi_centro", "centro/insert_centros_tmi.sql"),
+    ("tmi_exclusion_centro_indicador", "centro/insert_exclusiones_centro.sql"),   # después de tmi_centro: toma su id
     ("tmi_estandar_tipo", "estandares/insert_estandares_tipo.sql"),
     ("tmi_estandar_nivel", "estandares/insert_estandares_nivel.sql"),
 ]

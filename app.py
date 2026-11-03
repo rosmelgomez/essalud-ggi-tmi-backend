@@ -4,10 +4,10 @@ import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from src.main.controller import apiCentro, apiCierre, apiEstandar, apiIndicador, apiTmiDinamico, apiVariable
 from src.main.core.tmiConfig import TMI_EJECUTAR_SQL
 from src.main.db.sqlRunner import ejecutar_scripts
+from src.main.security.webSecurityConfig import configurar_cors
 from src.main.model.tablas import crear_tablas
 from src.main.service.cierreServ import tareaCierre
 
@@ -41,26 +41,7 @@ app = FastAPI(
 )
 
 
-cors_origins_env = os.getenv("CORS_ORIGINS")
-if cors_origins_env:
-    origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["Content-Disposition"],  # nombre del Excel descargado
-    )
-else:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origin_regex=r"https?://.*",
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["Content-Disposition"],  # nombre del Excel descargado
-    )
+configurar_cors(app)
 
 app.include_router(apiCentro.router)
 app.include_router(apiEstandar.router)

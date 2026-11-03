@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from src.main.core.security import get_current_user
+from src.main.security.jwtRequestFilter import get_current_user
 from src.main.db.databaseConexion import get_db
 from src.main.repositories import tmiDinamicoRep
 
@@ -120,6 +120,12 @@ def calcularTMI(periodo: str, db: Session = Depends(get_db)):
 @router.get("/resultado/{periodo}/{id_indicador}")
 def resultadoIndicador(periodo: str, id_indicador: int, db: Session = Depends(get_db)):
     return tmiDinamicoRep.queryResultadoIndicadorTMI(db, _periodo(periodo), id_indicador)
+
+
+@router.get("/dashboard/periodos")
+def periodosDashboardTMI(db: Session = Depends(get_db)):
+    """Periodos con resultado guardado para el dashboard (pública, como /dashboard/{periodo})."""
+    return tmiDinamicoRep.queryPeriodosResultadoTMI(db)
 
 
 @router.get("/dashboard/{periodo}")

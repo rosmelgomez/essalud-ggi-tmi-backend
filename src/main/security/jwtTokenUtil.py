@@ -1,13 +1,15 @@
+"""Lectura y validación del JWT que emite essalud-gcpp-backend (este backend no genera ni renueva tokens)."""
+
 import base64
 import logging
 import os
 import time
-from typing import Dict, Optional
+from typing import Dict
 
 import warnings
 import jwt
 from dotenv import load_dotenv
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, status
 
 # InsecureKeyLengthWarning solo existe en versiones recientes de PyJWT
 _insecure_key_warning = getattr(jwt, "InsecureKeyLengthWarning", None) or getattr(
@@ -46,31 +48,7 @@ ACCESS_COOKIE_NAME = os.getenv("JWT_ACCESS_COOKIE_NAME", "access_token")
 JWT_LEEWAY_SECONDS = int(os.getenv("JWT_LEEWAY_SECONDS", "120"))
 
 
-def get_current_user(request: Request) -> Dict:
-    """
-    Valida el access_token que emite essalud-gcpp-backend: cookie 'access_token' (Angular con withCredentials)
-    o cabecera 'Authorization: Bearer <token>'. Este backend no genera ni renueva tokens: si venció, responde 401
-    y el frontend lo renueva en essalud-gcpp-backend y repite la petición.
-    """
-    token: Optional[str] = request.cookies.get(ACCESS_COOKIE_NAME)
-
-    if not token and "Authorization" in request.headers:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:].strip()
-        elif auth_header:
-            token = auth_header.strip()
-
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Acceso no autorizado: No se encontró sesión activa.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return _usuario_desde_token(token, RAW_SECRET_KEY, "access")
-
-
-def _usuario_desde_token(token: str, clave: bytes, tipo_esperado: str) -> Dict:
+def usuario_desde_token(token: str, clave: bytes = RAW_SECRET_KEY, tipo_esperado: str = "access") -> Dict:
     try:
         payload = jwt.decode(
             token,
@@ -140,7 +118,3 @@ def _avisar_diferencia_reloj(token: str, tipo: str) -> None:
         )
     except Exception:
         pass
-
-
-def nombre_usuario(current_user: dict) -> str:
-    return (current_user or {}).get("username")
