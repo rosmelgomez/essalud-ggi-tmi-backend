@@ -79,7 +79,8 @@ IF EXISTS (SELECT 1 FROM #excl GROUP BY codcentro, ISNULL(id_indicador, -1) HAVI
 BEGIN
     SELECT codcentro, id_indicador, 2026 AS anio, COUNT(*) AS veces
     FROM #excl GROUP BY codcentro, id_indicador HAVING COUNT(*) > 1;
-    THROW 50011, 'Centro con el mismo indicador repetido en el año 2026. No se cargó nada.', 1;
+    RAISERROR('Centro con el mismo indicador repetido en el año 2026. No se cargó nada.', 16, 1);
+    RETURN;
 END;
 
 -- Validación 2: el centro debe existir en tmi_centro
@@ -88,7 +89,8 @@ IF EXISTS (SELECT 1 FROM #excl x
 BEGIN
     SELECT x.codcentro, x.id_indicador FROM #excl x
     WHERE NOT EXISTS (SELECT 1 FROM tmi_centro c WHERE LTRIM(RTRIM(c.codcentro)) = x.codcentro);
-    THROW 50012, 'Hay codcentro que no existen en tmi_centro. No se cargó nada.', 1;
+    RAISERROR('Hay codcentro que no existen en tmi_centro. No se cargó nada.', 16, 1);
+    RETURN;
 END;
 
 -- Validación 3: la tabla ya tiene centro + indicador + año repetidos (cargas anteriores)
@@ -98,7 +100,8 @@ BEGIN
     SELECT id_centro, id_indicador, anio, COUNT(*) AS veces
     FROM tmi_exclusion_centro_indicador
     GROUP BY id_centro, id_indicador, anio HAVING COUNT(*) > 1;
-    THROW 50013, 'tmi_exclusion_centro_indicador ya tiene centro + indicador + año repetidos. Corregir antes de cargar.', 1;
+    RAISERROR('tmi_exclusion_centro_indicador ya tiene centro + indicador + año repetidos. Corregir antes de cargar.', 16, 1);
+    RETURN;
 END;
 
 INSERT INTO tmi_exclusion_centro_indicador (id_centro, codcentro, id_indicador, anio,
@@ -113,7 +116,7 @@ JOIN (SELECT LTRIM(RTRIM(codcentro)) AS codcentro, MIN(id) AS id FROM tmi_centro
 WHERE NOT EXISTS (SELECT 1 FROM tmi_exclusion_centro_indicador e
                   WHERE e.id_centro = c.id AND e.anio = 2026
                     AND (e.id_indicador = v.id_indicador OR (e.id_indicador IS NULL AND v.id_indicador IS NULL)));
-PRINT CONCAT('tmi_exclusion_centro_indicador insertados: ', @@ROWCOUNT);
+PRINT 'tmi_exclusion_centro_indicador insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 
 -- Regla en la tabla: un solo registro por centro + indicador + año (NULL = todos cuenta como un valor)
 IF NOT EXISTS (SELECT 1 FROM sys.indexes

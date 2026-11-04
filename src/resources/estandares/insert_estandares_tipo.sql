@@ -269,7 +269,8 @@ IF EXISTS (SELECT 1 FROM #est GROUP BY id_indicador, tipo_centro, anio HAVING CO
 BEGIN
     SELECT id_indicador, tipo_centro, anio, COUNT(*) AS veces
     FROM #est GROUP BY id_indicador, tipo_centro, anio HAVING COUNT(*) > 1;
-    THROW 50001, 'Hay estándares repetidos (indicador + tipo_centro + año). No se cargó nada.', 1;
+    RAISERROR('Hay estándares repetidos (indicador + tipo_centro + año). No se cargó nada.', 16, 1);
+    RETURN;
 END;
 
 -- Validación: el indicador debe existir
@@ -277,7 +278,8 @@ IF EXISTS (SELECT 1 FROM #est s WHERE NOT EXISTS (SELECT 1 FROM tmi_indicador i 
 BEGIN
     SELECT DISTINCT s.id_indicador FROM #est s
     WHERE NOT EXISTS (SELECT 1 FROM tmi_indicador i WHERE i.id = s.id_indicador);
-    THROW 50002, 'Hay id_indicador que no existen en tmi_indicador. No se cargó nada.', 1;
+    RAISERROR('Hay id_indicador que no existen en tmi_indicador. No se cargó nada.', 16, 1);
+    RETURN;
 END;
 
 -- Solo se cargan las claves que usa el cálculo: las de la base_estandar del indicador (tmi_estandar).
@@ -294,7 +296,7 @@ IF EXISTS (SELECT 1 FROM #omitidas)
 BEGIN
     SELECT 'Omitida: no es clave de la base del indicador' AS aviso, * FROM #omitidas ORDER BY id_indicador, tipo_centro;
     DELETE s FROM #est s JOIN #omitidas o ON o.id_indicador = s.id_indicador AND o.tipo_centro = s.tipo_centro AND o.anio = s.anio;
-    PRINT CONCAT('Filas omitidas (no son clave de la base del indicador): ', @@ROWCOUNT);
+    PRINT 'Filas omitidas (no son clave de la base del indicador): ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 END;
 DROP TABLE #omitidas;
 
@@ -315,14 +317,14 @@ UPDATE t SET est_fijo = s.est_fijo,
                    est_12 = s.est_12
 FROM tmi_estandar_tipo t
 JOIN #est s ON s.id_indicador = t.id_indicador AND s.tipo_centro = t.tipo_centro AND s.anio = t.anio;
-PRINT CONCAT('tmi_estandar_tipo actualizados: ', @@ROWCOUNT);
+PRINT 'tmi_estandar_tipo actualizados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 
 INSERT INTO tmi_estandar_tipo (id_indicador, tipo_centro, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12)
 SELECT s.id_indicador, s.tipo_centro, s.anio, s.est_fijo, s.est_01, s.est_02, s.est_03, s.est_04, s.est_05, s.est_06, s.est_07, s.est_08, s.est_09, s.est_10, s.est_11, s.est_12
 FROM #est s
 WHERE NOT EXISTS (SELECT 1 FROM tmi_estandar_tipo t
                   WHERE t.id_indicador = s.id_indicador AND t.tipo_centro = s.tipo_centro AND t.anio = s.anio);
-PRINT CONCAT('tmi_estandar_tipo insertados: ', @@ROWCOUNT);
+PRINT 'tmi_estandar_tipo insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 
 COMMIT TRANSACTION;
 
