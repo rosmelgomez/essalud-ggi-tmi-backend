@@ -29,7 +29,7 @@ def queryIndicadoresTMI(db: Session):
 def queryIndicadoresActivosTMI(db: Session):
     try:
         result = db.execute(text(f"""
-            SELECT i.id, i.codigo, i.indicador, i.nombre_hoja, i.titulo_hoja, i.orden, i.sentido, i.formato,
+            SELECT i.id, i.codigo, i.indicador, i.nombre_hoja, i.titulo_hoja, i.orden, i.sentido, i.formato, i.tipo_calculo,
                    LTRIM(RTRIM(g.desctipgrupo)) AS grupo, MIN(i.orden) OVER (PARTITION BY i.grupo) AS orden_grupo
             FROM {name_server}.tmi_indicador i
             LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = i.grupo

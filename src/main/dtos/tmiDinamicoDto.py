@@ -1,7 +1,7 @@
 """DTOs del TMI dinámico (tablas de src/resources/sql/tmi)."""
 
 import re
-from typing import Dict, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -98,6 +98,22 @@ class tmiValorEstandarDto(BaseModel):
     est_10: Optional[float] = None
     est_11: Optional[float] = None
     est_12: Optional[float] = None
+
+
+class tmiEstandarPeriodoValorDto(BaseModel):
+    """Estándar de una clave (nivel, tipo o categoría) de la base del indicador:
+    fijo = el del año (lo toman los meses al cerrar); mes = el del periodo, solo si el mes ya cerró."""
+    fuente: Literal["NIVEL", "TIPO", "CATEGORIA"]
+    clave: str = Field(min_length=1, max_length=50)
+    fijo: Optional[float] = Field(default=None, ge=0)
+    mes: Optional[float] = Field(default=None, ge=0)
+
+
+class tmiEstandarPeriodoDto(BaseModel):
+    """Estándares de un indicador para un periodo: un valor por clave de su base_estandar."""
+    anio: int = Field(ge=2000, le=2100)
+    mes: int = Field(ge=1, le=12)
+    valores: List[tmiEstandarPeriodoValorDto] = Field(min_length=1)
 
 
 class tmiToleranciaDto(BaseModel):

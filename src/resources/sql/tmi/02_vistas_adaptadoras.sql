@@ -37,7 +37,7 @@ BEGIN
             FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
         SET @sql += CASE WHEN @sql = N'' THEN N'' ELSE N' UNION ALL ' END
                  + N'SELECT i.id AS id_estandar, ''' + @fuente + N''' AS fuente, LTRIM(RTRIM(s.' + QUOTENAME(@clave) + N')) AS clave, s.anio, '
-                 + @cols + N' FROM dbo.' + QUOTENAME(@t) + N' s'
+                 + @cols + N', CAST(NULL AS FLOAT) AS m00 FROM dbo.' + QUOTENAME(@t) + N' s'
                  + N' JOIN dbo.tmi_indicador i ON REPLACE(LTRIM(RTRIM(i.indicador)), '' de '', '' '') = REPLACE(LTRIM(RTRIM(s.indicador)), '' de '', '' '')'
                  + N' GROUP BY i.id, LTRIM(RTRIM(s.' + QUOTENAME(@clave) + N')), s.anio';
     END
@@ -57,7 +57,10 @@ BEGIN
             FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
         SET @sql += CASE WHEN @sql = N'' THEN N'' ELSE N' UNION ALL ' END
                  + N'SELECT ' + QUOTENAME(@id) + N' AS id_estandar, ''' + @fuente + N''' AS fuente, '
-                 + N'LTRIM(RTRIM(' + QUOTENAME(@clave) + N')) AS clave, anio, ' + @cols + N' FROM dbo.' + QUOTENAME(@t);
+                 + N'LTRIM(RTRIM(' + QUOTENAME(@clave) + N')) AS clave, anio, ' + @cols
+                 /* m00 = fijo del año: el cálculo lo usa en un mes aún no cerrado (vacío); m01..m12 no cambian */
+                 + CASE WHEN COL_LENGTH('dbo.' + @t, 'est_fijo') IS NOT NULL THEN N', CAST([est_fijo] AS FLOAT) AS m00' ELSE N', CAST(NULL AS FLOAT) AS m00' END
+                 + N' FROM dbo.' + QUOTENAME(@t);
     END
     FETCH NEXT FROM c INTO @t, @fuente, @clave;
 END
@@ -65,7 +68,7 @@ CLOSE c; DEALLOCATE c;
 IF @sql = N''
     SET @sql = N'SELECT CAST(NULL AS INT) AS id_estandar, CAST(NULL AS VARCHAR(10)) AS fuente, CAST(NULL AS VARCHAR(50)) AS clave, CAST(NULL AS INT) AS anio, '
              + N'CAST(NULL AS FLOAT) m01, CAST(NULL AS FLOAT) m02, CAST(NULL AS FLOAT) m03, CAST(NULL AS FLOAT) m04, CAST(NULL AS FLOAT) m05, CAST(NULL AS FLOAT) m06, '
-             + N'CAST(NULL AS FLOAT) m07, CAST(NULL AS FLOAT) m08, CAST(NULL AS FLOAT) m09, CAST(NULL AS FLOAT) m10, CAST(NULL AS FLOAT) m11, CAST(NULL AS FLOAT) m12 WHERE 1 = 0';
+             + N'CAST(NULL AS FLOAT) m07, CAST(NULL AS FLOAT) m08, CAST(NULL AS FLOAT) m09, CAST(NULL AS FLOAT) m10, CAST(NULL AS FLOAT) m11, CAST(NULL AS FLOAT) m12, CAST(NULL AS FLOAT) m00 WHERE 1 = 0';
 IF OBJECT_ID('dbo.vw_tmi_std', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_std;
 SET @sql = N'CREATE VIEW dbo.vw_tmi_std AS ' + @sql;
 EXEC sp_executesql @sql;

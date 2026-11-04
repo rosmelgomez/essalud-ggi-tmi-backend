@@ -185,11 +185,14 @@ def _params_exclusion(db: Session, dto) -> tuple:
 
 def queryInsertExclusionCentroEstandar(db: Session, dto:tmiExclusionCentroEstandarDto):
     """ids_indicador con valores: un registro por indicador; si el centro ya tiene exclusión de ese indicador en el año,
-    se actualiza en lugar de duplicarla. Sin ids_indicador: un solo registro con id_indicador (NULL = todos)."""
+    se actualiza en lugar de duplicarla: los meses marcados se suman a los ya excluidos (un mes guardado no se pierde).
+    Sin ids_indicador: un solo registro con id_indicador (NULL = todos)."""
     try:
         params, cols, col = _params_exclusion(db, dto)
         ids = list(dict.fromkeys(dto.ids_indicador or [])) or [params["id_indicador"]]
-        sets = ", ".join(f"{c} = {v}" for c, v in cols.items())
+        pre = "excl_" if "excl_01" in cols else "estandar_"
+        meses = {f"{pre}{m}": f"CASE WHEN ISNULL(:excl_{m}, 0) = 1 THEN 1 ELSE ISNULL({pre}{m}, 0) END" for m in MESES}
+        sets = ", ".join(f"{c} = {meses.get(c, v)}" for c, v in cols.items())
         query = f"""
         UPDATE {name_server}.tmi_exclusion_centro_indicador SET {sets}
         WHERE id_centro = :id_centro AND anio = :anio
@@ -212,6 +215,15 @@ def queryInsertExclusionCentroEstandar(db: Session, dto:tmiExclusionCentroEstand
 def queryUpdateExclusionCentroEstandar(db: Session, dto: tmiExclusionCentroEstandarDto):
     try:
         params, cols, col = _params_exclusion(db, dto)
+        if params.get("id") is not None:
+            # al editar no se puede dejar dos registros del mismo centro, indicador y año
+            otro = db.execute(text(f"""
+                SELECT TOP 1 id FROM {name_server}.tmi_exclusion_centro_indicador
+                WHERE id <> :id AND id_centro = :id_centro AND anio = :anio
+                  AND ({col} = :id_indicador OR ({col} IS NULL AND :id_indicador IS NULL))"""), params).scalar()
+            if otro is not None:
+                raise HTTPException(status_code=400, detail=(
+                    "Ya existe otra exclusión de este centro para ese indicador y año. Edite ese registro."))
         sets = ", ".join(f"{c} = {v}" for c, v in cols.items())
         query = f"""
         UPDATE {name_server}.tmi_exclusion_centro_indicador SET {sets}

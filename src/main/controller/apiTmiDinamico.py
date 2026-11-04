@@ -138,10 +138,21 @@ def dashboardTMI(periodo: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
+@router.get("/dashboard/{periodo}/excel")
+def excelDashboardTMI(periodo: str, db: Session = Depends(get_db)):
+    """Excel del periodo para los dashboards (pública, como /dashboard/{periodo}): el mismo de Administración, armado
+    con el resultado guardado y con todos los indicadores. Nunca recalcula."""
+    return _excel(db, periodo, calcular=False, indicadores=None)
+
+
 @router.get("/generar-excel/{periodo}")
 def generarExcelTMIDinamico(periodo: str, calcular: bool = True, indicadores: Optional[str] = None,
                             db: Session = Depends(get_db)):
     """Excel del periodo. indicadores = ids separados por coma (1,4,7) para generar solo esas hojas; sin él, todos."""
+    return _excel(db, periodo, calcular, indicadores)
+
+
+def _excel(db: Session, periodo: str, calcular: bool, indicadores: Optional[str]):
     try:
         ids = [int(x) for x in indicadores.split(",") if x.strip()] if indicadores else None
         from src.main.service.excelServ import MESES_NOMBRE

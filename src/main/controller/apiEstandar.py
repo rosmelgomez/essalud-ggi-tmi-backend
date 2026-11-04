@@ -10,6 +10,7 @@ from src.main.security.jwtRequestFilter import get_current_user, nombre_usuario
 from src.main.db.databaseConexion import get_db
 from src.main.dtos.tmiDinamicoDto import (
     tmiEstandarClaveDto,
+    tmiEstandarPeriodoDto,
     tmiIndicadorEstandarDto,
     tmiTipoEstandarDto,
     tmiToleranciaDto,
@@ -432,6 +433,19 @@ async def valoresEstandarIndicador(id: int, anio: int, db: Session = Depends(get
 @routerDinamico.put("/indicadores/{id}/valores-estandar")
 async def guardarValorEstandarIndicador(id: int, dto: tmiValorEstandarDto, db: Session = Depends(get_db)):
     return estandarRep.queryGuardarValorEstandarTMI(db, id, dto.model_dump())
+
+
+@routerDinamico.get("/estandares-periodo/{anio}/{mes}")
+async def estandaresPeriodoTMI(anio: int, mes: int, db: Session = Depends(get_db)):
+    """Estándar de cada indicador activo solo en las claves de su base_estandar: fijo del año y valor del mes."""
+    if not 1 <= mes <= 12:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El mes debe estar entre 1 y 12.")
+    return estandarRep.queryEstandaresPeriodoTMI(db, anio, mes)
+
+
+@routerDinamico.put("/indicadores/{id}/estandar-periodo")
+async def guardarEstandarPeriodo(id: int, dto: tmiEstandarPeriodoDto, db: Session = Depends(get_db)):
+    return estandarRep.queryGuardarEstandarPeriodoTMI(db, id, dto.model_dump())
 
 
 @routerDinamico.get("/aceptacion/{anio}/{mes}")

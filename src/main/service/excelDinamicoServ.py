@@ -54,9 +54,13 @@ FORMATO_NUMERO = {"NUMERO": "0.00", "PORCENTAJE": "0.00%"}
 COLS_VALORES = [COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT, COL_ACEPT_BANDA] + [COL_MES1 + i for i in range(12)]
 CODIGO_PUNTAJE = {5: 1, 3: 2, 1: 3, 0: 3}
 NA = "NA"
-# Motivos con los que la fila completa se muestra como NA (sin dato real del indicador)
-# EXCLUIDO_CERO no va aquí: el mes excluido con resultado '0' tiene puntaje 0, no NA
-MOTIVOS_FILA_NA = {"SIN_ESTANDAR", "SIN_DATOS_ANIO", "FUERA_DE_AMBITO", "NO_VIGENTE_MES", "NO_FUNCIONA", "EXCLUIDO"}
+
+
+def _sin_produccion(corte: Dict[str, Any]) -> bool:
+    """Producción NA: el centro no tiene valor real en el corte (total NULL: sin datos en el año, división entre 0,
+    mes excluido o fuera de ámbito). Solo estos centros se ocultan; con producción 0 o con valor se muestran aunque su
+    puntaje sea NA (por ejemplo, sin estándar)."""
+    return corte.get("total") is None
 
 
 def _validar_periodo(periodo: str) -> int:
@@ -199,7 +203,7 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
             meses = res.get(c["codcentro"], {})
             corte = final[c["codcentro"]]
             p = _puntaje(corte.get("puntaje"))
-            fila_na = p == NA and corte.get("motivo_na") in MOTIVOS_FILA_NA
+            fila_na = _sin_produccion(corte)
             _copiar_fila(modelo, ws, FILA_MODELO_CENTRO, fila, ultima_col)
             for col in COLS_VALORES:   # la fila modelo sale de H_% O.Cama (porcentaje)
                 ws.cell(fila, col).number_format = formato
@@ -210,7 +214,7 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
             ws.cell(fila, COL_CENTRO, value=c["centro"])
             if es_red:   # centros agrupados bajo la fila de su red (resumen arriba)
                 ws.row_dimensions[fila].outline_level = 1
-            if p == NA:  # centro NA: queda en el Excel pero oculto
+            if fila_na:  # producción NA: queda en el Excel pero oculto (con producción 0 se ve)
                 ws.row_dimensions[fila].hidden = True
             if fila_na:
                 for col in (COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT):
@@ -220,19 +224,20 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
                 for i in range(12):
                     ws.cell(fila, COL_MES1 + i, value=NA)
             else:
+                o_na = lambda v: NA if v is None else v   # sin estándar o mes excluido: NA, no 0
                 ws.cell(fila, COL_NIVEL, value=c["nivel"])
                 ws.cell(fila, COL_TIPO, value=c["categoria"])
-                ws.cell(fila, COL_VALOR, value=corte.get("total") if corte.get("total") is not None else 0)
-                ws.cell(fila, COL_ESTANDAR, value=corte.get("estandar"))
-                ws.cell(fila, COL_VERDE, value=corte.get("estandar"))
-                ws.cell(fila, COL_ACEPT, value=corte.get("aceptmenos") if banda else corte.get("acept"))
+                ws.cell(fila, COL_VALOR, value=corte.get("total"))
+                ws.cell(fila, COL_ESTANDAR, value=o_na(corte.get("estandar")))
+                ws.cell(fila, COL_VERDE, value=o_na(corte.get("estandar")))
+                ws.cell(fila, COL_ACEPT, value=o_na(corte.get("aceptmenos") if banda else corte.get("acept")))
                 if banda:
-                    ws.cell(fila, COL_ACEPT_BANDA, value=corte.get("acept"))
+                    ws.cell(fila, COL_ACEPT_BANDA, value=o_na(corte.get("acept")))
                 for i in range(12):
                     v = corte.get(f"periodo_{i + 1:02d}")
-                    ws.cell(fila, COL_MES1 + i, value=v if v is not None else 0)
+                    ws.cell(fila, COL_MES1 + i, value=v if v is not None else (NA if i < mes else 0))
             mensual = [_puntaje(meses.get(i + 1, {}).get("puntaje")) if i < mes else None for i in range(12)]
-            puntajes_centro[c["codcentro"]] = {"p": p, "m": mensual}
+            puntajes_centro[c["codcentro"]] = {"p": p, "m": mensual, "sin_prod": fila_na}
             filas_centro.append(fila)
             fila += 1
         if es_red:
@@ -241,8 +246,8 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
                      for i in range(12)]
             ws.cell(fila_red, COL_PUNTAJE, value=p_red)
             puntajes_red[red] = {"p": p_red, "m": m_red}
-        if all(puntajes_centro[c["codcentro"]]["p"] == NA for c in miembros):
-            for f in range(fila_red, fila + 1):   # red sin ningún centro con puntaje: red y fila en blanco ocultas
+        if all(puntajes_centro[c["codcentro"]]["sin_prod"] for c in miembros):
+            for f in range(fila_red, fila + 1):   # red sin ningún centro con producción: red y fila en blanco ocultas
                 ws.row_dimensions[f].hidden = True
         fila += 1   # fila en blanco entre redes
 
@@ -315,24 +320,27 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
     filas_centro: List[Dict[str, Any]] = []
     filas_red: List[Dict[str, Any]] = []
     for red in _orden_redes(centros):
+        filas_de_red: List[Dict[str, Any]] = []
+        for c in (c for c in centros if (c["red"] or "") == red):
+            datos = [r["centros"].get(c["codcentro"]) for r in resultados]
+            if all(d is None for d in datos):
+                continue
+            datos = [d or {"p": NA, "m": [NA] * 12, "sin_prod": True} for d in datos]
+            filas_de_red.append({"tipo_fila": "CENTRO", "codcentro": c["codcentro"], "nombre": c["centro"],
+                                 "nivel": c["nivel"], "tipo": c["categoria"], "agrupar": _es_red(red),
+                                 "puntajes": [d["p"] for d in datos], "mensuales": [d["m"] for d in datos],
+                                 # producción NA en todos los indicadores: fila oculta (con producción 0 se ve)
+                                 "oculto": all(d["sin_prod"] for d in datos)})
         if _es_red(red):
             if all(red not in r["redes"] for r in resultados):
                 continue
             datos_red = [r["redes"].get(red, {"p": NA, "m": [NA] * 12}) for r in resultados]
             fila_red = {"tipo_fila": "RED", "codcentro": None, "nombre": red, "nivel": None, "tipo": None,
                         "puntajes": [d["p"] for d in datos_red], "mensuales": [d["m"] for d in datos_red],
-                        "oculto": all(d["p"] == NA for d in datos_red)}
+                        "oculto": all(f["oculto"] for f in filas_de_red)}
             filas_centro.append(fila_red)
             filas_red.append(dict(fila_red))
-        for c in (c for c in centros if (c["red"] or "") == red):
-            datos = [r["centros"].get(c["codcentro"]) for r in resultados]
-            if all(d is None for d in datos):
-                continue
-            datos = [d or {"p": NA, "m": [NA] * 12} for d in datos]
-            fila = {"tipo_fila": "CENTRO", "codcentro": c["codcentro"], "nombre": c["centro"],
-                    "nivel": c["nivel"], "tipo": c["categoria"], "agrupar": _es_red(red),
-                    "puntajes": [d["p"] for d in datos], "mensuales": [d["m"] for d in datos],
-                    "oculto": all(d["p"] == NA for d in datos)}   # NA en todos los indicadores: fila oculta
+        for fila in filas_de_red:
             filas_centro.append(fila)
             if not _es_red(red):   # institutos: en Puntajes_RED van como fila propia
                 filas_red.append(dict(fila, tipo_fila="RED"))

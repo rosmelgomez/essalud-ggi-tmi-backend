@@ -579,3 +579,117 @@ def queryGuardarToleranciaTMI(db: Session, id_indicador: int, datos: dict, usuar
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "% Acept guardado", "rows_updated": r.rowcount}
+
+
+### Estándar por periodo: un solo lugar por indicador (solo las claves de su base_estandar)
+
+def _tablas_estandar(db: Session) -> dict:
+    """fuente -> (tabla, columna de la clave, columna del indicador) de las tablas por columnas (est_fijo + est_MM)."""
+    tablas = {}
+    for fuente, (tabla, clave, _) in FUENTES_ESTANDAR.items():
+        if _existe_tabla(db, tabla) and not _formato_largo(db, tabla) and _tiene_columna(db, tabla, "est_fijo"):
+            tablas[fuente] = (tabla, clave, _col_indicador(db, tabla))
+    return tablas
+
+
+def _union_estandar(tablas: dict, mes: int) -> str:
+    """Las tres tablas como una sola (fuente, indicador, clave, est_fijo, est_mes) para el año :anio."""
+    partes = [f"""SELECT '{fuente}' AS fuente, {col_ind} AS id_indicador, LTRIM(RTRIM({clave})) AS clave,
+                         CAST(est_fijo AS FLOAT) AS est_fijo, CAST(est_{mes:02d} AS FLOAT) AS est_mes
+                  FROM {name_server}.{tabla} WHERE anio = :anio"""
+              for fuente, (tabla, clave, col_ind) in tablas.items()]
+    return " UNION ALL ".join(partes) or ("SELECT CAST(NULL AS VARCHAR(10)) AS fuente, CAST(NULL AS INT) AS id_indicador, "
+                                          "CAST(NULL AS VARCHAR(50)) AS clave, CAST(NULL AS FLOAT) AS est_fijo, "
+                                          "CAST(NULL AS FLOAT) AS est_mes WHERE 1 = 0")
+
+
+def queryEstandaresPeriodoTMI(db: Session, anio: int, mes: int):
+    """Indicadores activos con el estándar de cada clave de su base_estandar (lo único que usa el cálculo):
+    fijo del año y valor del mes. Si el mes ya alcanzó su fecha de cierre, el mes toma el fijo donde no tenga valor."""
+    cerrado = _periodo_alcanzo_cierre(db, anio, mes)
+    if cerrado:
+        aplicarCierrePeriodoTMI(db, f"{anio}{mes:02d}")
+    indicadores = _consulta(db, f"""
+        SELECT i.id, i.orden, i.codigo, i.indicador, i.base_estandar, t.descripcion AS base_descripcion, i.formato,
+               LTRIM(RTRIM(g.desctipgrupo)) AS grupo
+        FROM {name_server}.tmi_indicador i
+        LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = i.grupo
+        LEFT JOIN {name_server}.tmi_tipo_estandar t ON t.codigo = i.base_estandar
+        WHERE i.activo = 1
+        ORDER BY i.orden, i.id""")
+    claves = _consulta(db, f"""
+        SELECT i.id AS id_indicador, e.orden, e.fuente, LTRIM(RTRIM(e.clave)) AS clave, e.descripcion, e.prioridad,
+               v.est_fijo AS fijo, v.est_mes AS mes,
+               /* centros que usan la clave, con la misma exclusión del cálculo (usp_tmi_calcular): en una base
+                  combinada el centro cuenta solo en su clave más específica (tipo > categoría > nivel). Así un CNSR
+                  de nivel II cuenta en "Tipo CNSR" y no en "Nivel II". */
+               (SELECT COUNT(DISTINCT c.codcentro) FROM {name_server}.vw_tmi_centro_base c
+                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END = e.clave
+                  AND NOT EXISTS (SELECT 1 FROM {name_server}.tmi_estandar e2
+                                  WHERE e2.tipo_estandar = e.tipo_estandar AND e2.activo = 1
+                                    AND CASE e2.fuente WHEN 'TIPO' THEN 1 WHEN 'CATEGORIA' THEN 2 ELSE 3 END
+                                      < CASE e.fuente WHEN 'TIPO' THEN 1 WHEN 'CATEGORIA' THEN 2 ELSE 3 END
+                                    AND CASE e2.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END
+                                      = e2.clave)) AS centros
+        FROM {name_server}.tmi_indicador i
+        JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
+        OUTER APPLY (SELECT TOP 1 u.est_fijo, u.est_mes FROM ({_union_estandar(_tablas_estandar(db), mes)}) u
+                     WHERE u.fuente = e.fuente AND u.id_indicador = i.id AND u.clave = LTRIM(RTRIM(e.clave))) v
+        WHERE i.activo = 1
+        ORDER BY i.id, ISNULL(e.orden, 999), e.clave""", {"anio": anio})
+    por_indicador: dict = {}
+    for c in claves:
+        por_indicador.setdefault(c.pop("id_indicador"), []).append(c)
+    for i in indicadores:
+        i["claves"] = por_indicador.get(i["id"], [])
+        i["mes_cerrado"] = cerrado
+    return indicadores
+
+
+def queryGuardarEstandarPeriodoTMI(db: Session, id_indicador: int, datos: dict):
+    """Guarda el estándar de un indicador para un periodo, solo en claves de su base_estandar:
+    - fijo: est_fijo del año (los meses que aún no cierran lo toman en su cierre).
+    - mes: est_MM del periodo, solo si el mes ya alcanzó su fecha de cierre.
+    Si la clave no tiene fila en el año, la crea."""
+    anio, mes = int(datos["anio"]), int(datos["mes"])
+    validas = {(r["fuente"], r["clave"]) for r in _consulta(db, f"""
+        SELECT e.fuente, LTRIM(RTRIM(e.clave)) AS clave
+        FROM {name_server}.tmi_indicador i
+        JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
+        WHERE i.id = :id""", {"id": id_indicador})}
+    if not validas:
+        raise HTTPException(status_code=400, detail="El indicador no existe o su base de estándar no tiene claves activas.")
+    tablas = _tablas_estandar(db)
+    cerrado = _periodo_alcanzo_cierre(db, anio, mes)
+    col_mes = f"est_{mes:02d}"
+    filas = 0
+    try:
+        for v in datos["valores"]:
+            fuente, clave = v["fuente"], str(v["clave"]).strip()
+            if (fuente, clave) not in validas:
+                raise HTTPException(status_code=400, detail=f"{clave} ({fuente}) no es una clave de la base de este indicador.")
+            if fuente not in tablas:
+                raise HTTPException(status_code=400, detail=f"La tabla de estándares por {fuente.lower()} no admite este guardado.")
+            tabla, col_clave, col_ind = tablas[fuente]
+            fijo = v.get("fijo")
+            valor_mes = v.get("mes") if cerrado else None
+            sets = (["est_fijo = :fijo"] if fijo is not None else []) + ([f"{col_mes} = :mes"] if valor_mes is not None else [])
+            if not sets:
+                continue
+            cols = [col_ind, col_clave, "anio", "est_fijo"] + ([col_mes] if valor_mes is not None else [])
+            vals = [":id", ":clave", ":anio", "COALESCE(:fijo, :mes)"] + ([":mes"] if valor_mes is not None else [])
+            r = db.execute(text(f"""
+                UPDATE {name_server}.{tabla} SET {', '.join(sets)}
+                WHERE {col_ind} = :id AND LTRIM(RTRIM({col_clave})) = :clave AND anio = :anio;
+                IF @@ROWCOUNT = 0
+                    INSERT INTO {name_server}.{tabla} ({', '.join(cols)}) VALUES ({', '.join(vals)});"""),
+                {"id": id_indicador, "clave": clave, "anio": anio, "fijo": fijo, "mes": valor_mes})
+            filas += r.rowcount or 0
+        db.commit()
+        return {"message": "Estándar guardado", "rows_affected": filas, "mes_cerrado": cerrado}
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

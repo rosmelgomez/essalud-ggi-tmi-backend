@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
 from src.main.repositories.tmiDinamicoRep import queryCentrosActivosTMI, queryResultadoFinalTMI, queryResultadoTMI
 from src.main.service.excelDinamicoServ import (
-    MOTIVOS_FILA_NA, NA, _es_red, _orden_redes, _promedio, _puntaje, _validar_periodo,
+    NA, _es_red, _sin_produccion, _orden_redes, _promedio, _puntaje, _validar_periodo,
 )
 from src.main.service.excelPuntajesServ import calcular_totales
 
@@ -74,11 +74,11 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
                 pun = _puntaje(corte.get("puntaje"))
                 meses = res[ind["id"]].get(c["codcentro"], {})
                 det = None
-                if not (pun == NA and corte.get("motivo_na") in MOTIVOS_FILA_NA):
-                    det = {"p": None if pun == NA else pun, "v": _f(corte.get("total")) or 0.0,
+                if not _sin_produccion(corte):   # producción NA: sin detalle; con producción 0 sí se muestra
+                    det = {"p": None if pun == NA else pun, "v": _f(corte.get("total")),
                            "e": _f(corte.get("estandar")), "acept": _f(corte.get("acept")),
                            "aceptmenos": _f(corte.get("aceptmenos")),
-                           "m": [_f(corte.get(f"periodo_{k:02d}")) or 0.0 for k in range(1, mes + 1)]}
+                           "m": [_f(corte.get(f"periodo_{k:02d}")) for k in range(1, mes + 1)]}
                 pc[c["codcentro"]] = {"p": pun, "m": [_puntaje(meses.get(k + 1)) if k < mes else None for k in range(12)],
                                       "det": det}
             if _es_red(red):
@@ -90,6 +90,7 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
 
     salida_ind = [{"id": i["id"], "codigo": i["codigo"], "nombre": (i["titulo_hoja"] or i["indicador"] or "").strip(),
                    "servicio": (i.get("grupo") or "").strip(), "sentido": i.get("sentido"), "formato": i.get("formato"),
+                   "tipo_calculo": (i.get("tipo_calculo") or "MENSUAL").upper(),
                    "nacional": _f(d["nacional"])} for i, d in zip(indicadores, por_ind)]
 
     salida_centros, salida_redes = [], []

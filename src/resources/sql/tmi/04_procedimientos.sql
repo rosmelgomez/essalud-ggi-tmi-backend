@@ -477,7 +477,7 @@ BEGIN
                SUM(ISNULL(d.datos, 0)) OVER (PARTITION BY g.id, g.codcentro) AS datos_anio,
                NULLIF(CASE g.mes WHEN 1 THEN ce.m01 WHEN 2 THEN ce.m02 WHEN 3 THEN ce.m03 WHEN 4 THEN ce.m04 WHEN 5 THEN ce.m05 WHEN 6 THEN ce.m06
                                  WHEN 7 THEN ce.m07 WHEN 8 THEN ce.m08 WHEN 9 THEN ce.m09 WHEN 10 THEN ce.m10 WHEN 11 THEN ce.m11 WHEN 12 THEN ce.m12 END, 0) AS est_centro,
-               ce.aplica AS aplica_centro, ce.acept AS acept_centro, eb.est AS est_base,
+               ce.aplica AS aplica_centro, ce.acept AS acept_centro, eb.est AS est_base, kc.clave AS clave_base,
                NULLIF(ie.estandar, 0) AS est_combinado, ie.acept AS acept_combinado, ie.aceptmenos AS aceptmenos_combinado,
                NULLIF(CASE g.mes WHEN 1 THEN st.m01 WHEN 2 THEN st.m02 WHEN 3 THEN st.m03 WHEN 4 THEN st.m04 WHEN 5 THEN st.m05 WHEN 6 THEN st.m06
                                  WHEN 7 THEN st.m07 WHEN 8 THEN st.m08 WHEN 9 THEN st.m09 WHEN 10 THEN st.m10 WHEN 11 THEN st.m11 WHEN 12 THEN st.m12 END, 0) AS est_tipo,
@@ -502,19 +502,24 @@ BEGIN
                              + CASE WHEN x.nivel IS NOT NULL THEN 1 ELSE 0 END) DESC,
                               (x.periodo_hasta - x.periodo_desde) ASC,
                               x.id DESC) ie
-        /* Estándar según el tipo del indicador (tmi_tipo_estandar / tmi_estandar): de las claves que coinciden con el
-           centro (nivel, tipo o categoría según la fuente), la de mayor prioridad que tenga valor en su tabla. */
-        OUTER APPLY (SELECT TOP 1 v.est, k.fuente, k.clave
+        /* Estándar según el tipo del indicador (tmi_tipo_estandar / tmi_estandar). Cada centro calza con UNA sola clave
+           de la base, por exclusión (como 002_TMI_CONSULTAS_VISTA: nivel "WHERE tipo NOT IN (CNSR, IPO, INCOR)" UNION
+           ALL tipo): si el tipo del centro es clave de la base, usa su tipo; si no, su categoría; si no, su nivel. La
+           lista de tipos sale del catálogo, no está escrita aquí. No hay respaldo cruzado: si la clave del centro no
+           tiene valor (o es 0), el centro queda sin estándar; no toma el de su nivel. No usa tmi_estandar.prioridad. */
+        OUTER APPLY (SELECT TOP 1 k.fuente, k.clave
                      FROM dbo.tmi_estandar k
-                     JOIN #std x ON x.id_estandar = g.id AND x.fuente = k.fuente AND x.clave = k.clave
-                     /* CASE en lugar de CHOOSE: el servidor no lo reconoce (compatibilidad anterior a SQL Server 2012) */
-                     CROSS APPLY (SELECT NULLIF(CASE g.mes WHEN 1 THEN x.m01 WHEN 2 THEN x.m02 WHEN 3 THEN x.m03
-                                                       WHEN 4 THEN x.m04 WHEN 5 THEN x.m05 WHEN 6 THEN x.m06
-                                                       WHEN 7 THEN x.m07 WHEN 8 THEN x.m08 WHEN 9 THEN x.m09
-                                                       WHEN 10 THEN x.m10 WHEN 11 THEN x.m11 WHEN 12 THEN x.m12 END, 0) AS est) v
-                     WHERE k.tipo_estandar = g.base_estandar AND k.activo = 1 AND v.est IS NOT NULL
+                     WHERE k.tipo_estandar = g.base_estandar AND k.activo = 1
                        AND k.clave = CASE k.fuente WHEN 'NIVEL' THEN g.nivel WHEN 'TIPO' THEN g.tipo ELSE g.categoria END
-                     ORDER BY k.prioridad DESC, k.orden) eb
+                     ORDER BY CASE k.fuente WHEN 'TIPO' THEN 1 WHEN 'CATEGORIA' THEN 2 ELSE 3 END) kc
+        /* Valor del mes; si el mes aún no cerró (vacío) toma el fijo del año (m00), lo mismo que le copiará el cierre.
+           0 = sin estándar. CASE en lugar de CHOOSE: el servidor no lo reconoce (compatibilidad anterior a SQL Server 2012) */
+        OUTER APPLY (SELECT TOP 1 NULLIF(COALESCE(CASE g.mes WHEN 1 THEN x.m01 WHEN 2 THEN x.m02 WHEN 3 THEN x.m03
+                                                    WHEN 4 THEN x.m04 WHEN 5 THEN x.m05 WHEN 6 THEN x.m06
+                                                    WHEN 7 THEN x.m07 WHEN 8 THEN x.m08 WHEN 9 THEN x.m09
+                                                    WHEN 10 THEN x.m10 WHEN 11 THEN x.m11 WHEN 12 THEN x.m12 END, x.m00), 0) AS est
+                     FROM #std x
+                     WHERE x.id_estandar = g.id AND x.fuente = kc.fuente AND x.clave = kc.clave) eb
         OUTER APPLY (SELECT TOP 1 * FROM #std x WHERE x.id_estandar = g.id
                        AND x.fuente = 'TIPO' AND x.clave = g.tipo) st
         OUTER APPLY (SELECT TOP 1 * FROM #std x WHERE x.id_estandar = g.id
@@ -525,15 +530,18 @@ BEGIN
     val AS (
         SELECT e.*,
                /* orden: estándar del centro > tipo de estándar del indicador (tablas maestras) > reglas del panel
-                  (tmi_indicador_estandar) > combinaciones anteriores de base_estandar que no estén en el catálogo */
+                  (tmi_indicador_estandar) > combinaciones anteriores de base_estandar que no estén en el catálogo.
+                  Las reglas del panel y las combinaciones anteriores solo se usan si el centro no calza con ninguna clave
+                  del catálogo (clave_base NULL): si calza y su clave no tiene valor, queda sin estándar (sin respaldo). */
                CASE WHEN e.aplica_centro = 0 THEN NULL
-                    ELSE COALESCE(e.est_centro, e.est_base, e.est_combinado,
+                    ELSE COALESCE(e.est_centro, e.est_base,
+                                  CASE WHEN e.clave_base IS NULL THEN COALESCE(e.est_combinado,
                                   CASE e.base_estandar
                                       WHEN 'TIPO_NIVEL'           THEN COALESCE(e.est_tipo, e.est_nivel)
                                       WHEN 'TIPO_CATEGORIA'       THEN COALESCE(e.est_tipo, e.est_categoria)
                                       WHEN 'NIVEL_CATEGORIA'      THEN COALESCE(e.est_nivel, e.est_categoria)
                                       WHEN 'TIPO_NIVEL_CATEGORIA' THEN COALESCE(e.est_tipo, e.est_categoria, e.est_nivel)
-                                  END) END                                       AS estandar
+                                  END) END) END                                  AS estandar
         FROM est e
     ),
     lim AS (
@@ -542,14 +550,14 @@ BEGIN
                /* % Acept: límite para el puntaje 3 (en banda, el de arriba) = estándar ± el porcentaje del indicador.
                   El % Acept propio del centro (tmi_centro_estandar.acept) gana. */
                COALESCE(v.acept_centro,
-                        CASE WHEN v.est_centro IS NULL AND v.est_base IS NULL THEN v.acept_combinado END,
+                        CASE WHEN v.est_centro IS NULL AND v.est_base IS NULL AND v.clave_base IS NULL THEN v.acept_combinado END,
                         CASE WHEN v.sentido IN ('MENOR', 'BANDA')
                              THEN CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar + v.tolerancia ELSE v.estandar * (1 + v.tolerancia) END
                              ELSE CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar - v.tolerancia ELSE v.estandar * (1 - v.tolerancia) END
                         END) AS acept,
                /* % Aceptmenos: solo banda, el límite de abajo */
                CASE WHEN v.sentido = 'BANDA'
-                    THEN COALESCE(CASE WHEN v.est_centro IS NULL AND v.est_base IS NULL THEN v.aceptmenos_combinado END,
+                    THEN COALESCE(CASE WHEN v.est_centro IS NULL AND v.est_base IS NULL AND v.clave_base IS NULL THEN v.aceptmenos_combinado END,
                                   CASE v.tipo_tolerancia WHEN 'ABS' THEN v.estandar - v.tolerancia_menos
                                                          ELSE v.estandar * (1 - v.tolerancia_menos) END) END AS aceptmenos,
                ROUND(v.valor, ISNULL(v.decimales, 15)) AS valor_eval,
