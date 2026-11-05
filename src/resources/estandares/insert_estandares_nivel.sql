@@ -20,65 +20,6 @@ INSERT INTO #est (id_indicador, nivel_centro, anio, est_fijo, est_01, est_02, es
     (2, 'II', 2026, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, NULL, NULL, NULL),
     (2, 'III', 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, NULL, NULL, NULL),
 
-    (3, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (3, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (3, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (4, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (4, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (4, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (5, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (5, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (5, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (6, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (6, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (6, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (7, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (7, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (7, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (8, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (8, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (8, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (9, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (9, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (9, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (10, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (10, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (10, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (11, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (11, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (11, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (12, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (12, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (12, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (13, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (13, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (13, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (14, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (14, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (14, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (15, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (15, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (15, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (16, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (16, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (16, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (17, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (17, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (17, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
 
     (18, 'I', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),
     (18, 'II', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),
@@ -86,15 +27,8 @@ INSERT INTO #est (id_indicador, nivel_centro, anio, est_fijo, est_01, est_02, es
 
     (19, 'I', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),
     (19, 'II', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),
-    (19, 'III', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),
+    (19, 'III', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL);
 
-    (20, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (20, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (20, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-
-    (21, 'I', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (21, 'II', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL),
-    (21, 'III', 2026, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL);
 
 -- Validación: no puede repetirse indicador + nivel_centro + año
 IF EXISTS (SELECT 1 FROM #est GROUP BY id_indicador, nivel_centro, anio HAVING COUNT(*) > 1)

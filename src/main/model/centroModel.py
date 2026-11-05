@@ -41,12 +41,11 @@ class TmiCentro(Base):
     __table_args__ = {"schema": TMI_SCHEMA}
     id = Column(Integer, primary_key=True)
     red = Column(String(100))
-    orden = Column(String(50))
-    orden_tipo = Column(String(50))
     codcentro = Column(String(50))
     centro = Column(String(100))
     categoria = Column(String(50))
     nivel = Column(String(50))
+    nivel_estandar = Column(String(50))
     tipo = Column(String(50))
     flag = Column(BIT)                                   
 

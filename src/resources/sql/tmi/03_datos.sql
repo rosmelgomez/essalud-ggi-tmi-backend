@@ -385,9 +385,10 @@ FROM (VALUES
     ('TIPO', 5, 'TIPO', 'H.I', 'H.I', 1),
     ('TIPO', 6, 'TIPO', 'POL.', 'POL.', 1),
     ('TIPO', 7, 'TIPO', 'C.M.', 'C.M.', 1),
-    ('TIPO', 8, 'TIPO', 'CNSR', 'CNSR', 1),
-    ('TIPO', 9, 'TIPO', 'IPO', 'IPO', 1),
-    ('TIPO', 10, 'TIPO', 'INCOR', 'INCOR', 1),
+    ('TIPO', 8, 'TIPO', 'P.M.', 'P.M.', 1),
+    ('TIPO', 9, 'TIPO', 'CNSR', 'CNSR', 1),
+    ('TIPO', 10, 'TIPO', 'IPO', 'IPO', 1),
+    ('TIPO', 11, 'TIPO', 'INCOR', 'INCOR', 1),
     ('CATEGORIA', 1, 'CATEGORIA', 'H.N.', 'H.N.', 1),
     ('CATEGORIA', 2, 'CATEGORIA', 'H.IV', 'H.IV', 1),
     ('CATEGORIA', 3, 'CATEGORIA', 'H.III', 'H.III', 1),
@@ -467,25 +468,8 @@ FROM (VALUES
     ('H.II',  'Hospital II',                       7),
     ('H.I',   'Hospital I',                        8),
     ('POL.',  'Policlínico',                       9),
-    ('C.M.',  'Centro Médico',                     10)) v(codigo, descripcion, orden)
+    ('C.M.',  'Centro Médico',                     10),
+    ('P.M.',  'Posta Médica',                      11)) v(codigo, descripcion, orden)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tipo_centro t WHERE t.codigo = v.codigo);
 
-INSERT INTO dbo.categoria_centro (codigo, descripcion, orden)
-SELECT v.codigo, v.descripcion, v.orden
-FROM (VALUES
-    ('CNSR',      'Centro Nacional de Salud Renal',    1),
-    ('IPO',       'IPO',                               2),
-    ('INCOR',     'Instituto Nacional Cardiovascular', 3),
-    ('H.N.',      'Hospital Nacional',                 4),
-    ('H.IV',      'Hospital IV',                       5),
-    ('H.III',     'Hospital III',                      6),
-    ('H.II',      'Hospital II',                       7),
-    ('H.I',       'Hospital I',                        8),
-    ('POL.',      'Policlínico',                       9),
-    ('C.M.',      'Centro Médico',                     10),
-    ('C.A.P.III', 'Centro de Atención Primaria III',   11),
-    ('C.A.P.II',  'Centro de Atención Primaria II',    12),
-    ('C.A.P.I',   'Centro de Atención Primaria I',     13),
-    ('P.M.',      'Posta Médica',                      14)) v(codigo, descripcion, orden)
-WHERE NOT EXISTS (SELECT 1 FROM dbo.categoria_centro c WHERE c.codigo = v.codigo);
-GO
+
