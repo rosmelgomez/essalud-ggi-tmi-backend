@@ -45,13 +45,16 @@ def queryCentrosTMI(db: Session):
 
 def queryInsertCentrosTMI(db: Session, centro:tmiCentroDto):
     try:
-        query = f"""
-        IF COL_LENGTH('{name_server}.tmi_centro', 'flag_01') IS NOT NULL
+        # La rama se elige aquí: SQL Server compila el lote entero y un IF/ELSE con columnas que la tabla no tiene
+        # (flag_01.., anio) falla aunque esa rama no se ejecute.
+        if _tiene_columna(db, "tmi_centro", "flag_01"):
+            query = f"""
             INSERT INTO {name_server}.tmi_centro
             (red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,anio, flag_01, flag_02, flag_03, flag_04, flag_05, flag_06, flag_07, flag_08, flag_09, flag_10, flag_11, flag_12)
             VALUES 
-            (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:anio, YEAR(GETDATE())), ISNULL(:flag_01, :flag), ISNULL(:flag_02, :flag), ISNULL(:flag_03, :flag), ISNULL(:flag_04, :flag), ISNULL(:flag_05, :flag), ISNULL(:flag_06, :flag), ISNULL(:flag_07, :flag), ISNULL(:flag_08, :flag), ISNULL(:flag_09, :flag), ISNULL(:flag_10, :flag), ISNULL(:flag_11, :flag), ISNULL(:flag_12, :flag))
-        ELSE
+            (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:anio, YEAR(GETDATE())), ISNULL(:flag_01, :flag), ISNULL(:flag_02, :flag), ISNULL(:flag_03, :flag), ISNULL(:flag_04, :flag), ISNULL(:flag_05, :flag), ISNULL(:flag_06, :flag), ISNULL(:flag_07, :flag), ISNULL(:flag_08, :flag), ISNULL(:flag_09, :flag), ISNULL(:flag_10, :flag), ISNULL(:flag_11, :flag), ISNULL(:flag_12, :flag))"""
+        else:
+            query = f"""
             INSERT INTO {name_server}.tmi_centro
             (red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,flag)
             VALUES (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:flag, 1))
@@ -68,8 +71,9 @@ def queryInsertCentrosTMI(db: Session, centro:tmiCentroDto):
 
 def queryUpdateCentrosTMI(db: Session, dto:tmiCentroDto):
     try:
-        query = f"""
-        IF COL_LENGTH('{name_server}.tmi_centro', 'flag_01') IS NOT NULL
+        # rama elegida aquí (ver queryInsertCentrosTMI)
+        if _tiene_columna(db, "tmi_centro", "flag_01"):
+            query = f"""
             UPDATE {name_server}.tmi_centro
                 SET red = :red
                 ,orden = :orden
@@ -92,8 +96,9 @@ def queryUpdateCentrosTMI(db: Session, dto:tmiCentroDto):
                 ,flag_10 = COALESCE(:flag_10, :flag, flag_10)
                 ,flag_11 = COALESCE(:flag_11, :flag, flag_11)
                 ,flag_12 = COALESCE(:flag_12, :flag, flag_12)
-            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)
-        ELSE
+            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)"""
+        else:
+            query = f"""
             UPDATE {name_server}.tmi_centro
                 SET red = :red
                 ,orden = :orden
@@ -137,7 +142,7 @@ def queryExclusionCentroEstandar(db: Session, anio: int):
         pre = "excl_" if _tiene_columna(db, tabla, "excl_01") else "estandar_"
         cod = "COALESCE(CAST(cen.codcentro AS VARCHAR(50)), exc.codcentro)" if _tiene_columna(db, tabla, "codcentro") else "cen.codcentro"
         motivo = "exc.motivo" if _tiene_columna(db, tabla, "motivo") else "CAST(NULL AS VARCHAR(300))"
-        resultado = "ISNULL(exc.resultado, 'NA')" if _tiene_columna(db, tabla, "resultado") else "'NA'"
+        resultado = "ISNULL(exc.resultado, '0')" if _tiene_columna(db, tabla, "resultado") else "'0'"
         join, tipo, orden = _indicador_join(db, f"exc.{col}")
         join = join.replace("JOIN ", "LEFT JOIN ", 1) if join.startswith("JOIN ") else join
         meses = ", ".join(f"exc.{pre}{m} AS excl_{m}" for m in MESES)
@@ -176,7 +181,7 @@ def _params_exclusion(db: Session, dto) -> tuple:
     if _tiene_columna(db, tabla, "motivo"):
         cols["motivo"] = ":motivo"
     if _tiene_columna(db, tabla, "resultado"):
-        cols["resultado"] = "ISNULL(:resultado, 'NA')"
+        cols["resultado"] = "ISNULL(:resultado, '0')"
     for k in ("codcentro", "motivo", "id", "resultado"):
         params.setdefault(k, None)
     params.pop("ids_indicador", None)
@@ -239,6 +244,18 @@ def queryUpdateExclusionCentroEstandar(db: Session, dto: tmiExclusionCentroEstan
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def queryCatalogosCentroTMI(db: Session) -> dict:
+    """Niveles, tipos y categorías activos, en su orden (para filtros y para el formulario de centros)."""
+    def lista(tabla: str):
+        try:
+            return _consulta(db, f"""
+                SELECT codigo, descripcion, orden FROM {name_server}.{tabla}
+                WHERE activo = 1 ORDER BY ISNULL(orden, 999), codigo""")
+        except HTTPException:
+            return []   # la tabla todavía no existe (se crea al reiniciar el backend)
+    return {"niveles": lista("nivel_centro"), "tipos": lista("tipo_centro"), "categorias": lista("categoria_centro")}
 
 
 def queryCatalogoCentrosTMI(db: Session):

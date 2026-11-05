@@ -1,11 +1,39 @@
 """Centros: tmi_centro, estándar propio de centro y exclusión de centro por indicador."""
 
-from sqlalchemy import CheckConstraint, Column, Float, ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, Column, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.mssql import BIT
 
 from src.main.model.base import TMI_SCHEMA, Base, defecto
 from src.main.model.estandarModel import _EstandarMensual
 from src.main.model.indicadorModel import TmiIndicador
+
+
+class _CatalogoCentro:
+    """Catálogo de un dato del centro: codigo = valor que se guarda en tmi_centro (y en tmi_estandar.clave),
+    descripcion = nombre para mostrar y orden = orden en filtros y listas."""
+    id = Column(Integer, primary_key=True)
+    codigo = Column(String(50), nullable=False)
+    descripcion = Column(String(100))
+    orden = Column(Integer)
+    activo = Column(BIT, nullable=False, server_default=defecto(1))
+
+
+class NivelCentro(_CatalogoCentro, Base):
+    """Niveles de atención (I, II, III). tmi_centro.nivel -> codigo."""
+    __tablename__ = "nivel_centro"
+    __table_args__ = (UniqueConstraint("codigo", name="UX_nivel_centro"), {"schema": TMI_SCHEMA})
+
+
+class TipoCentro(_CatalogoCentro, Base):
+    """Tipos de centro (CNSR, IPO, INCOR, H.N., ..., POL., C.M.). tmi_centro.tipo -> codigo."""
+    __tablename__ = "tipo_centro"
+    __table_args__ = (UniqueConstraint("codigo", name="UX_tipo_centro"), {"schema": TMI_SCHEMA})
+
+
+class CategoriaCentro(_CatalogoCentro, Base):
+    """Categorías de centro (CNSR, ..., C.A.P.I, P.M.). tmi_centro.categoria -> codigo."""
+    __tablename__ = "categoria_centro"
+    __table_args__ = (UniqueConstraint("codigo", name="UX_categoria_centro"), {"schema": TMI_SCHEMA})
 
 
 class TmiCentro(Base):
@@ -63,5 +91,5 @@ class TmiExclusionCentroIndicador(Base):
     excl_11 = Column(BIT)
     excl_12 = Column(BIT)
     motivo = Column(String(300))
-    # cómo queda el mes excluido en el resultado final: 'NA' (no aplica) o '0' (puntaje 0, valor 0)
-    resultado = Column(String(2), nullable=False, server_default=defecto("NA"))
+    # cómo queda el mes excluido en el resultado final: '0' (puntaje 0, valor 0; por defecto) o 'NA' (no aplica)
+    resultado = Column(String(2), nullable=False, server_default=defecto("0"))

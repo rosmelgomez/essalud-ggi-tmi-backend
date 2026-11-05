@@ -122,9 +122,9 @@ SELECT @cols = STUFF((
 SET @cod = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'codcentro') IS NOT NULL
                 THEN N'COALESCE(CASE WHEN LTRIM(RTRIM(e.codcentro)) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(e.codcentro))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(e.codcentro)) AS INT) END, c.codcentro)' ELSE N'c.codcentro' END;
 SET @motivo = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'motivo') IS NOT NULL THEN N'e.motivo' ELSE N'CAST(NULL AS VARCHAR(300))' END;
--- resultado del mes excluido: 'NA' (por defecto) o '0'
+-- resultado del mes excluido: '0' (por defecto) o 'NA'
 SET @resultado = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'resultado') IS NOT NULL
-                      THEN N'CAST(ISNULL(e.resultado, ''NA'') AS VARCHAR(2))' ELSE N'CAST(''NA'' AS VARCHAR(2))' END;
+                      THEN N'CAST(ISNULL(e.resultado, ''0'') AS VARCHAR(2))' ELSE N'CAST(''0'' AS VARCHAR(2))' END;
 IF OBJECT_ID('dbo.vw_tmi_exclusion', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_exclusion;
 SET @sql = N'CREATE VIEW dbo.vw_tmi_exclusion AS
 SELECT ' + @cod + N' AS codcentro, e.' + CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'id_estandar') IS NOT NULL

@@ -3,7 +3,7 @@
    Origen: UPDATE ... SET <indicador>='NA' de 01_TMI_PROCESAMIENTO_GENERAL_2025.sql (periodos 202601-202612)
            + hoja Exclusiones_centro de Analisis_TMI/Nuevas_Versiones.xlsx
    excl_MM = 1 -> el indicador queda excluido ese mes. id_indicador NULL = todos los indicadores del centro.
-   resultado: 'NA' (por defecto) o '0' (el mes excluido sale con 0).
+   resultado: '0' (por defecto: el mes excluido sale con 0) o 'NA' (no aplica).
    id_indicador: 1-4 CE1-CE4 | 5-9 H1-H5 | 10-15 Q1-Q6 | 16-17 EM1-EM2 | 18-21 O_1-O_4
    No se cargan:
      - 194 CHOTA (O_1-O_4): en el script original los UPDATE están comentados en todos los meses.
@@ -22,44 +22,44 @@ CREATE TABLE #excl (codcentro VARCHAR(50) NOT NULL, id_indicador INT NULL,
 INSERT INTO #excl (codcentro, id_indicador, e01, e02, e03, e04, e05, e06, e07, e08, e09, e10, e11, e12, motivo, resultado)
 VALUES
     -- 824 SAN NICOLÁS: cierre de IPRESS, todos los indicadores, todo el año
-    ('824', NULL, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'Cierre de IPRESS San Nicolás (TMI Octubre figura con puntaje 0)', 'NA'),
+    ('824', NULL, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'Cierre de IPRESS San Nicolás (TMI Octubre figura con puntaje 0)', '0'),
     -- 498: CE4 Promedio de recetas por consulta, todo el año
-    ('498', 4,    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'Exclusión de CE4 (Promedio de recetas por consultas)', 'NA'),
+    ('498', 4,    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'Exclusión de CE4 (Promedio de recetas por consultas)', '0'),
     -- 230 QUIRUVILCA: odontología, todo el año salvo febrero y marzo
-    ('230', 18,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', 'NA'),
-    ('230', 19,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', 'NA'),
-    ('230', 20,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', 'NA'),
-    ('230', 21,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', 'NA'),
+    ('230', 18,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', '0'),
+    ('230', 19,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', '0'),
+    ('230', 20,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', '0'),
+    ('230', 21,   1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 'MODIFICAR QUIRUVILCA', '0'),
     -- 219, 225, 228, 835, 236, 237: odontología, solo junio
-    ('219', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('219', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('219', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('219', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('225', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('225', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('225', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('225', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('228', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('228', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('228', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('228', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('835', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('835', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('835', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('835', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('236', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('236', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('236', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('236', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('237', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('237', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('237', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
-    ('237', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', 'NA'),
+    ('219', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('219', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('219', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('219', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('225', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('225', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('225', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('225', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('228', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('228', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('228', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('228', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('835', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('835', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('835', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('835', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('236', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('236', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('236', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('236', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('237', 18,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('237', 19,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('237', 20,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
+    ('237', 21,   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'Exclusión de odontología - junio', '0'),
     -- 224 HUAMACHUCO: odontología, solo diciembre
-    ('224', 18,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', 'NA'),
-    ('224', 19,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', 'NA'),
-    ('224', 20,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', 'NA'),
-    ('224', 21,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', 'NA'),
+    ('224', 18,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', '0'),
+    ('224', 19,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', '0'),
+    ('224', 20,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', '0'),
+    ('224', 21,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 'MODIFICAR HUAMACHUCO', '0'),
     -- Nuevas_Versiones.xlsx (hoja Exclusiones_centro): un mes, resultado 0
     ('323', 1,    0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, NULL, '0'),
     ('286', 1,    0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, NULL, '0'),

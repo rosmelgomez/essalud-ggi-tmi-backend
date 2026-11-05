@@ -443,3 +443,49 @@ BEGIN
         OR (s.fuente = 'CATEGORIA' AND i.base_estandar LIKE '%CATEGORIA%'));
 END
 GO
+
+
+/* ---------- Catálogos de centro: nivel_centro, tipo_centro y categoria_centro (solo agrega lo que falta) ----------
+   codigo = valor que se guarda en tmi_centro (nivel, tipo, categoria); orden = orden en filtros y listas. */
+INSERT INTO dbo.nivel_centro (codigo, descripcion, orden)
+SELECT v.codigo, v.descripcion, v.orden
+FROM (VALUES
+    ('I',   'Primer nivel',  1),
+    ('II',  'Segundo nivel', 2),
+    ('III', 'Tercer nivel',  3)) v(codigo, descripcion, orden)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.nivel_centro n WHERE n.codigo = v.codigo);
+
+INSERT INTO dbo.tipo_centro (codigo, descripcion, orden)
+SELECT v.codigo, v.descripcion, v.orden
+FROM (VALUES
+    ('CNSR',  'Centro Nacional de Salud Renal',    1),
+    ('IPO',   'IPO',                               2),
+    ('INCOR', 'Instituto Nacional Cardiovascular', 3),
+    ('H.N.',  'Hospital Nacional',                 4),
+    ('H.IV',  'Hospital IV',                       5),
+    ('H.III', 'Hospital III',                      6),
+    ('H.II',  'Hospital II',                       7),
+    ('H.I',   'Hospital I',                        8),
+    ('POL.',  'Policlínico',                       9),
+    ('C.M.',  'Centro Médico',                     10)) v(codigo, descripcion, orden)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tipo_centro t WHERE t.codigo = v.codigo);
+
+INSERT INTO dbo.categoria_centro (codigo, descripcion, orden)
+SELECT v.codigo, v.descripcion, v.orden
+FROM (VALUES
+    ('CNSR',      'Centro Nacional de Salud Renal',    1),
+    ('IPO',       'IPO',                               2),
+    ('INCOR',     'Instituto Nacional Cardiovascular', 3),
+    ('H.N.',      'Hospital Nacional',                 4),
+    ('H.IV',      'Hospital IV',                       5),
+    ('H.III',     'Hospital III',                      6),
+    ('H.II',      'Hospital II',                       7),
+    ('H.I',       'Hospital I',                        8),
+    ('POL.',      'Policlínico',                       9),
+    ('C.M.',      'Centro Médico',                     10),
+    ('C.A.P.III', 'Centro de Atención Primaria III',   11),
+    ('C.A.P.II',  'Centro de Atención Primaria II',    12),
+    ('C.A.P.I',   'Centro de Atención Primaria I',     13),
+    ('P.M.',      'Posta Médica',                      14)) v(codigo, descripcion, orden)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.categoria_centro c WHERE c.codigo = v.codigo);
+GO

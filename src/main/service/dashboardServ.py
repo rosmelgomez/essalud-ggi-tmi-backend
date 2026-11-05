@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy.orm import Session
 
+from src.main.repositories.centroRep import queryCatalogosCentroTMI
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
 from src.main.repositories.tmiDinamicoRep import queryCentrosActivosTMI, queryResultadoFinalTMI, queryResultadoTMI
 from src.main.service.excelDinamicoServ import (
@@ -49,7 +50,7 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
         final[r["id_indicador"]][r["codcentro"]] = r
         centros_por_cod.setdefault(r["codcentro"], {
             "codcentro": r["codcentro"], "centro": r["centro"], "red": r["red"], "orden": r["orden_red"],
-            "nivel": r["nivel"], "categoria": r["categoria"]})
+            "nivel": r["nivel"], "tipo": r.get("tipo"), "categoria": r["categoria"]})
     fecha = max((r["fecha_calculo"] for r in filas_final if r.get("fecha_calculo")), default=None)
     centros = list(centros_por_cod.values())
     indicadores = [i for i in indicadores if i["id"] in final]
@@ -109,7 +110,7 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
             datos = [x or {"p": NA, "m": [NA] * 12, "det": None} for x in datos]
             nota, mensual = _nota([x["p"] for x in datos], [x["m"] for x in datos], mes)
             fila = {"cod": c["codcentro"], "nombre": (c["centro"] or "").strip(), "red": (red or "").strip(),
-                    "nivel": c["nivel"], "tipo": c["categoria"], "pts": [_f(x["p"]) for x in datos],
+                    "nivel": c["nivel"], "tipo": c["tipo"], "categoria": c["categoria"], "pts": [_f(x["p"]) for x in datos],
                     "nota": nota, "mensual": mensual, "det": [x["det"] for x in datos]}
             salida_centros.append(fila)
             if not _es_red(red):   # institutos: en Puntajes_RED van como fila propia
@@ -125,5 +126,8 @@ def dashboard_tmi(db: Session, periodo: str) -> Dict[str, Any]:
     filas_final = queryResultadoFinalTMI(db, p)
     if not filas_final:
         raise ValueError(f"No hay resultado guardado del periodo {periodo}: ese periodo no se calculó.")
-    return armar_dashboard(periodo, filas_final, queryIndicadoresActivosTMI(db), queryResultadoTMI(db, p),
-                           queryCentrosActivosTMI(db, p))
+    datos = armar_dashboard(periodo, filas_final, queryIndicadoresActivosTMI(db), queryResultadoTMI(db, p),
+                            queryCentrosActivosTMI(db, p))
+    # nombres y orden de nivel y tipo para los filtros del tablero
+    datos["catalogos"] = queryCatalogosCentroTMI(db)
+    return datos
