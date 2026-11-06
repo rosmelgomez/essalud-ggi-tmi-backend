@@ -161,7 +161,7 @@ INSERT INTO #est (id_indicador, tipo_centro, anio, est_fijo, est_01, est_02, est
     (14, 'P.M.', 2026, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
     (14, 'CNSR', 2026, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
     (14, 'IPO', 2026, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, NULL, NULL, NULL),
-    (14, 'INCOR', 2026, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, NULL, NULL, NULL),
+    (14, 'INCOR', 2026, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, NULL, NULL, NULL),
 
     (15, 'H.N.', 2026, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, NULL, NULL, NULL),
     (15, 'H.IV', 2026, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, NULL, NULL, NULL),

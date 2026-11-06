@@ -27,8 +27,8 @@ def queryCentrosTMI(db: Session):
     try:
         query = f"""
         IF OBJECT_ID('{name_server}.vw_tmi_centro_base') IS NOT NULL
-            SELECT id_centro AS id, red, CAST(orden AS VARCHAR(20)) AS orden, CAST(orden_tipo AS VARCHAR(20)) AS orden_tipo,
-                   CAST(codcentro AS VARCHAR(50)) AS codcentro, centro, categoria, nivel, tipo,
+            SELECT id_centro AS id, codred, red, CAST(orden AS VARCHAR(20)) AS orden, CAST(orden_tipo AS VARCHAR(20)) AS orden_tipo,
+                   CAST(codcentro AS VARCHAR(50)) AS codcentro, centro, categoria, nivel, nivel_estandar, tipo,
                    f01 AS flag, ISNULL(anio, YEAR(GETDATE())) AS anio,
                    f01 AS flag_01, f02 AS flag_02, f03 AS flag_03, f04 AS flag_04, f05 AS flag_05, f06 AS flag_06,
                    f07 AS flag_07, f08 AS flag_08, f09 AS flag_09, f10 AS flag_10, f11 AS flag_11, f12 AS flag_12
@@ -43,81 +43,69 @@ def queryCentrosTMI(db: Session):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Datos del centro que se guardan si la tabla los tiene (tmi_centro cambió: nivel_estandar reemplaza a nivel, que queda solo informativo, en la
+# unión con los estándares; orden, orden_tipo y codred pueden no existir según la versión de la tabla)
+_DATOS_CENTRO = ("codred", "red", "orden", "orden_tipo", "codcentro", "centro", "categoria", "nivel", "nivel_estandar", "tipo")
+_FLAGS_MES = tuple(f"flag_{m}" for m in MESES)
+
+
+def _columnas_centro(db: Session) -> set:
+    filas = db.execute(text("SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(:t)"),
+                       {"t": f"{name_server}.tmi_centro"}).scalars()
+    return {f.lower() for f in filas}
+
+
+def _params_centro(dto) -> dict:
+    params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
+    for k in _DATOS_CENTRO + ("id", "anio", "flag") + _FLAGS_MES:
+        params.setdefault(k, None)
+    return params
+
+
 def queryInsertCentrosTMI(db: Session, centro:tmiCentroDto):
     try:
-        # La rama se elige aquí: SQL Server compila el lote entero y un IF/ELSE con columnas que la tabla no tiene
-        # (flag_01.., anio) falla aunque esa rama no se ejecute.
-        if _tiene_columna(db, "tmi_centro", "flag_01"):
-            query = f"""
-            INSERT INTO {name_server}.tmi_centro
-            (red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,anio, flag_01, flag_02, flag_03, flag_04, flag_05, flag_06, flag_07, flag_08, flag_09, flag_10, flag_11, flag_12)
-            VALUES 
-            (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:anio, YEAR(GETDATE())), ISNULL(:flag_01, :flag), ISNULL(:flag_02, :flag), ISNULL(:flag_03, :flag), ISNULL(:flag_04, :flag), ISNULL(:flag_05, :flag), ISNULL(:flag_06, :flag), ISNULL(:flag_07, :flag), ISNULL(:flag_08, :flag), ISNULL(:flag_09, :flag), ISNULL(:flag_10, :flag), ISNULL(:flag_11, :flag), ISNULL(:flag_12, :flag))"""
-        else:
-            query = f"""
-            INSERT INTO {name_server}.tmi_centro
-            (red,orden,orden_tipo,codcentro,centro,categoria,nivel,tipo,flag)
-            VALUES (:red,:orden,:orden_tipo,:codcentro,:centro,:categoria,:nivel,:tipo,ISNULL(:flag, 1))
-        """
-        params = centro.model_dump() if hasattr(centro, "model_dump") else centro.dict()
-        for k in ("anio", "flag", "flag_01", "flag_02", "flag_03", "flag_04", "flag_05", "flag_06", "flag_07", "flag_08", "flag_09", "flag_10", "flag_11", "flag_12"):
-            params.setdefault(k, None)
-        result = db.execute(text(query), params)
+        # Las columnas se eligen aquí: SQL Server compila el lote entero y falla con columnas que la tabla no tiene.
+        existentes = _columnas_centro(db)
+        cols = {c: f":{c}" for c in _DATOS_CENTRO if c in existentes}
+        if "flag_01" in existentes:
+            if "anio" in existentes:
+                cols["anio"] = "ISNULL(:anio, YEAR(GETDATE()))"
+            cols.update({f: f"ISNULL(:{f}, ISNULL(:flag, 1))" for f in _FLAGS_MES})
+        elif "flag" in existentes:
+            cols["flag"] = "ISNULL(:flag, 1)"
+        query = f"""
+        INSERT INTO {name_server}.tmi_centro ({', '.join(cols)})
+        VALUES ({', '.join(cols.values())})"""
+        result = db.execute(text(query), _params_centro(centro))
         db.commit()
         return {"message": "Centros TMI insertados correctamente", "rows_inserted": result.rowcount}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 def queryUpdateCentrosTMI(db: Session, dto:tmiCentroDto):
     try:
-        # rama elegida aquí (ver queryInsertCentrosTMI)
-        if _tiene_columna(db, "tmi_centro", "flag_01"):
-            query = f"""
-            UPDATE {name_server}.tmi_centro
-                SET red = :red
-                ,orden = :orden
-                ,orden_tipo = :orden_tipo
-                ,codcentro = :codcentro
-                ,centro = :centro
-                ,categoria = :categoria
-                ,nivel = :nivel
-                ,tipo = :tipo
-                ,anio = ISNULL(:anio, anio)
-                ,flag_01 = COALESCE(:flag_01, :flag, flag_01)
-                ,flag_02 = COALESCE(:flag_02, :flag, flag_02)
-                ,flag_03 = COALESCE(:flag_03, :flag, flag_03)
-                ,flag_04 = COALESCE(:flag_04, :flag, flag_04)
-                ,flag_05 = COALESCE(:flag_05, :flag, flag_05)
-                ,flag_06 = COALESCE(:flag_06, :flag, flag_06)
-                ,flag_07 = COALESCE(:flag_07, :flag, flag_07)
-                ,flag_08 = COALESCE(:flag_08, :flag, flag_08)
-                ,flag_09 = COALESCE(:flag_09, :flag, flag_09)
-                ,flag_10 = COALESCE(:flag_10, :flag, flag_10)
-                ,flag_11 = COALESCE(:flag_11, :flag, flag_11)
-                ,flag_12 = COALESCE(:flag_12, :flag, flag_12)
-            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)"""
-        else:
-            query = f"""
-            UPDATE {name_server}.tmi_centro
-                SET red = :red
-                ,orden = :orden
-                ,orden_tipo = :orden_tipo
-                ,codcentro = :codcentro
-                ,centro = :centro
-                ,categoria = :categoria
-                ,nivel = :nivel
-                ,tipo = :tipo
-                ,flag = COALESCE(:flag, :flag_01, flag)
-            WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)
-        """
-        params = dto.model_dump() if hasattr(dto, "model_dump") else dto.dict()
-        for k in ("anio", "flag", "flag_01", "flag_02", "flag_03", "flag_04", "flag_05", "flag_06", "flag_07", "flag_08", "flag_09", "flag_10", "flag_11", "flag_12"):
-            params.setdefault(k, None)
-        result = db.execute(text(query), params)
+        # columnas elegidas aquí (ver queryInsertCentrosTMI)
+        existentes = _columnas_centro(db)
+        # orden y orden_tipo ya no se editan en la pantalla: si no vienen se conserva lo guardado
+        sets = [f"{c} = COALESCE(:{c}, {c})" if c in ("orden", "orden_tipo") else f"{c} = :{c}"
+                for c in _DATOS_CENTRO if c in existentes]
+        if "flag_01" in existentes:
+            if "anio" in existentes:
+                sets.append("anio = ISNULL(:anio, anio)")
+            sets += [f"{f} = COALESCE(:{f}, :flag, {f})" for f in _FLAGS_MES]
+        elif "flag" in existentes:
+            sets.append("flag = COALESCE(:flag, :flag_01, flag)")
+        query = f"""
+        UPDATE {name_server}.tmi_centro
+            SET {', '.join(sets)}
+        WHERE (:id IS NOT NULL AND id = :id) OR (:id IS NULL AND codcentro = :codcentro)"""
+        result = db.execute(text(query), _params_centro(dto))
         db.commit()
         return {"message": "Centro TMI actualizado correctamente", "rows_affected": result.rowcount}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -247,7 +235,8 @@ def queryUpdateExclusionCentroEstandar(db: Session, dto: tmiExclusionCentroEstan
 
 
 def queryCatalogosCentroTMI(db: Session) -> dict:
-    """Niveles, tipos y categorías activos, en su orden (para filtros y para el formulario de centros)."""
+    """Catálogos activos del centro, en su orden (para filtros y para el formulario de centros):
+    niveles = nivel de atención (I, II, III); niveles_estandar y tipos = los que unen el centro con los estándares."""
     def lista(tabla: str):
         try:
             return _consulta(db, f"""
@@ -255,13 +244,14 @@ def queryCatalogosCentroTMI(db: Session) -> dict:
                 WHERE activo = 1 ORDER BY ISNULL(orden, 999), codigo""")
         except HTTPException:
             return []   # la tabla todavía no existe (se crea al reiniciar el backend)
-    return {"niveles": lista("nivel_centro"), "tipos": lista("tipo_centro"), "categorias": lista("categoria_centro")}
+    return {"niveles": lista("tmi_nivel_centro"), "niveles_estandar": lista("tmi_nivel_estandar_centro"),
+            "tipos": lista("tmi_tipo_centro")}
 
 
 def queryCatalogoCentrosTMI(db: Session):
     return _consulta(db, f"""
         SELECT codcentro, MAX(centro) AS centro, MAX(red) AS red, MAX(tipo) AS tipo,
-               MAX(nivel) AS nivel, MAX(categoria) AS categoria
+               MAX(nivel) AS nivel, MAX(nivel_estandar) AS nivel_estandar, MAX(categoria) AS categoria
         FROM {name_server}.vw_tmi_centro_base GROUP BY codcentro ORDER BY MAX(red), MAX(centro)""")
 
 

@@ -360,11 +360,54 @@ DELETE FROM dbo.tmi_centro_estandar WHERE aplica = 0 AND sustento LIKE 'TMI_ESTA
 GO
 
 
-/* ---------- Tablas maestras de estándares: tipos y claves (solo agrega lo que falta) ---------- */
+/* ---------- Tablas maestras de estándares: tipos y claves ----------
+   Fuente NIVEL = tmi_centro.nivel (I, II, III, catálogo tmi_nivel_centro).
+   Fuente TIPO  = tmi_centro.nivel_estandar (H.N. ... P.M., CNSR, IPO, INCOR, catálogo tmi_nivel_estandar_centro).
+   tmi_centro.tipo ya no se usa para unir estándares. */
 INSERT INTO dbo.tmi_tipo_estandar (codigo, descripcion, orden)
 SELECT v.codigo, v.descripcion, v.orden
 FROM (VALUES ('NIVEL', 'Nivel', 1), ('NIVEL_TIPO', 'Nivel y Tipo', 2), ('TIPO', 'Tipo', 3), ('CATEGORIA', 'Categoría', 4)) v(codigo, descripcion, orden)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_estandar t WHERE t.codigo = v.codigo);
+UPDATE dbo.tmi_tipo_estandar SET descripcion = 'Nivel'        WHERE codigo = 'NIVEL'      AND descripcion <> 'Nivel';
+UPDATE dbo.tmi_tipo_estandar SET descripcion = 'Nivel y Tipo' WHERE codigo = 'NIVEL_TIPO' AND descripcion <> 'Nivel y Tipo';
+
+-- la base temporal "Nivel (I, II, III)" ya no hace falta: Nivel es I, II, III
+UPDATE dbo.tmi_indicador SET base_estandar = 'NIVEL' WHERE base_estandar = 'NIVEL_ATENCION';
+DELETE dbo.tmi_estandar WHERE tipo_estandar = 'NIVEL_ATENCION';
+DELETE dbo.tmi_tipo_estandar WHERE codigo = 'NIVEL_ATENCION';
+GO
+
+/* ---------- Migración: valores por nivel_estandar en tmi_estandar_nivel -> I, II, III ----------
+   Cada nivel toma el valor del nivel_estandar que tienen más centros de ese nivel (I = C.M., II = H.I, III = H.N.).
+   Los institutos (CNSR, IPO, INCOR) siguen en tmi_estandar_tipo. Si ya no hay claves de nivel_estandar no hace nada. */
+IF OBJECT_ID('dbo.tmi_estandar_nivel') IS NOT NULL AND OBJECT_ID('dbo.tmi_centro') IS NOT NULL
+   AND COL_LENGTH('dbo.tmi_centro', 'nivel_estandar') IS NOT NULL
+   AND EXISTS (SELECT 1 FROM dbo.tmi_estandar_nivel WHERE LTRIM(RTRIM(nivel_centro)) NOT IN ('I', 'II', 'III'))
+BEGIN
+    ;WITH cnt AS (
+        SELECT c.nivel, c.nivel_estandar, COUNT(*) AS n
+        FROM dbo.tmi_centro c
+        WHERE c.nivel IN ('I', 'II', 'III') AND c.nivel_estandar IS NOT NULL
+        GROUP BY c.nivel, c.nivel_estandar),
+    src AS (
+        SELECT e.*, k.nivel AS nivel_nuevo,
+               ROW_NUMBER() OVER (PARTITION BY e.id_indicador, e.anio, k.nivel ORDER BY k.n DESC, e.nivel_centro) AS rn
+        FROM dbo.tmi_estandar_nivel e
+        JOIN cnt k ON k.nivel_estandar = LTRIM(RTRIM(e.nivel_centro))
+        WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_nivel x
+                          WHERE x.id_indicador = e.id_indicador AND x.anio = e.anio AND x.nivel_centro = k.nivel))
+    INSERT INTO dbo.tmi_estandar_nivel (id_indicador, nivel_centro, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12)
+    SELECT id_indicador, nivel_nuevo, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12
+    FROM src WHERE rn = 1;
+    DELETE dbo.tmi_estandar_nivel WHERE LTRIM(RTRIM(nivel_centro)) NOT IN ('I', 'II', 'III');
+END
+GO
+
+-- claves anteriores: Nivel por nivel_estandar y Tipo C.A.P. (tmi_centro.tipo)
+DELETE dbo.tmi_estandar WHERE fuente = 'NIVEL' AND tipo_estandar IN ('NIVEL', 'NIVEL_TIPO') AND clave NOT IN ('I', 'II', 'III');
+DELETE dbo.tmi_estandar WHERE fuente = 'TIPO' AND clave LIKE 'C.A.P.%';
+IF OBJECT_ID('dbo.tmi_estandar_tipo') IS NOT NULL
+    DELETE dbo.tmi_estandar_tipo WHERE tipo_centro LIKE 'C.A.P.%';
 
 INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
 SELECT v.tipo_estandar, v.orden, v.fuente, v.clave, v.descripcion, v.prioridad
@@ -378,6 +421,7 @@ FROM (VALUES
     ('NIVEL_TIPO', 4, 'TIPO', 'CNSR', 'CNSR', 2),
     ('NIVEL_TIPO', 5, 'TIPO', 'IPO', 'IPO', 2),
     ('NIVEL_TIPO', 6, 'TIPO', 'INCOR', 'INCOR', 2),
+    -- fuente TIPO = tmi_centro.nivel_estandar (catálogo tmi_nivel_estandar_centro)
     ('TIPO', 1, 'TIPO', 'H.N.', 'H.N.', 1),
     ('TIPO', 2, 'TIPO', 'H.IV', 'H.IV', 1),
     ('TIPO', 3, 'TIPO', 'H.III', 'H.III', 1),
@@ -406,11 +450,36 @@ FROM (VALUES
 ) v(tipo_estandar, orden, fuente, clave, descripcion, prioridad)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar e
                   WHERE e.tipo_estandar = v.tipo_estandar AND e.fuente = v.fuente AND e.clave = v.clave);
+
+-- orden de las claves como los catálogos
+UPDATE e SET orden = v.orden
+FROM dbo.tmi_estandar e
+JOIN (VALUES ('H.N.', 1), ('H.IV', 2), ('H.III', 3), ('H.II', 4), ('H.I', 5), ('POL.', 6), ('C.M.', 7), ('P.M.', 8), ('CNSR', 9), ('IPO', 10), ('INCOR', 11)) v(clave, orden)
+  ON e.tipo_estandar = 'TIPO' AND e.fuente = 'TIPO' AND e.clave = v.clave AND e.orden <> v.orden;
+UPDATE e SET orden = v.orden
+FROM dbo.tmi_estandar e
+JOIN (VALUES ('NIVEL', 'I', 1), ('NIVEL', 'II', 2), ('NIVEL', 'III', 3), ('TIPO', 'CNSR', 4), ('TIPO', 'IPO', 5), ('TIPO', 'INCOR', 6)) v(fuente, clave, orden)
+  ON e.tipo_estandar = 'NIVEL_TIPO' AND e.fuente = v.fuente AND e.clave = v.clave AND e.orden <> v.orden;
 GO
 
--- Los niveles se muestran como I, II y III (la carga anterior los llamaba N1, N2 y N3)
-UPDATE dbo.tmi_estandar SET descripcion = clave
-WHERE fuente = 'NIVEL' AND descripcion IN ('N1', 'N2', 'N3') AND clave IN ('I', 'II', 'III');
+/* Claves de los estándares = valores de los centros: Nivel = catálogo tmi_nivel_centro (tmi_centro.nivel) y
+   Tipo = catálogo tmi_nivel_estandar_centro (tmi_centro.nivel_estandar). Un código nuevo del catálogo aparece solo en
+   la pestaña Estándares (sin valor: los centros con esa clave quedan sin estándar hasta cargarlo). En Nivel y Tipo,
+   la parte Tipo son solo los institutos (CNSR, IPO, INCOR), que ganan sobre el nivel. */
+IF OBJECT_ID('dbo.tmi_nivel_centro') IS NOT NULL
+INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
+SELECT t.tipo_estandar, 100 + n.orden, 'NIVEL', n.codigo, n.codigo, 1
+FROM dbo.tmi_nivel_centro n
+CROSS JOIN (VALUES ('NIVEL'), ('NIVEL_TIPO')) t(tipo_estandar)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar e
+                  WHERE e.tipo_estandar = t.tipo_estandar AND e.fuente = 'NIVEL' AND e.clave = n.codigo);
+
+IF OBJECT_ID('dbo.tmi_nivel_estandar_centro') IS NOT NULL
+INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
+SELECT 'TIPO', 100 + c.orden, 'TIPO', c.codigo, c.codigo, 1
+FROM dbo.tmi_nivel_estandar_centro c
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar e
+                  WHERE e.tipo_estandar = 'TIPO' AND e.fuente = 'TIPO' AND e.clave = c.codigo);
 GO
 
 -- base_estandar del indicador -> tmi_tipo_estandar.codigo. Se crea cuando todos los indicadores usan un tipo del
@@ -446,17 +515,20 @@ END
 GO
 
 
-/* ---------- Catálogos de centro: nivel_centro, tipo_centro y categoria_centro (solo agrega lo que falta) ----------
-   codigo = valor que se guarda en tmi_centro (nivel, tipo, categoria); orden = orden en filtros y listas. */
-INSERT INTO dbo.nivel_centro (codigo, descripcion, orden)
+/* ---------- Catálogos de centro (solo agrega lo que falta) ----------
+   codigo = valor que se guarda en tmi_centro; orden = orden en filtros y listas.
+     tmi_nivel_centro          -> tmi_centro.nivel (I, II, III): une el centro con los estándares de fuente NIVEL
+     tmi_nivel_estandar_centro -> tmi_centro.nivel_estandar: une el centro con los estándares de fuente TIPO
+     tmi_tipo_centro           -> tmi_centro.tipo: informativo (ya no une estándares)
+   El cálculo une por nivel y nivel_estandar; la categoría no tiene catálogo. */
+IF OBJECT_ID('dbo.tmi_nivel_centro') IS NOT NULL
+INSERT INTO dbo.tmi_nivel_centro (codigo, descripcion, orden)
 SELECT v.codigo, v.descripcion, v.orden
-FROM (VALUES
-    ('I',   'Primer nivel',  1),
-    ('II',  'Segundo nivel', 2),
-    ('III', 'Tercer nivel',  3)) v(codigo, descripcion, orden)
-WHERE NOT EXISTS (SELECT 1 FROM dbo.nivel_centro n WHERE n.codigo = v.codigo);
+FROM (VALUES ('I', 'Primer nivel', 1), ('II', 'Segundo nivel', 2), ('III', 'Tercer nivel', 3)) v(codigo, descripcion, orden)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_nivel_centro n WHERE n.codigo = v.codigo);
 
-INSERT INTO dbo.tipo_centro (codigo, descripcion, orden)
+DELETE dbo.tmi_nivel_estandar_centro WHERE codigo IN ('I', 'II', 'III');
+INSERT INTO dbo.tmi_nivel_estandar_centro (codigo, descripcion, orden)
 SELECT v.codigo, v.descripcion, v.orden
 FROM (VALUES
     ('CNSR',  'Centro Nacional de Salud Renal',    1),
@@ -470,6 +542,26 @@ FROM (VALUES
     ('POL.',  'Policlínico',                       9),
     ('C.M.',  'Centro Médico',                     10),
     ('P.M.',  'Posta Médica',                      11)) v(codigo, descripcion, orden)
-WHERE NOT EXISTS (SELECT 1 FROM dbo.tipo_centro t WHERE t.codigo = v.codigo);
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_nivel_estandar_centro n WHERE n.codigo = v.codigo);
+
+INSERT INTO dbo.tmi_tipo_centro (codigo, descripcion, orden)
+SELECT v.codigo, v.descripcion, v.orden
+FROM (VALUES
+    ('CNSR',  'Centro Nacional de Salud Renal',    1),
+    ('IPO',   'IPO',                               2),
+    ('INCOR', 'Instituto Nacional Cardiovascular', 3),
+    ('H.N.',  'Hospital Nacional',                 4),
+    ('H.IV',  'Hospital IV',                       5),
+    ('H.III', 'Hospital III',                      6),
+    ('H.II',  'Hospital II',                       7),
+    ('H.I',   'Hospital I',                        8),
+    ('POL.',  'Policlínico',                       9),
+    ('C.M.',  'Centro Médico',                     10),
+    ('P.M.',  'Posta Médica',                      11),
+    -- tmi_centro.tipo ahora guarda también las categorías C.A.P. (antes en categoria)
+    ('C.A.P.III', 'C.A.P. III',                    12),
+    ('C.A.P.II',  'C.A.P. II',                     13),
+    ('C.A.P.I',   'C.A.P. I',                      14)) v(codigo, descripcion, orden)
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_centro t WHERE t.codigo = v.codigo);
 
 

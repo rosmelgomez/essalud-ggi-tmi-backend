@@ -1,6 +1,7 @@
 /* =====================================================================================================
    Estándares por nivel de centro (tmi_estandar_nivel) - año 2026
-   Origen: Analisis_TMI/Nuevas_Versiones.xlsx, hoja NIVEL (63 filas).
+   Origen: TMI_Prelim_Salud (hoja Estandares). nivel_centro = tmi_centro.nivel (I, II, III). Los institutos
+   (CNSR, IPO, INCOR) de las bases Nivel y Tipo van en tmi_estandar_tipo (se unen con tmi_centro.nivel_estandar).
    Un mes en NULL o 0 toma est_fijo (vw adaptadora). Se puede volver a ejecutar:
    actualiza la fila si ya existe (id_indicador + nivel_centro + anio) y si no la inserta.
    Omite (e informa) las claves que no son de la base_estandar del indicador: el cálculo no las usa.
@@ -12,6 +13,7 @@ CREATE TABLE #est (id_indicador INT NOT NULL, nivel_centro VARCHAR(50) NOT NULL,
                    est_fijo FLOAT NULL, est_01 FLOAT NULL, est_02 FLOAT NULL, est_03 FLOAT NULL, est_04 FLOAT NULL, est_05 FLOAT NULL, est_06 FLOAT NULL, est_07 FLOAT NULL, est_08 FLOAT NULL, est_09 FLOAT NULL, est_10 FLOAT NULL, est_11 FLOAT NULL, est_12 FLOAT NULL);
 
 INSERT INTO #est (id_indicador, nivel_centro, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12) VALUES
+    -- Concentración de consultas
     (1, 'I', 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, NULL, NULL, NULL),
     (1, 'II', 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, NULL, NULL, NULL),
     (1, 'III', 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, NULL, NULL, NULL),
@@ -19,7 +21,6 @@ INSERT INTO #est (id_indicador, nivel_centro, anio, est_fijo, est_01, est_02, es
     (2, 'I', 2026, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, NULL, NULL, NULL),
     (2, 'II', 2026, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, NULL, NULL, NULL),
     (2, 'III', 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, NULL, NULL, NULL),
-
 
     (18, 'I', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),
     (18, 'II', 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, NULL, NULL, NULL),

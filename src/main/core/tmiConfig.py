@@ -13,7 +13,7 @@ def require_env(name: str, *, min_length: int = 1) -> str:
     return value
 
 
-# TMI dinámico: todas las tablas del sistema (tmi_*, cierre, cierre_calendario) se crean en la base de la conexión
+# TMI dinámico: todas las tablas del sistema (tmi_*, entre ellas tmi_cierre y tmi_cierre_calendario) se crean en la base de la conexión
 # (DB_NAME), nunca en otra; las fuentes (TOTALIZADO3 y DIM_*) solo se leen
 TMI_DB = require_env("DB_NAME")
 # Fuentes del data warehouse (TOTALIZADO3 y DIM_*): vienen del mismo servidor, una sola variable base.esquema

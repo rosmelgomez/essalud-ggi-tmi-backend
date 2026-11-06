@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from src.main.repositories.tmiBaseRep import name_server
 
 # Tablas del cierre: en la misma base que las tablas tmi_* (TMI_DB)
-CIERRE_TABLA = f"{name_server}.cierre"
+CIERRE_TABLA = f"{name_server}.tmi_cierre"
 # Calendario de cierre por año
-CALENDARIO_TABLA = f"{name_server}.cierre_calendario"
+CALENDARIO_TABLA = f"{name_server}.tmi_cierre_calendario"
 COLS_DIAS = ", ".join(f"dia_{m:02d}" for m in range(1, 13))
 
 # Tablas que se copian del periodo anterior en el cierre (solo lectura aquí)

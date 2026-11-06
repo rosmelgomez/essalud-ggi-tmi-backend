@@ -96,9 +96,12 @@ def se_puede_calcular(periodo: str) -> bool:
 
 @router.get("/periodo-calculo")
 async def periodoCalculoTMI(db: Session = Depends(get_db)):
-    """Periodo que se puede calcular y periodos con resultado guardado (para el Excel)."""
+    """Periodo que se puede calcular, último periodo con datos en TOTALIZADO3 (periodo_datos: si el mes anterior
+    todavía no se cargó, la pantalla muestra y calcula hasta este) y periodos con resultado guardado (para el Excel)."""
     from src.main.core.tmiConfig import TMI_CALCULO_SOLO_PERIODO_ANTERIOR
-    return {"periodo_calculo": periodo_calculable(),
+    calculable = periodo_calculable()
+    return {"periodo_calculo": calculable,
+            "periodo_datos": tmiDinamicoRep.queryUltimoPeriodoDatosTMI(db, int(calculable)),
             "solo_periodo_anterior": TMI_CALCULO_SOLO_PERIODO_ANTERIOR,
             "periodos": tmiDinamicoRep.queryPeriodosResultadoTMI(db)}
 

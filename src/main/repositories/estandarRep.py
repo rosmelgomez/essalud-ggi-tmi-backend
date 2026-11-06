@@ -310,7 +310,7 @@ def queryEstandarClavesTMI(db: Session):
     return _consulta(db, f"""
         SELECT e.id, e.tipo_estandar, e.orden, e.fuente, e.clave, e.descripcion, e.prioridad, e.activo,
                (SELECT COUNT(DISTINCT c.codcentro) FROM {name_server}.vw_tmi_centro_base c
-                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END = e.clave) AS centros
+                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.nivel_estandar ELSE c.categoria END = e.clave) AS centros
         FROM {name_server}.tmi_estandar e
         ORDER BY e.tipo_estandar, ISNULL(e.orden, 999), e.prioridad DESC, e.clave""")
 
@@ -321,7 +321,7 @@ def queryValoresEstandarIndicadorTMI(db: Session, id_indicador: int, anio: int):
     return _consulta(db, f"""
         SELECT e.id AS id_clave, e.orden, e.fuente, e.clave, e.descripcion, e.prioridad, e.activo, {meses},
                (SELECT COUNT(DISTINCT c.codcentro) FROM {name_server}.vw_tmi_centro_base c
-                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END = e.clave) AS centros
+                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.nivel_estandar ELSE c.categoria END = e.clave) AS centros
         FROM {name_server}.tmi_indicador i
         JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar
         OUTER APPLY (SELECT TOP 1 * FROM {name_server}.vw_tmi_std x
@@ -453,7 +453,7 @@ def contarFilasCierrePeriodoTMI(db: Session, periodo: str) -> int:
 
 
 def _periodo_alcanzo_cierre(db: Session, anio: int, mes: int) -> bool:
-    """True si el periodo AAAAMM ya alcanzó su fecha de cierre (en la tabla cierre o por ser <= mes anterior al actual)."""
+    """True si el periodo AAAAMM ya alcanzó su fecha de cierre (en la tabla tmi_cierre o por ser <= mes anterior al actual)."""
     from src.main.repositories.cierreRep import CIERRE_TABLA
     periodo = f"{anio}{mes:02d}"
     fila = _consulta(db, f"""
@@ -624,12 +624,12 @@ def queryEstandaresPeriodoTMI(db: Session, anio: int, mes: int):
                   combinada el centro cuenta solo en su clave más específica (tipo > categoría > nivel). Así un CNSR
                   de nivel II cuenta en "Tipo CNSR" y no en "Nivel II". */
                (SELECT COUNT(DISTINCT c.codcentro) FROM {name_server}.vw_tmi_centro_base c
-                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END = e.clave
+                WHERE CASE e.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.nivel_estandar ELSE c.categoria END = e.clave
                   AND NOT EXISTS (SELECT 1 FROM {name_server}.tmi_estandar e2
                                   WHERE e2.tipo_estandar = e.tipo_estandar AND e2.activo = 1
                                     AND CASE e2.fuente WHEN 'TIPO' THEN 1 WHEN 'CATEGORIA' THEN 2 ELSE 3 END
                                       < CASE e.fuente WHEN 'TIPO' THEN 1 WHEN 'CATEGORIA' THEN 2 ELSE 3 END
-                                    AND CASE e2.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.tipo ELSE c.categoria END
+                                    AND CASE e2.fuente WHEN 'NIVEL' THEN c.nivel WHEN 'TIPO' THEN c.nivel_estandar ELSE c.categoria END
                                       = e2.clave)) AS centros
         FROM {name_server}.tmi_indicador i
         JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
@@ -693,3 +693,36 @@ def queryGuardarEstandarPeriodoTMI(db: Session, id_indicador: int, datos: dict):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def queryEstandaresExcelTMI(db: Session, anio: int, mes: int):
+    """Estándar y tolerancia de cada indicador activo en el mes, con la misma regla que usp_tmi_calcular:
+    estándar = valor del mes o, si está vacío, el fijo del año (m00); 0 = sin estándar. Tolerancia = la del mes,
+    si no la fija del año, si no la del indicador. Solo lee (no aplica el cierre)."""
+    col = f"m{mes:02d}"
+    indicadores = _consulta(db, f"""
+        SELECT i.id, i.orden, i.titulo_hoja, i.indicador, i.sentido,
+               COALESCE(m.tipo_tolerancia, f.tipo_tolerancia, i.tipo_tolerancia) AS tipo_tolerancia,
+               COALESCE(m.tolerancia, f.tolerancia, i.tolerancia) AS tolerancia,
+               CASE WHEN m.id IS NOT NULL THEN ISNULL(m.tolerancia_menos, m.tolerancia)
+                    WHEN f.id IS NOT NULL THEN ISNULL(f.tolerancia_menos, f.tolerancia)
+                    ELSE ISNULL(i.tolerancia_menos, i.tolerancia) END AS tolerancia_menos
+        FROM {name_server}.tmi_indicador i
+        LEFT JOIN {name_server}.tmi_indicador_tolerancia f ON f.id_indicador = i.id AND f.anio = :anio AND f.mes = 0
+        LEFT JOIN {name_server}.tmi_indicador_tolerancia m ON m.id_indicador = i.id AND m.anio = :anio AND m.mes = :mes
+        WHERE i.activo = 1
+        ORDER BY i.orden, i.id""", {"anio": anio, "mes": mes})
+    claves = _consulta(db, f"""
+        SELECT i.id AS id_indicador, LTRIM(RTRIM(e.clave)) AS clave,
+               NULLIF(COALESCE(s.{col}, s.m00), 0) AS estandar
+        FROM {name_server}.tmi_indicador i
+        JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
+        OUTER APPLY (SELECT TOP 1 x.{col}, x.m00 FROM {name_server}.vw_tmi_std x
+                     WHERE x.id_estandar = i.id AND x.anio = :anio AND x.fuente = e.fuente AND x.clave = e.clave) s
+        WHERE i.activo = 1""", {"anio": anio})
+    por_indicador: dict = {}
+    for c in claves:
+        por_indicador.setdefault(c["id_indicador"], {})[c["clave"]] = c["estandar"]
+    for i in indicadores:
+        i["estandares"] = por_indicador.get(i["id"], {})
+    return indicadores

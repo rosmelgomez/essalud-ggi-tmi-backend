@@ -57,7 +57,6 @@ def queryEliminarVariable(db: Session, id: int):
     try:
         db.execute(text(f"DELETE FROM {name_server}.tmi_variable_logica WHERE id_variable = :id"), {"id": id})
         db.execute(text(f"DELETE FROM {name_server}.tmi_variable_componente WHERE id_variable = :id"), {"id": id})
-        db.execute(text(f"DELETE FROM {name_server}.tmi_variable_pivot WHERE id_variable = :id"), {"id": id})
         db.commit()
     except Exception as e:
         db.rollback()

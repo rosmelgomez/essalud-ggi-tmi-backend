@@ -95,7 +95,7 @@ def _conteos(db: Session, hasta: str) -> dict[str, dict[str, int]]:
 
 def inicializarCierreServ(db: Session, hoy: date | None = None):
     """Registra el cierre del periodo que se cierra este mes, con la fecha de su calendario
-    (las tablas cierre y cierre_calendario las crea src/main/model)."""
+    (las tablas tmi_cierre y tmi_cierre_calendario las crea src/main/model)."""
     hoy = hoy or date.today()
     periodo = periodo_a_generar(hoy)
     fecha = _fechaCierre(db, periodo)

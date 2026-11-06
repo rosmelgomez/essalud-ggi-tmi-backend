@@ -15,6 +15,17 @@ IF OBJECT_ID('dbo.tmi_exclusion_centro_estandar') IS NULL
     EXEC (N'CREATE SYNONYM dbo.tmi_exclusion_centro_estandar FOR dbo.tmi_exclusion_centro_indicador');
 GO
 
+/* ---------- tmi_centro con la estructura anterior (sin nivel_estandar) ----------
+   Antes: tipo = NIVEL_ESTANDAR del Excel (H.I, C.M., POL. ...) y categoria = TIPO del Excel (C.A.P.II, P.M. ...).
+   Ahora: nivel_estandar = NIVEL_ESTANDAR, tipo = TIPO y categoria queda libre; nivel (I, II, III) ya no se usa.
+   Solo se ejecuta una vez: cuando la tabla todavía no tiene nivel_estandar. */
+IF OBJECT_ID('dbo.tmi_centro') IS NOT NULL AND COL_LENGTH('dbo.tmi_centro', 'nivel_estandar') IS NULL
+BEGIN
+    ALTER TABLE dbo.tmi_centro ADD nivel_estandar VARCHAR(50) NULL;
+    EXEC (N'UPDATE dbo.tmi_centro SET nivel_estandar = tipo, tipo = categoria, categoria = NULL');
+END
+GO
+
 /* ---------- vw_tmi_std: estándar por TIPO / NIVEL / CATEGORIA en formato común ---------- */
 DECLARE @sql NVARCHAR(MAX) = N'', @t SYSNAME, @fuente VARCHAR(10), @clave SYSNAME, @pre SYSNAME, @id SYSNAME, @cols NVARCHAR(MAX);
 DECLARE @tablas TABLE (tabla SYSNAME, fuente VARCHAR(10), clave SYSNAME);
@@ -75,7 +86,7 @@ EXEC sp_executesql @sql;
 GO
 
 /* ---------- vw_tmi_centro_base: centro con visibilidad por mes (f01..f12) ---------- */
-DECLARE @sql NVARCHAR(MAX), @flags NVARCHAR(MAX), @anio NVARCHAR(100);
+DECLARE @sql NVARCHAR(MAX), @flags NVARCHAR(MAX), @anio NVARCHAR(100), @nivel_est NVARCHAR(200), @codred NVARCHAR(200), @orden NVARCHAR(400), @orden_tipo NVARCHAR(400);
 IF COL_LENGTH('dbo.tmi_centro', 'flag_01') IS NOT NULL
     SELECT @flags = STUFF((
         SELECT ', CAST(ISNULL(flag_' + RIGHT('0' + CAST(n AS VARCHAR), 2) + ', 1) AS BIT) AS f' + RIGHT('0' + CAST(n AS VARCHAR), 2)
@@ -95,15 +106,24 @@ ELSE
         ORDER BY n
         FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
 SET @anio = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'anio') IS NOT NULL THEN N'anio' ELSE N'CAST(NULL AS INT)' END;
+-- nivel_estandar reemplaza a nivel en la unión con los estándares (fuente NIVEL); si la tabla aún no la tiene, se usa nivel
+SET @nivel_est = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'nivel_estandar') IS NOT NULL THEN N'LTRIM(RTRIM(nivel_estandar))' ELSE N'LTRIM(RTRIM(nivel))' END;
+SET @codred = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'codred') IS NOT NULL THEN N'LTRIM(RTRIM(codred))' ELSE N'CAST(NULL AS VARCHAR(50))' END;
+SET @orden = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'orden') IS NOT NULL
+                  THEN N'CASE WHEN LTRIM(RTRIM(CAST(orden AS VARCHAR(50)))) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(CAST(orden AS VARCHAR(50))))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(CAST(orden AS VARCHAR(50)))) AS INT) END'
+                  ELSE N'CAST(NULL AS INT)' END;
+SET @orden_tipo = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'orden_tipo') IS NOT NULL
+                  THEN N'CASE WHEN LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50)))) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50))))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50)))) AS INT) END'
+                  ELSE N'CAST(NULL AS INT)' END;
 IF OBJECT_ID('dbo.vw_tmi_centro_base', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_centro_base;
 SET @sql = N'CREATE VIEW dbo.vw_tmi_centro_base AS
 SELECT id AS id_centro,
        CASE WHEN LTRIM(RTRIM(codcentro)) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(codcentro))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(codcentro)) AS INT) END AS codcentro,
-       LTRIM(RTRIM(red)) AS red,
-       CASE WHEN LTRIM(RTRIM(CAST(orden AS VARCHAR(50)))) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(CAST(orden AS VARCHAR(50))))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(CAST(orden AS VARCHAR(50)))) AS INT) END AS orden,
-       CASE WHEN LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50)))) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50))))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50)))) AS INT) END AS orden_tipo,
+       ' + @codred + N' AS codred, LTRIM(RTRIM(red)) AS red,
+       ' + @orden + N' AS orden,
+       ' + @orden_tipo + N' AS orden_tipo,
        LTRIM(RTRIM(centro)) AS centro,
-       LTRIM(RTRIM(categoria)) AS categoria, LTRIM(RTRIM(nivel)) AS nivel, LTRIM(RTRIM(tipo)) AS tipo,
+       LTRIM(RTRIM(categoria)) AS categoria, LTRIM(RTRIM(nivel)) AS nivel, ' + @nivel_est + N' AS nivel_estandar, LTRIM(RTRIM(tipo)) AS tipo,
        ' + @anio + N' AS anio, ' + @flags + N'
 FROM dbo.tmi_centro
 WHERE LTRIM(RTRIM(codcentro)) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(codcentro))) BETWEEN 1 AND 9';

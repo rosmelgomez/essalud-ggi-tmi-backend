@@ -19,33 +19,37 @@ class _CatalogoCentro:
 
 
 class NivelCentro(_CatalogoCentro, Base):
-    """Niveles de atención (I, II, III). tmi_centro.nivel -> codigo."""
-    __tablename__ = "nivel_centro"
-    __table_args__ = (UniqueConstraint("codigo", name="UX_nivel_centro"), {"schema": TMI_SCHEMA})
+    """Niveles de atención (I, II, III). tmi_centro.nivel -> codigo. Informativo: el Excel y el tablero muestran y
+    filtran por nivel; el cálculo no lo usa para unir con los estándares."""
+    __tablename__ = "tmi_nivel_centro"
+    __table_args__ = (UniqueConstraint("codigo", name="UX_tmi_nivel_centro"), {"schema": TMI_SCHEMA})
+
+
+class NivelEstandarCentro(_CatalogoCentro, Base):
+    """Catálogo de nivel_estandar (H.N., H.I, POL., C.M., ...). tmi_centro.nivel_estandar -> codigo. El cálculo une el
+    centro con los estándares de fuente NIVEL por este valor."""
+    __tablename__ = "tmi_nivel_estandar_centro"
+    __table_args__ = (UniqueConstraint("codigo", name="UX_tmi_nivel_estandar_centro"), {"schema": TMI_SCHEMA})
 
 
 class TipoCentro(_CatalogoCentro, Base):
-    """Tipos de centro (CNSR, IPO, INCOR, H.N., ..., POL., C.M.). tmi_centro.tipo -> codigo."""
-    __tablename__ = "tipo_centro"
-    __table_args__ = (UniqueConstraint("codigo", name="UX_tipo_centro"), {"schema": TMI_SCHEMA})
-
-
-class CategoriaCentro(_CatalogoCentro, Base):
-    """Categorías de centro (CNSR, ..., C.A.P.I, P.M.). tmi_centro.categoria -> codigo."""
-    __tablename__ = "categoria_centro"
-    __table_args__ = (UniqueConstraint("codigo", name="UX_categoria_centro"), {"schema": TMI_SCHEMA})
+    """Tipos de centro (CNSR, ..., H.I, POL., C.A.P.I, C.M., P.M.). tmi_centro.tipo -> codigo. Informativo: los
+    estándares de fuente TIPO se unen con tmi_centro.nivel_estandar."""
+    __tablename__ = "tmi_tipo_centro"
+    __table_args__ = (UniqueConstraint("codigo", name="UX_tmi_tipo_centro"), {"schema": TMI_SCHEMA})
 
 
 class TmiCentro(Base):
     __tablename__ = "tmi_centro"
     __table_args__ = {"schema": TMI_SCHEMA}
     id = Column(Integer, primary_key=True)
+    codred = Column(String(50))
     red = Column(String(100))
     codcentro = Column(String(50))
     centro = Column(String(100))
     categoria = Column(String(50))
-    nivel = Column(String(50))
-    nivel_estandar = Column(String(50))
+    nivel = Column(String(50))                           
+    nivel_estandar = Column(String(50))                  
     tipo = Column(String(50))
     flag = Column(BIT)                                   
 

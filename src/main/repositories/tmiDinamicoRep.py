@@ -93,7 +93,7 @@ def queryCatalogoTiposCalculoTMI(db: Session):
     return _consulta(db, f"SELECT codigo, descripcion FROM {name_server}.tmi_tipo_calculo ORDER BY codigo")
 
 
-_COLS_RESULTADO = ("periodo, anio, id_indicador, orden, orden_red, red, codcentro, centro, nivel, tipo, categoria, "
+_COLS_RESULTADO = ("periodo, anio, id_indicador, orden, orden_red, red, codcentro, centro, nivel, nivel_estandar, tipo, categoria, "
                    "estandar, acept, aceptmenos, total, "
                    + ", ".join(f"periodo_{m:02d}" for m in range(1, 13)) + ", puntaje, motivo_na, visible, fecha_calculo")
 
@@ -147,17 +147,47 @@ def queryValidarConfigTMI(db: Session):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+_MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre',
+          'noviembre', 'diciembre']
+
+
+def queryHayDatosTotalizadoTMI(db: Session, periodo: int) -> bool:
+    """True si TOTALIZADO3 tiene algún registro del periodo (AAAAMM)."""
+    try:
+        return db.execute(text(f"SELECT CASE WHEN EXISTS (SELECT 1 FROM {TMI_TOTALIZADO3} WHERE periodo = {int(periodo)}) "
+                               f"THEN 1 ELSE 0 END")).scalar() == 1
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def queryUltimoPeriodoDatosTMI(db: Session, hasta: int) -> Optional[str]:
+    """Último periodo (AAAAMM) con datos en TOTALIZADO3 hasta el periodo dado (se busca en los 12 meses anteriores)."""
+    try:
+        desde = (int(hasta) // 100 - 1) * 100 + int(hasta) % 100
+        p = db.execute(text(f"SELECT MAX(periodo) FROM {TMI_TOTALIZADO3} "
+                            f"WHERE periodo BETWEEN {desde} AND {int(hasta)}")).scalar()
+        return str(p) if p else None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 def queryCalcularTMI(db: Session, periodo: int):
-    """Calcula los indicadores del periodo (AAAAMM) en tmi_resultado: la fórmula de cada indicador sobre TOTALIZADO3."""
+    """Calcula los indicadores del periodo (AAAAMM) en tmi_resultado: la fórmula de cada indicador sobre TOTALIZADO3.
+    Si TOTALIZADO3 no tiene datos del periodo no se calcula (400) y el resultado guardado no se toca."""
+    if not queryHayDatosTotalizadoTMI(db, periodo):
+        anio, mes = divmod(int(periodo), 100)
+        raise HTTPException(status_code=400,
+                            detail=f"No se puede calcular {periodo}: TOTALIZADO3 todavía no tiene datos de "
+                                   f"{_MESES[mes - 1]} {anio}.")
     try:
         db.execute(text(f"EXEC {name_server}.usp_tmi_calcular :periodo"), {"periodo": periodo})
         db.commit()
         result = db.execute(text(f"""
             SELECT puntaje, COUNT(*) AS cantidad
             FROM {name_server}.tmi_resultado
-            WHERE periodo_corte = :periodo AND mes = :mes
+            WHERE periodo_corte = :periodo
             GROUP BY puntaje
-        """), {"periodo": periodo, "mes": periodo % 100})
+        """), {"periodo": periodo})
         return {row["puntaje"]: row["cantidad"] for row in result.mappings()}
     except Exception as e:
         db.rollback()
@@ -165,12 +195,19 @@ def queryCalcularTMI(db: Session, periodo: int):
 
 
 def queryResultadoTMI(db: Session, periodo: int):
+    """Valor y puntaje de cada mes por indicador y centro, una fila por mes hasta el corte. Cada mes sale de la fila
+    que se guardó al calcular ese mes como periodo de corte (tmi_resultado guarda una fila por periodo). Solo se
+    listan los centros e indicadores del periodo pedido; un mes que no se calculó queda sin valor y sin puntaje (NA)."""
     try:
+        anio, mes = divmod(periodo, 100)
         result = db.execute(text(f"""
-            SELECT id_indicador, codcentro, mes, valor, estandar, verde, acept, aceptmenos, puntaje, motivo_na, visible
-            FROM {name_server}.tmi_resultado
-            WHERE periodo_corte = :periodo
-        """), {"periodo": periodo})
-        return [dict(row) for row in result.mappings()]
+            SELECT h.id_indicador, h.codcentro, h.periodo_corte % 100 AS mes, h.valor, h.puntaje
+            FROM {name_server}.tmi_resultado h
+            JOIN {name_server}.tmi_resultado r ON r.periodo_corte = :periodo
+                 AND r.id_indicador = h.id_indicador AND r.codcentro = h.codcentro
+            WHERE h.periodo_corte BETWEEN :desde AND :periodo
+        """), {"periodo": periodo, "desde": anio * 100 + 1})
+        filas = [dict(r) for r in result.mappings()]
+        return filas
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

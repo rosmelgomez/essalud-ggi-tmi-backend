@@ -1,5 +1,5 @@
 """Tablas del cierre de periodos, en la base de la conexión como las tablas tmi_* (TMI_DB = DB_NAME):
-cierre (ejecución de cada periodo) y cierre_calendario (día de cierre de cada periodo, definido por año)."""
+tmi_cierre (ejecución de cada periodo) y tmi_cierre_calendario (día de cierre de cada periodo, definido por año)."""
 
 from sqlalchemy import CHAR, CheckConstraint, Column, Integer, String, UniqueConstraint, text
 from sqlalchemy.dialects.mssql import DATE, DATETIME2, NVARCHAR
@@ -8,10 +8,10 @@ from src.main.model.base import TMI_SCHEMA, Base, defecto
 
 
 class Cierre(Base):
-    __tablename__ = "cierre"
+    __tablename__ = "tmi_cierre"
     __table_args__ = (
-        UniqueConstraint("periodo", name="UQ_cierre_periodo"),
-        CheckConstraint("estado IN ('PENDIENTE','EN_PROCESO','EJECUTADO','ERROR')", name="CK_cierre_estado"),
+        UniqueConstraint("periodo", name="UQ_tmi_cierre_periodo"),
+        CheckConstraint("estado IN ('PENDIENTE','EN_PROCESO','EJECUTADO','ERROR')", name="CK_tmi_cierre_estado"),
         {"schema": TMI_SCHEMA},
     )
     id = Column(Integer, primary_key=True)
@@ -28,10 +28,10 @@ class Cierre(Base):
 class CierreCalendario(Base):
     """Día de cierre de cada periodo del año: dia_fijo para todos y dia_MM solo donde el periodo MM se cierra otro día.
     El periodo MM se cierra en el mes siguiente (dia_12 de 2026 es el día de enero de 2027)."""
-    __tablename__ = "cierre_calendario"
+    __tablename__ = "tmi_cierre_calendario"
     __table_args__ = (
-        UniqueConstraint("anio", name="UQ_cierre_calendario_anio"),
-        CheckConstraint("dia_fijo BETWEEN 1 AND 31", name="CK_cierre_calendario_dia"),
+        UniqueConstraint("anio", name="UQ_tmi_cierre_calendario_anio"),
+        CheckConstraint("dia_fijo BETWEEN 1 AND 31", name="CK_tmi_cierre_calendario_dia"),
         {"schema": TMI_SCHEMA},
     )
     id = Column(Integer, primary_key=True)

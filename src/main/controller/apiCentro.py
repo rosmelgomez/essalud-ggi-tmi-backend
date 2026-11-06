@@ -26,7 +26,7 @@ routerDinamico = APIRouter(
 )
 
 
-# Catálogos de nivel, tipo y categoría del centro (nivel_centro, tipo_centro, categoria_centro)
+# Catálogos de nivel, tipo y categoría del centro (tmi_nivel_centro, tmi_nivel_estandar_centro, tmi_tipo_centro)
 @routerDinamico.get("/catalogos-centro")
 async def listaCatalogosCentro(db: Session = Depends(get_db)):
     return centroRep.queryCatalogosCentroTMI(db)

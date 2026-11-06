@@ -17,7 +17,7 @@ from src.main.repositories.centroRep import queryCatalogosCentroTMI
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
 from src.main.repositories.tmiDinamicoRep import queryCentrosActivosTMI, queryResultadoFinalTMI, queryResultadoTMI
 from src.main.service.excelDinamicoServ import (
-    NA, _es_red, _sin_produccion, _orden_redes, _promedio, _puntaje, _validar_periodo,
+    NA, _es_red, _fuera_del_excel, _sin_produccion, _orden_redes, _promedio, _puntaje, _validar_periodo,
 )
 from src.main.service.excelPuntajesServ import calcular_totales
 
@@ -59,7 +59,8 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
         res[r["id_indicador"]][r["codcentro"]][r["mes"]] = r.get("puntaje")
 
     redes_orden = _orden_redes(centros)
-    # por indicador: puntaje y meses de cada centro visible, y promedio de cada red (como _llenar_indicador)
+    # por indicador: puntaje y meses de cada centro visible, y promedio de cada red (como _llenar_indicador).
+    # Como en el Excel, no entran los centros sin información o sin estándar en el indicador.
     por_ind = []
     for ind in indicadores:
         fin = final[ind["id"]]
@@ -67,7 +68,8 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
         pr: Dict[str, Dict[str, Any]] = {}
         for red in redes_orden:
             miembros = [c for c in centros if (c["red"] or "") == red
-                        and c["codcentro"] in fin and fin[c["codcentro"]].get("visible", 1)]
+                        and c["codcentro"] in fin and fin[c["codcentro"]].get("visible", 1)
+                        and not _fuera_del_excel(fin[c["codcentro"]])]
             if not miembros:
                 continue
             for c in miembros:
@@ -128,6 +130,7 @@ def dashboard_tmi(db: Session, periodo: str) -> Dict[str, Any]:
         raise ValueError(f"No hay resultado guardado del periodo {periodo}: ese periodo no se calculó.")
     datos = armar_dashboard(periodo, filas_final, queryIndicadoresActivosTMI(db), queryResultadoTMI(db, p),
                             queryCentrosActivosTMI(db, p))
-    # nombres y orden de nivel y tipo para los filtros del tablero
+    # nombres y orden de nivel (de atención: I, II, III, tmi_nivel_centro) y tipo para los filtros del tablero
     datos["catalogos"] = queryCatalogosCentroTMI(db)
     return datos
+

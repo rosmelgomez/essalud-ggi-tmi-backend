@@ -15,13 +15,13 @@ Spring Boot). Todos los scripts son idempotentes: crean lo que falta y no pisan 
 | 1 | `src/main/model/*.py` | Tablas `tmi_*` y `cierre`: `Base.metadata.create_all` crea las que faltan (no agrega columnas a las que ya existen) |
 | 2 | `02_vistas_adaptadoras.sql` | Vistas `vw_tmi_*` que leen las tablas existentes con sus columnas reales (`est_01` o `estandar_01`, `flag` o `flag_01..12`, `excl_01`…) |
 | 3 | `03_datos.sql` | Datos iniciales: tipos de cálculo, grupos, 37 variables y su lógica, 21 indicadores con su fórmula (`[grupo;actividad#servicio]`), estándares por centro, ámbito de Emergencia |
-| 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `usp_tmi_generar_pivot`, `usp_tmi_calcular` |
+| 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `usp_tmi_calcular` |
 
 ## Variables de entorno (`.env`)
 
 | Variable | Por defecto | Uso |
 |----------|-------------|-----|
-| (DB_NAME) | — | Base de la conexión: ahí se crean todas las tablas del sistema (`tmi_*`, `cierre`, `cierre_calendario`); no se configura aparte |
+| (DB_NAME) | — | Base de la conexión: ahí se crean todas las tablas del sistema (`tmi_*`, entre ellas `tmi_cierre` y `tmi_cierre_calendario`); no se configura aparte |
 | `pentahodevDW` | `pentahodev_dw.dbo` | Base.esquema del data warehouse: de ahí se leen `TOTALIZADO3` y las `DIM_*` (vienen del mismo servidor) |
 | `TMI_EJECUTAR_SQL` | `true` | `false` = no ejecutar los scripts al iniciar |
 | `TMI_CALCULO_SOLO_PERIODO_ANTERIOR` | `true` | `false` = permite recalcular periodos cerrados |
@@ -47,8 +47,8 @@ Todas las tablas del sistema van en la base de la conexión (`DB_NAME`). TOTALIZ
    ```
 3. Reiniciar el backend (o "Ejecutar scripts" en la pestaña Calcular) para que los procedimientos tomen el nombre nuevo.
 
-El pivot lee TOTALIZADO3 una sola vez por cálculo: copia a una tabla temporal solo las filas del año y de los grupos
-que usan las variables, con un filtro que se resuelve en el servidor remoto; los cruces se hacen después en local.
+El cálculo lee TOTALIZADO3 una sola vez por periodo: copia a una tabla temporal solo las filas de enero al corte y de
+los grupos que usan las fórmulas, con un filtro que se resuelve en el servidor remoto; los cruces se hacen después en local.
 Las DIM (pequeñas) también se copian a tablas temporales. No hace falta MSDTC: no hay transacciones con el servidor
 remoto. Al iniciar, el backend comprueba que puede leer las dos fuentes y, si no, deja un aviso en el log y en
 "Ejecutar scripts". Entre corchetes se aceptan nombres con guion, espacio o `\` (`[SRV-DW\INST01]`).
@@ -79,7 +79,7 @@ python src/resources/plantillas/crear_plantilla_base.py
      (`formula_sql`); al iniciar se regeneran desde `formula`. Una división entre 0 da NA ese mes (no hay reglas de
      ceros ni factor). `tipo_calculo`: MENSUAL o ACUMULADO (enero..mes). `GET /indicadores/{id}/resultado-directo/{AAAAMM}`
      ejecuta el query automático del indicador sobre TOTALIZADO3 (sin estándares ni exclusiones) y devuelve el SQL.
-     Las variables (`tmi_variable`, pivot) ya no intervienen en el cálculo.
+     Las variables (`tmi_variable`) ya no intervienen en el cálculo y ya no hay pivot de variables.
   2. *Estándares*: `base_estandar` (FK a `tmi_tipo_estandar.codigo`), sentido, tolerancia y formato; los valores por
      clave y mes en `tmi_estandar_nivel` / `_tipo` / `_categoria`.
 * **Tipos de estándar** (tablas maestras):

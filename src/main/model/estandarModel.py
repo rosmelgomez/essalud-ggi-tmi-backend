@@ -70,7 +70,7 @@ class TmiEstandarNivel(_EstandarMensual, Base):
                       {"schema": TMI_SCHEMA})
     id = Column(Integer, primary_key=True)
     id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    nivel_centro = Column(String(50), nullable=False)
+    nivel_centro = Column(String(50), nullable=False)          # valor de tmi_centro.nivel_estandar (H.I, C.M., ...)
     anio = Column(Integer, nullable=False)
 
 
@@ -89,7 +89,7 @@ class TmiIndicadorEstandar(Base):
     __table_args__ = {"schema": TMI_SCHEMA}
     id = Column(Integer, primary_key=True)
     id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    nivel = Column(String(50))
+    nivel = Column(String(50))                                 # valor de tmi_centro.nivel_estandar
     categoria = Column(String(50))
     tipo = Column(String(50))
     periodo_desde = Column(Integer, nullable=False, server_default=defecto(200001))

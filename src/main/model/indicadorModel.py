@@ -88,7 +88,7 @@ class TmiIndicadorAmbito(Base):
     id = Column(Integer, primary_key=True)
     id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
     red = Column(String(100))
-    nivel = Column(String(50))
+    nivel = Column(String(50))                                 # valor de tmi_centro.nivel_estandar
     categoria = Column(String(50))
     tipo = Column(String(50))
     codcentro = Column(Integer)

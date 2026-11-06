@@ -99,13 +99,15 @@ class tmiEstandarCategoriaDto(_conIndicador):
 
 class tmiCentroDto(BaseModel):
     id: Optional[int] = None
+    codred: Optional[str] = None
     red: str
-    orden: str
-    orden_tipo: str
+    orden: Optional[str] = None
+    orden_tipo: Optional[str] = None
     codcentro: str
     centro:str
     categoria: Optional[str] = None
-    nivel: str
+    nivel: Optional[str] = None             # nivel de atención (I, II, III): solo informativo, no entra al cálculo
+    nivel_estandar: Optional[str] = None    # clave con la que el centro se une a los estándares de fuente NIVEL
     tipo: str
     flag: Optional[boolean] = True
     anio: Optional[int] = None

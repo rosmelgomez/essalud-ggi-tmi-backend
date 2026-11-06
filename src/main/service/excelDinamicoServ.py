@@ -12,6 +12,7 @@
 import io
 import logging
 import re
+import unicodedata
 from collections import defaultdict
 from copy import copy
 from pathlib import Path
@@ -23,6 +24,7 @@ from openpyxl.drawing.image import Image
 from openpyxl.formatting.rule import Rule
 from sqlalchemy.orm import Session
 
+from src.main.repositories.estandarRep import queryEstandaresExcelTMI
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
 from src.main.repositories.tmiDinamicoRep import (
     queryCalcularTMI,
@@ -61,6 +63,12 @@ def _sin_produccion(corte: Dict[str, Any]) -> bool:
     mes excluido o fuera de ámbito). Solo estos centros se ocultan; con producción 0 o con valor se muestran aunque su
     puntaje sea NA (por ejemplo, sin estándar)."""
     return corte.get("total") is None
+
+
+def _fuera_del_excel(corte: Dict[str, Any]) -> bool:
+    """El centro no se lista en la hoja del indicador (ni cuenta en Puntajes): sin información en el corte
+    (producción NA o sin datos en el año) o sin estándar."""
+    return _sin_produccion(corte) or corte.get("motivo_na") in ("SIN_ESTANDAR", "SIN_DATOS_ANIO")
 
 
 def _validar_periodo(periodo: str) -> int:
@@ -182,7 +190,8 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
 
     por_red: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for c in centros:
-        if c["codcentro"] in final and final[c["codcentro"]].get("visible", 1):
+        corte = final.get(c["codcentro"])
+        if corte and corte.get("visible", 1) and not _fuera_del_excel(corte):
             por_red[c["red"] or ""].append(c)
 
     puntajes_centro: Dict[int, Dict[str, Any]] = {}
@@ -226,7 +235,7 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
             else:
                 o_na = lambda v: NA if v is None else v   # sin estándar o mes excluido: NA, no 0
                 ws.cell(fila, COL_NIVEL, value=c["nivel"])
-                ws.cell(fila, COL_TIPO, value=c["categoria"])
+                ws.cell(fila, COL_TIPO, value=c["tipo"])
                 ws.cell(fila, COL_VALOR, value=corte.get("total"))
                 ws.cell(fila, COL_ESTANDAR, value=o_na(corte.get("estandar")))
                 ws.cell(fila, COL_VERDE, value=o_na(corte.get("estandar")))
@@ -271,10 +280,66 @@ def _actualizar_resumen(wb, anio: str, mes: int) -> None:
                     celda.value = NA
 
 
+def _normalizar_titulo(texto: Any) -> str:
+    texto = unicodedata.normalize("NFKD", str(texto or "")).encode("ascii", "ignore").decode().upper()
+    texto = re.sub(r"\(\*+\)", " ", texto.strip().lstrip("-"))
+    return re.sub(r"[^A-Z0-9%]+", " ", texto).strip()
+
+
+def _llenar_estandares(wb, db: Session, anio: str, mes: int) -> None:
+    """Hoja Estandares con el estándar y el % Acept del mes de corte (cambian de un mes a otro). Cada bloque de la
+    plantilla (título "- INDICADOR", fila Nivel con las claves, fila Estandar y filas de % Acept) se llena con el
+    indicador del mismo título; la columna P lleva la tolerancia del mes."""
+    if "Estandares" not in wb.sheetnames:
+        return
+    ws = wb["Estandares"]
+    datos = queryEstandaresExcelTMI(db, int(anio), mes)
+    por_titulo = {_normalizar_titulo(i["titulo_hoja"] or i["indicador"]): i for i in datos}
+    ws["B3"] = f"ESTANDARES DE INDICADORES - {MESES_NOMBRE[mes - 1]} {anio}"
+    fila, ultima = 1, ws.max_row
+    while fila <= ultima:
+        titulo = ws.cell(fila, 3).value
+        if not (isinstance(titulo, str) and titulo.strip().startswith("-")
+                and str(ws.cell(fila + 1, 3).value or "").strip().upper() == "NIVEL"):
+            fila += 1
+            continue
+        ind = por_titulo.get(_normalizar_titulo(titulo))
+        cab, f_est = fila + 1, fila + 2
+        filas_acept = [f for f in range(f_est + 1, f_est + 3)
+                       if "ACEPT" in str(ws.cell(f, 3).value or "").upper()]
+        fila = (filas_acept[-1] if filas_acept else f_est) + 1
+        if ind is None:
+            logger.warning("Hoja Estandares: el bloque %r no corresponde a ningún indicador activo", titulo)
+            continue
+        tol, tol_menos = ind["tolerancia"] or 0, ind["tolerancia_menos"] or 0
+        rel = (ind["tipo_tolerancia"] or "REL") != "ABS"
+        for col in range(4, 15):   # D..N
+            clave = str(ws.cell(cab, col).value or "").strip()
+            if not clave:
+                continue
+            if clave.upper().startswith("NIVEL "):
+                clave = clave[6:].strip()   # "Nivel III" -> III
+            est = ind["estandares"].get(clave)
+            ws.cell(f_est, col).value = est
+            letra = ws.cell(f_est, col).column_letter
+            for k, f in enumerate(filas_acept):
+                # banda: 1.a fila = límite de arriba (% No Acept. MAS), 2.a = de abajo (MENOS)
+                arriba = ind["sentido"] == "MENOR" or (ind["sentido"] == "BANDA" and k == 0)
+                t = tol if arriba or ind["sentido"] != "BANDA" else tol_menos
+                if est is None:
+                    ws.cell(f, col).value = None
+                elif rel:
+                    ws.cell(f, col).value = f"=+{letra}{f_est}*{round(1 + t if arriba else 1 - t, 10)}"
+                else:
+                    ws.cell(f, col).value = f"=+{letra}{f_est}{'+' if arriba else '-'}{t}"
+        for k, f in enumerate(filas_acept):
+            ws.cell(f, 16).value = tol_menos if ind["sentido"] == "BANDA" and k == 1 else tol
+
+
 def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
                                ids: Optional[List[int]] = None) -> io.BytesIO:
     """Genera el libro TMI del periodo AAAAMM con el resultado final guardado de ese periodo.
-    Si calcular=True ejecuta antes el pivot y el cálculo (solo para el periodo abierto, ver apiTmiDinamico).
+    Si calcular=True ejecuta antes el cálculo del periodo (solo para el periodo abierto, ver apiTmiDinamico).
     ids: indicadores que lleva el Excel (sus hojas y los puntajes); None = todos los calculados."""
     from src.main.service.excelPuntajesServ import llenar_puntajes
 
@@ -327,7 +392,7 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
                 continue
             datos = [d or {"p": NA, "m": [NA] * 12, "sin_prod": True} for d in datos]
             filas_de_red.append({"tipo_fila": "CENTRO", "codcentro": c["codcentro"], "nombre": c["centro"],
-                                 "nivel": c["nivel"], "tipo": c["categoria"], "agrupar": _es_red(red),
+                                 "nivel": c["nivel"], "tipo": c["tipo"], "agrupar": _es_red(red),
                                  "puntajes": [d["p"] for d in datos], "mensuales": [d["m"] for d in datos],
                                  # producción NA en todos los indicadores: fila oculta (con producción 0 se ve)
                                  "oculto": all(d["sin_prod"] for d in datos)})
@@ -352,6 +417,7 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
         hoja_origen[hoja.title] = nombre_modelo
 
     _actualizar_resumen(wb, anio, mes)
+    _llenar_estandares(wb, db, anio, mes)
     for nombre in (MODELO_INDICADOR, MODELO_PUNTAJES, MODELO_PUNTAJES_RED):
         wb.remove(wb[nombre])
     wb.active = wb.sheetnames.index("Resumen")
