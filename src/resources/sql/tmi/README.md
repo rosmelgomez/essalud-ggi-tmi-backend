@@ -15,7 +15,8 @@ Spring Boot). Todos los scripts son idempotentes: crean lo que falta y no pisan 
 | 1 | `src/main/model/*.py` | Tablas `tmi_*` y `cierre`: `Base.metadata.create_all` crea las que faltan (no agrega columnas a las que ya existen) |
 | 2 | `02_vistas_adaptadoras.sql` | Vistas `vw_tmi_*` que leen las tablas existentes con sus columnas reales (`est_01` o `estandar_01`, `flag` o `flag_01..12`, `excl_01`…) |
 | 3 | `03_datos.sql` | Datos iniciales: tipos de cálculo, grupos, 37 variables y su lógica, 21 indicadores con su fórmula (`[grupo;actividad#servicio]`), estándares por centro, ámbito de Emergencia |
-| 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `usp_tmi_calcular` |
+| 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `fn_tmi_exclusion`, `fn_tmi_estandar` (regla única de exclusiones, estándar y % Acept: la usan `usp_tmi_calcular` y el SQL descargable del indicador), `usp_tmi_calcular`, `usp_tmi_avisos_config` (avisos que no bloquean: centros sin estándar o sin % Acept en el periodo) |
+| 5 | `06_historial.sql` | Triggers `tr_hist_*` de las tablas de configuración: guardan en `tmi_config_historial` quién cambió qué y cuándo (usuario del token vía `CONTEXT_INFO`) |
 
 ## Variables de entorno (`.env`)
 
@@ -76,8 +77,15 @@ python src/resources/plantillas/crear_plantilla_base.py
      `([3;50#0] - [3;49#0]) / [3;47#0]` (`[grupo;actividad#servicio]`, `#0` = todos, `#77,78` = varios servicios;
      `MEDIANA([3;51#0])` para recursos; `+ - * /`, paréntesis y números). `PUT /indicadores/{id}/formula` la valida
      (`src/main/core/tmiFormula.py`) y guarda sus términos (`tmi_indicador_termino`, T1, T2...) y la expresión SQL
-     (`formula_sql`); al iniciar se regeneran desde `formula`. Una división entre 0 da NA ese mes (no hay reglas de
-     ceros ni factor). `tipo_calculo`: MENSUAL o ACUMULADO (enero..mes). `GET /indicadores/{id}/resultado-directo/{AAAAMM}`
+     (`formula_sql`); al iniciar se regeneran desde `formula`.
+     *Regla de nulos* (la elige el usuario por indicador, `PUT /indicadores/{id}`; al cambiarla se regenera `formula_sql`):
+     | Campo | `CERO` | `NA` |
+     |-------|--------|------|
+     | `si_variable_nula` (letra sin dato en el mes) | vale 0: `ISNULL(A,0)` (por defecto) | el mes queda NA |
+     | `si_division_cero` (divisor 0 o sin dato) | resultado 0: `ISNULL(A / NULLIF(B,0), 0)` | el mes queda NA (por defecto) |
+
+     `CERO` + `CERO` es la lógica de `00_TMI_CREACION_VISTAS_2025.sql` (`ISNULL(ISNULL(A,0) / NULLIF(ISNULL(B,0),0), 0)`).
+     El centro sin ningún dato del indicador en todo el año lo decide `sin_datos_anio`: `MOSTRAR` = 0, `NA`, `OCULTAR`. `tipo_calculo`: MENSUAL o ACUMULADO (enero..mes). `GET /indicadores/{id}/resultado-directo/{AAAAMM}`
      ejecuta el query automático del indicador sobre TOTALIZADO3 (sin estándares ni exclusiones) y devuelve el SQL.
      Las variables (`tmi_variable`) ya no intervienen en el cálculo y ya no hay pivot de variables.
   2. *Estándares*: `base_estandar` (FK a `tmi_tipo_estandar.codigo`), sentido, tolerancia y formato; los valores por

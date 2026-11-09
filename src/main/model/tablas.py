@@ -7,11 +7,12 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.pool import NullPool
 
 from src.main.db.databaseConexion import SQLALCHEMY_DATABASE_URL
-from src.main.model import centroModel, cierreModel, estandarModel, indicadorModel, resultadoModel, variableModel
+from src.main.model import (centroModel, cierreModel, estandarModel, historialModel, indicadorModel, resultadoModel,
+                            variableModel)
 from src.main.model.base import TMI_SCHEMA, Base
 
 # cada módulo registra sus tablas en Base.metadata al importarse
-MODELOS = (variableModel, indicadorModel, estandarModel, centroModel, resultadoModel, cierreModel)
+MODELOS = (variableModel, indicadorModel, estandarModel, centroModel, resultadoModel, cierreModel, historialModel)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,12 @@ _TABLAS_QUITADAS = ["tmi_variable_pivot", "categoria_centro", "tmi_categoria_cen
 
 
 # columnas nuevas en tablas que ya existen (create_all no las agrega): tabla -> [(columna, tipo SQL)]
-_COLUMNAS_AGREGADAS = {"tmi_resultado_indicador": [("nivel_estandar", "VARCHAR(50) NULL")]}
+_COLUMNAS_AGREGADAS = {
+    "tmi_resultado_indicador": [("nivel_estandar", "VARCHAR(50) NULL")],
+    # regla de nulos por indicador (por defecto, el comportamiento anterior: letra sin dato = 0, división entre 0 = NA)
+    "tmi_indicador": [("si_variable_nula", "VARCHAR(4) NOT NULL CONSTRAINT DF_tmi_indicador_si_variable_nula DEFAULT 'CERO'"),
+                      ("si_division_cero", "VARCHAR(4) NOT NULL CONSTRAINT DF_tmi_indicador_si_division_cero DEFAULT 'NA'")],
+}
 
 
 def _renombrar_tablas(conexion) -> None:

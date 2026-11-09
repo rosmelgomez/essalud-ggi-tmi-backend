@@ -42,6 +42,9 @@ class TmiIndicador(Base):
     tolerancia_menos = Column(Float)                           # % Acept hacia abajo en banda (NULL = el de arriba)
     decimales = Column(Integer)
     cero_es_logro = Column(BIT, nullable=False, server_default=defecto(0))
+    # regla de nulos de la fórmula (la elige el usuario por indicador; se aplica al generar formula_sql)
+    si_variable_nula = Column(String(4), nullable=False, server_default=defecto("CERO"))   # CERO: ISNULL(letra,0) | NA: la letra sin dato deja el mes en NA
+    si_division_cero = Column(String(4), nullable=False, server_default=defecto("NA"))     # NA: x/0 = NA | CERO: x/0 = 0
     mostrar_no_aplica = Column(BIT, nullable=False, server_default=defecto(1))
     activo = Column(BIT, nullable=False, server_default=defecto(1))
     # fórmula con letras ((A - B) / C), fórmula con términos de TOTALIZADO3 ([3;50#0] - [3;49#0]) / [3;47#0]

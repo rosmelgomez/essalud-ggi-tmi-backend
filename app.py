@@ -1,17 +1,26 @@
 import asyncio
 import contextlib
+import logging
 import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI
+
+load_dotenv()
+# un solo formato de log para todo el backend (antes de importar los módulos, que ya escriben al importarse);
+# nivel con LOG_LEVEL (DEBUG, INFO, WARNING...; por defecto INFO)
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper(),
+                    format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
+
+from fastapi import FastAPI, Request
 from src.main.controller import apiCentro, apiCierre, apiEstandar, apiIndicador, apiTmiDinamico, apiVariable
 from src.main.core.tmiConfig import TMI_EJECUTAR_SQL
+from src.main.db.auditoria import USUARIO_ACTUAL
 from src.main.db.sqlRunner import ejecutar_scripts
+from src.main.security.errores import configurar_errores
+from src.main.security.jwtRequestFilter import usuario_de_la_peticion
 from src.main.security.webSecurityConfig import configurar_cors
 from src.main.model.tablas import crear_tablas
 from src.main.service.cierreServ import tareaCierre
-
-load_dotenv()
 
 is_production = os.getenv("APP_ENV", "development").strip().lower() == "production"
 
@@ -42,6 +51,17 @@ app = FastAPI(
 
 
 configurar_cors(app)
+configurar_errores(app)   # errores de SQL Server: mensaje para el usuario, detalle solo en el log
+
+
+@app.middleware("http")
+async def usuario_para_historial(request: Request, call_next):
+    """Usuario del token para el historial de cambios (no valida permisos: eso lo hace get_current_user)."""
+    marca = USUARIO_ACTUAL.set(usuario_de_la_peticion(request))
+    try:
+        return await call_next(request)
+    finally:
+        USUARIO_ACTUAL.reset(marca)
 
 app.include_router(apiCentro.router)
 app.include_router(apiEstandar.router)

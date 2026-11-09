@@ -78,6 +78,22 @@ async def validarConfigTMI(db: Session = Depends(get_db)):
     return tmiDinamicoRep.queryValidarConfigTMI(db)
 
 
+@router.get("/avisos-config/{periodo}")
+def avisosConfigTMI(periodo: str, db: Session = Depends(get_db)):
+    """Avisos de configuración incompleta para el periodo (no bloquean el cálculo): por indicador, centros sin
+    estándar o sin % Acept que quedarían NA."""
+    return tmiDinamicoRep.queryAvisosConfigTMI(db, _periodo(periodo))
+
+
+@router.get("/historial")
+def historialConfigTMI(id_indicador: Optional[int] = None, tabla: Optional[str] = None, limite: int = 200,
+                       db: Session = Depends(get_db)):
+    """Últimos cambios de la configuración (quién, cuándo, qué campo y su valor antes y después). Filtros opcionales:
+    un indicador (id_indicador) o una tabla."""
+    from src.main.repositories import historialRep
+    return historialRep.queryHistorialTMI(db, id_indicador, tabla, limite)
+
+
 def periodo_calculable() -> str:
     """Periodo que se puede calcular hoy: el mes anterior (el cierre de M genera M-1)."""
     from datetime import date

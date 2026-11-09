@@ -56,7 +56,7 @@ TABLAS = {
                             "periodo_desde", "periodo_hasta", "activo"],
     "tmi_indicador": ["grupo", "indicador", "codigo", "nombre_hoja", "titulo_hoja", "orden", "tipo_calculo",
                       "sin_datos_anio", "base_estandar", "sentido", "tipo_tolerancia", "tolerancia", "tolerancia_menos", "decimales",
-                      "cero_es_logro", "mostrar_no_aplica", "activo", "formato"],
+                      "cero_es_logro", "mostrar_no_aplica", "activo", "formato", "si_variable_nula", "si_division_cero"],
     "tmi_indicador_variable": ["id_indicador", "letra", "id_variable"],
     "tmi_variable_componente": ["id_variable", "id_variable_componente", "activo"],
     "tmi_indicador_ambito": ["id_indicador", "red", "nivel", "categoria", "tipo", "codcentro", "incluir",

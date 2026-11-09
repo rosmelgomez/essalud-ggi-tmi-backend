@@ -1,6 +1,8 @@
+import logging
 import os
 
 from dotenv import load_dotenv
+from src.main.db import auditoria
 from src.main.core.tmiConfig import require_env
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
@@ -36,7 +38,8 @@ SQLALCHEMY_DATABASE_URL = URL.create(
     query=query_params,
 )
 
-print("conexion a la base de datos: ", SQLALCHEMY_DATABASE_URL,query_params)
+logging.getLogger(__name__).info("Base de datos: %s:%s/%s (usuario %s)", DB_CONFIG["host"], DB_CONFIG["port"],
+                                 DB_CONFIG["database"], DB_CONFIG["user"])
 
 
 engine = create_engine(
@@ -47,6 +50,7 @@ engine = create_engine(
     max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "20")),
     pool_timeout=int(os.getenv("DB_POOL_TIMEOUT", "30")),
 )
+auditoria.instalar(engine)   # usuario del token en CONTEXT_INFO, para el historial de la configuración
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

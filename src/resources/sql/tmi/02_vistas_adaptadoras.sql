@@ -80,8 +80,9 @@ IF @sql = N''
     SET @sql = N'SELECT CAST(NULL AS INT) AS id_estandar, CAST(NULL AS VARCHAR(10)) AS fuente, CAST(NULL AS VARCHAR(50)) AS clave, CAST(NULL AS INT) AS anio, '
              + N'CAST(NULL AS FLOAT) m01, CAST(NULL AS FLOAT) m02, CAST(NULL AS FLOAT) m03, CAST(NULL AS FLOAT) m04, CAST(NULL AS FLOAT) m05, CAST(NULL AS FLOAT) m06, '
              + N'CAST(NULL AS FLOAT) m07, CAST(NULL AS FLOAT) m08, CAST(NULL AS FLOAT) m09, CAST(NULL AS FLOAT) m10, CAST(NULL AS FLOAT) m11, CAST(NULL AS FLOAT) m12, CAST(NULL AS FLOAT) m00 WHERE 1 = 0';
-IF OBJECT_ID('dbo.vw_tmi_std', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_std;
-SET @sql = N'CREATE VIEW dbo.vw_tmi_std AS ' + @sql;
+/* ALTER en lugar de DROP + CREATE: la vista nunca deja de existir (las consultas en curso no fallan) */
+IF OBJECT_ID('dbo.vw_tmi_std', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_std AS SELECT 1 AS x');
+SET @sql = N'ALTER VIEW dbo.vw_tmi_std AS ' + @sql;
 EXEC sp_executesql @sql;
 GO
 
@@ -115,8 +116,9 @@ SET @orden = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'orden') IS NOT NULL
 SET @orden_tipo = CASE WHEN COL_LENGTH('dbo.tmi_centro', 'orden_tipo') IS NOT NULL
                   THEN N'CASE WHEN LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50)))) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50))))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(CAST(orden_tipo AS VARCHAR(50)))) AS INT) END'
                   ELSE N'CAST(NULL AS INT)' END;
-IF OBJECT_ID('dbo.vw_tmi_centro_base', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_centro_base;
-SET @sql = N'CREATE VIEW dbo.vw_tmi_centro_base AS
+/* ALTER en lugar de DROP + CREATE: la vista nunca deja de existir (las consultas en curso no fallan) */
+IF OBJECT_ID('dbo.vw_tmi_centro_base', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_centro_base AS SELECT 1 AS x');
+SET @sql = N'ALTER VIEW dbo.vw_tmi_centro_base AS
 SELECT id AS id_centro,
        CASE WHEN LTRIM(RTRIM(codcentro)) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(codcentro))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(codcentro)) AS INT) END AS codcentro,
        ' + @codred + N' AS codred, LTRIM(RTRIM(red)) AS red,
@@ -145,8 +147,9 @@ SET @motivo = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'motivo
 -- resultado del mes excluido: '0' (por defecto) o 'NA'
 SET @resultado = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'resultado') IS NOT NULL
                       THEN N'CAST(ISNULL(e.resultado, ''0'') AS VARCHAR(2))' ELSE N'CAST(''0'' AS VARCHAR(2))' END;
-IF OBJECT_ID('dbo.vw_tmi_exclusion', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_exclusion;
-SET @sql = N'CREATE VIEW dbo.vw_tmi_exclusion AS
+/* ALTER en lugar de DROP + CREATE: la vista nunca deja de existir (las consultas en curso no fallan) */
+IF OBJECT_ID('dbo.vw_tmi_exclusion', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_exclusion AS SELECT 1 AS x');
+SET @sql = N'ALTER VIEW dbo.vw_tmi_exclusion AS
 SELECT ' + @cod + N' AS codcentro, e.' + CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'id_estandar') IS NOT NULL
                                               THEN N'id_estandar' ELSE N'id_indicador' END + N' AS id_estandar,
        e.anio, ' + @cols + N', ' + @motivo + N' AS motivo, ' + @resultado + N' AS resultado
@@ -165,8 +168,9 @@ SELECT @cols = STUFF((
     ORDER BY n
     FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
 SET @cod = N'COALESCE(CASE WHEN LTRIM(RTRIM(ce.codcentro)) NOT LIKE ''%[^0-9]%'' AND LEN(LTRIM(RTRIM(ce.codcentro))) BETWEEN 1 AND 9 THEN CAST(LTRIM(RTRIM(ce.codcentro)) AS INT) END, c.codcentro)';
-IF OBJECT_ID('dbo.vw_tmi_centro_estandar', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_centro_estandar;
-SET @sql = N'CREATE VIEW dbo.vw_tmi_centro_estandar AS
+/* ALTER en lugar de DROP + CREATE: la vista nunca deja de existir (las consultas en curso no fallan) */
+IF OBJECT_ID('dbo.vw_tmi_centro_estandar', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_centro_estandar AS SELECT 1 AS x');
+SET @sql = N'ALTER VIEW dbo.vw_tmi_centro_estandar AS
 SELECT ' + @cod + N' AS codcentro, ce.' + CASE WHEN COL_LENGTH('dbo.tmi_centro_estandar', 'id_estandar') IS NOT NULL
                                                THEN N'id_estandar' ELSE N'id_indicador' END + N' AS id_estandar,
        ce.anio, ' + @cols + N', ce.aplica, ce.acept, ce.sustento

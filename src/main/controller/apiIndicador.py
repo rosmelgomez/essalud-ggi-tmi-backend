@@ -39,8 +39,11 @@ async def crearIndicador(dto: tmiIndicadorDto, db: Session = Depends(get_db),
 @router.put("/indicadores/{id}")
 async def actualizarIndicador(id: int, dto: tmiIndicadorDto, db: Session = Depends(get_db),
                               current_user: dict = Depends(get_current_user)):
-    return tmiBaseRep.queryActualizarFila(db, "tmi_indicador", id, dto.model_dump(exclude=_SIN_TOLERANCIA),
-                                   nombre_usuario(current_user))
+    respuesta = tmiBaseRep.queryActualizarFila(db, "tmi_indicador", id, dto.model_dump(exclude=_SIN_TOLERANCIA),
+                                               nombre_usuario(current_user))
+    # la regla de nulos (si_variable_nula / si_division_cero) va dentro de formula_sql: se regenera con la regla nueva
+    respuesta["formula_sql"] = indicadorRep.queryRegenerarFormulaSqlTMI(db, id)
+    return respuesta
 
 
 @router.put("/indicadores/{id}/formula")
@@ -53,13 +56,16 @@ async def guardarFormulaIndicador(id: int, dto: tmiFormulaDto, db: Session = Dep
 @router.post("/formula/analizar")
 async def analizarFormula(dto: tmiFormulaDto, db: Session = Depends(get_db)):
     """Valida la fórmula con letras y devuelve la fórmula interna y sus términos con la descripción de la DIM."""
-    return indicadorRep.queryAnalizarFormulaTMI(db, dto.formula_alias, dto.variables)
+    return indicadorRep.queryAnalizarFormulaTMI(db, dto.formula_alias, dto.variables,
+                                                {"si_variable_nula": dto.si_variable_nula,
+                                                 "si_division_cero": dto.si_division_cero})
 
 
 @router.get("/indicadores/{id}/consulta/{periodo}")
-async def consultaIndicador(id: int, periodo: int, db: Session = Depends(get_db)):
-    """Query que calcula el indicador directo de TOTALIZADO3 para el periodo (AAAAMM)."""
-    return indicadorRep.queryConsultaIndicadorTMI(db, id, periodo)
+async def consultaIndicador(id: int, periodo: int, con_estandares: bool = False, db: Session = Depends(get_db)):
+    """Query que calcula el indicador directo de TOTALIZADO3 para el periodo (AAAAMM). con_estandares=true agrega el
+    estándar del mes de corte (con el específico de cada centro) y las exclusiones; sin él, solo la fórmula."""
+    return indicadorRep.queryConsultaIndicadorTMI(db, id, periodo, con_estandares)
 
 
 @router.get("/indicadores/{id}/resultado-directo/{periodo}")

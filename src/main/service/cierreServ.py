@@ -7,7 +7,10 @@ from datetime import date
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from src.main.db.databaseConexion import SessionLocal
+from sqlalchemy import text
+
+from src.main.db.auditoria import USUARIO_ACTUAL
+from src.main.db.databaseConexion import SessionLocal, engine
 from src.main.repositories import cierreRep, estandarRep, tmiDinamicoRep
 
 logger = logging.getLogger(__name__)
@@ -191,6 +194,25 @@ def _filasPeriodo(db: Session, periodo: str) -> int:
     return copiadas + estandarRep.contarFilasCierrePeriodoTMI(db, periodo)
 
 
+# Mensaje del cierre que espera datos: el cierre queda PENDIENTE y se vuelve a intentar en cada revisión
+_ESPERA = "Esperando datos"
+
+
+def _mensajeEspera(periodo: str) -> str:
+    anio, mes = int(periodo[:4]), int(periodo[4:])
+    return (f"{_ESPERA}: TOTALIZADO3 todavía no tiene datos de {_MESES[mes - 1].lower()} {anio}. "
+            f"El cierre se ejecutará solo cuando lleguen.")
+
+
+def _reabrirSinDatos(db: Session):
+    """Los cierres que quedaron en ERROR porque TOTALIZADO3 aún no tenía datos vuelven a PENDIENTE
+    (antes de este cambio un cierre así quedaba en ERROR y no se reintentaba al día siguiente)."""
+    for cierre in cierreRep.queryListaCierre(db):
+        if cierre["estado"] == "ERROR" and "todavía no tiene datos" in (cierre.get("mensaje") or ""):
+            logger.warning("Cierre %s vuelve a PENDIENTE: esperaba datos de TOTALIZADO3", cierre["periodo"].strip())
+            cierreRep.queryReabrirCierre(db, cierre["id"])
+
+
 def _actualizarFilasCierres(db: Session):
     """filas_insertadas de cada cierre ejecutado = filas de su periodo (tablas copiadas, estándares y % Acept del mes)."""
     cierres = [c for c in cierreRep.queryListaCierre(db) if c["estado"] == "EJECUTADO"]
@@ -209,10 +231,17 @@ def ejecutarCierreServ(db: Session, hoy: date | None = None):
     completando los periodos que falten desde el primero con datos."""
     hoy = hoy or date.today()
     inicializarCierreServ(db, hoy)
+    _reabrirSinDatos(db)
     origenes = _prepararCierres(db, hoy)
     resultados = []
     for cierre in cierreRep.queryTomarCierresPendientes(db, hoy):
         periodo = cierre["periodo"].strip()
+        # sin datos del mes en TOTALIZADO3 no es un error: el cierre espera (PENDIENTE) y se reintenta en la
+        # próxima revisión (cada CIERRE_INTERVALO_MINUTOS) hasta que lleguen los datos
+        if not tmiDinamicoRep.queryHayDatosTotalizadoTMI(db, int(periodo)):
+            cierreRep.queryFinalizarCierre(db, cierre["id"], "PENDIENTE", None, _mensajeEspera(periodo))
+            logger.info("Cierre %s en espera: TOTALIZADO3 todavía no tiene datos del periodo", periodo)
+            continue
         try:
             insertadas = _ejecutarInserts(db, periodo, origenes)
             # al llegar la fecha de cierre, el mes toma el estándar fijo y el % Acept fijo del año (si aún no tiene valor)
@@ -224,6 +253,13 @@ def ejecutarCierreServ(db: Session, hoy: date | None = None):
             resultados.append({"periodo": periodo, "estado": "EJECUTADO", "filas_insertadas": insertadas, "filas_periodo": filas})
         except Exception as e:
             db.rollback()
+            if _CALCULO_OCUPADO in str(e):
+                # otro cálculo en curso (un usuario o el cierre de otro proceso): no es un error, se reintenta luego
+                cierreRep.queryFinalizarCierre(db, cierre["id"], "PENDIENTE", None,
+                                               "En espera: había otro cálculo del TMI en curso; se reintenta en la "
+                                               "próxima revisión.")
+                logger.info("Cierre %s en espera: había otro cálculo en curso", periodo)
+                continue
             logger.error("Error en cierre %s: %s", periodo, _detalle(e), exc_info=True)
             cierreRep.queryFinalizarCierre(db, cierre["id"], "ERROR", None, _detalle(e))
             resultados.append({"periodo": periodo, "estado": "ERROR", "mensaje": _detalle(e)})
@@ -329,16 +365,31 @@ def queryGuardarCalendarioServ(db: Session, anio: int, dia_fijo: int, dias: dict
 
 # tarea programada
 def revisarCierre():
-    """Ejecuta los cierres cuya fecha ya llegó, con su propia sesión (tarea programada o al guardar el calendario)."""
-    db = SessionLocal()
-    try:
-        return ejecutarCierreServ(db)
-    finally:
-        db.close()
+    """Ejecuta los cierres cuya fecha ya llegó, con su propia sesión (tarea programada o al guardar el calendario).
+    Con varios procesos o instancias del backend, solo uno revisa a la vez (lock TMI_CIERRE en SQL Server); los
+    demás no hacen nada en esa vuelta."""
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as candado:
+        tomado = candado.execute(text(
+            "DECLARE @r INT; EXEC @r = sp_getapplock @Resource = N'TMI_CIERRE', @LockMode = 'Exclusive', "
+            "@LockOwner = 'Session', @LockTimeout = 0; SELECT @r")).scalar()
+        if tomado is None or tomado < 0:
+            logger.info("Otro proceso está revisando el cierre: se omite esta vuelta")
+            return []
+        db = SessionLocal()
+        try:
+            return ejecutarCierreServ(db)
+        finally:
+            db.close()
+            candado.execute(text("EXEC sp_releaseapplock @Resource = N'TMI_CIERRE', @LockOwner = 'Session'"))
+
+
+# mensaje de usp_tmi_calcular cuando ya hay un cálculo en curso (sp_getapplock TMI_CALCULAR)
+_CALCULO_OCUPADO = "Ya se está calculando el TMI"
 
 
 async def tareaCierre():
     """Revisa al iniciar y luego cada CIERRE_INTERVALO_MINUTOS si hoy es la fecha de cierre."""
+    USUARIO_ACTUAL.set("CIERRE AUTOMÁTICO")   # usuario de sus cambios en el historial de la configuración
     while True:
         try:
             resultados = await asyncio.to_thread(revisarCierre)

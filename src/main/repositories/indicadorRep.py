@@ -20,7 +20,8 @@ def queryIndicadoresTMI(db: Session):
         SELECT i.id, i.grupo, i.indicador, i.codigo, i.nombre_hoja, i.titulo_hoja, i.orden, i.formula_alias, i.formula,
                i.tipo_calculo,
                i.sin_datos_anio, i.base_estandar, i.sentido, i.tipo_tolerancia, i.tolerancia, i.tolerancia_menos, i.decimales,
-               i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, LTRIM(RTRIM(g.desctipgrupo)) AS grupo_descripcion
+               i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, i.si_variable_nula, i.si_division_cero,
+               LTRIM(RTRIM(g.desctipgrupo)) AS grupo_descripcion
         FROM {name_server}.tmi_indicador i
         LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = i.grupo
         ORDER BY i.orden, i.id""")
@@ -78,16 +79,44 @@ def queryIndicadorAmbitoTMI(db: Session, id_indicador: int):
         ORDER BY incluir DESC, red, nivel, categoria, tipo, codcentro""", {"id": id_indicador})
 
 
-def _analizar(texto: str) -> tmiFormula.Formula:
+def _analizar(texto: str, regla: dict = None) -> tmiFormula.Formula:
+    """regla: si_variable_nula / si_division_cero del indicador (sin regla = CERO / NA, el comportamiento anterior)."""
+    regla = regla or {}
     try:
-        return tmiFormula.analizar(texto)
+        return tmiFormula.analizar(texto, regla.get("si_variable_nula") or "CERO", regla.get("si_division_cero") or "NA")
     except tmiFormula.ErrorFormula as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def _analizarTokens(db: Session, texto: str):
+def _regla_nulos(db: Session, id_indicador: int) -> dict:
+    fila = db.execute(text(f"""SELECT si_variable_nula, si_division_cero FROM {name_server}.tmi_indicador
+                               WHERE id = :id"""), {"id": id_indicador}).mappings().first()
+    if not fila:
+        raise HTTPException(status_code=404, detail="Indicador no encontrado")
+    return dict(fila)
+
+
+def queryRegenerarFormulaSqlTMI(db: Session, id_indicador: int):
+    """Vuelve a generar formula_sql desde la fórmula guardada con la regla de nulos actual del indicador (se llama
+    al editar el indicador: si cambia la regla, el cálculo la toma sin volver a guardar la fórmula)."""
+    fila = db.execute(text(f"""SELECT formula, si_variable_nula, si_division_cero FROM {name_server}.tmi_indicador
+                               WHERE id = :id"""), {"id": id_indicador}).mappings().first()
+    if not fila or not fila["formula"]:
+        return None
+    f = _analizar(fila["formula"], dict(fila))
+    try:
+        db.execute(text(f"UPDATE {name_server}.tmi_indicador SET formula_sql = :sql WHERE id = :id"),
+                   {"sql": f.sql, "id": id_indicador})
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    return f.sql
+
+
+def _analizarTokens(db: Session, texto: str, regla: dict = None):
     """Términos de la fórmula interna (T1, T2...) con la descripción del grupo, la actividad y los servicios (DIM)."""
-    f = _analizar(texto)
+    f = _analizar(texto, regla)
     grupos = {t.tipgrupo for t in f.terminos}
     actividades = {t.actividad for t in f.terminos}
     servicios = {s for t in f.terminos for s in t.servicios}
@@ -146,21 +175,22 @@ def _expandir(db: Session, formula_alias: str, variables: dict):
     return formula, detalle
 
 
-def queryAnalizarFormulaTMI(db: Session, formula_alias: str, variables: dict):
+def queryAnalizarFormulaTMI(db: Session, formula_alias: str, variables: dict, regla: dict = None):
     """Fórmula con letras ((A - B) / C): fórmula interna, variables de cada letra y términos de TOTALIZADO3."""
     formula, detalle = _expandir(db, formula_alias, variables)
-    analisis = _analizarTokens(db, formula)
+    analisis = _analizarTokens(db, formula, regla)
     return {"formula_alias": formula_alias.strip(), "variables": detalle, **analisis}
 
 
 def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula_alias: str, variables: dict, usuario: str = None):
     """Guarda la fórmula con letras, la variable de cada letra usada (tmi_indicador_variable) y la fórmula interna
     generada ([3;50#0] - [3;49#0]) / [3;47#0] con sus términos (tmi_indicador_termino) y formula_sql, en una transacción."""
-    analisis = queryAnalizarFormulaTMI(db, formula_alias, variables)
+    regla = _regla_nulos(db, id_indicador)
+    analisis = queryAnalizarFormulaTMI(db, formula_alias, variables, regla)
     malos = [f"{t['texto']}: {t['problema']}" for t in analisis["terminos"] if t["problema"]]
     if malos:
         raise HTTPException(status_code=400, detail="; ".join(malos))
-    f = _analizar(analisis["formula"])
+    f = _analizar(analisis["formula"], regla)
     usadas = [v for v in analisis["variables"] if v["usada"]]
     try:
         r = db.execute(text(f"""
@@ -192,23 +222,31 @@ def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula_alias: str, v
     return analisis
 
 
-def _consulta_indicador(db: Session, id_indicador: int, periodo: int) -> str:
+def _consulta_indicador(db: Session, id_indicador: int, periodo: int, con_estandares: bool = False) -> str:
+    """con_estandares: agrega el estándar del mes de corte (también el específico del centro) y las exclusiones."""
     if periodo % 100 not in range(1, 13):
         raise HTTPException(status_code=400, detail="El periodo debe tener formato AAAAMM.")
-    fila = db.execute(text(f"""SELECT codigo, indicador, formula, tipo_calculo FROM {name_server}.tmi_indicador
+    fila = db.execute(text(f"""SELECT id, codigo, indicador, formula, tipo_calculo, base_estandar, sentido,
+                                      si_variable_nula, si_division_cero
+                               FROM {name_server}.tmi_indicador
                                WHERE id = :id"""), {"id": id_indicador}).mappings().first()
     if not fila:
         raise HTTPException(status_code=404, detail="Indicador no encontrado")
     if not fila["formula"]:
         raise HTTPException(status_code=400, detail="El indicador no tiene fórmula.")
-    return tmiFormula.consulta_sql(_analizar(fila["formula"]), TMI_TOTALIZADO3, fila["tipo_calculo"] or "MENSUAL",
-                                   periodo, f"{fila['codigo']} - {fila['indicador']}",
-                                   centros=f"{name_server}.vw_tmi_centro_base")
+    try:
+        return tmiFormula.consulta_sql(_analizar(fila["formula"], dict(fila)), TMI_TOTALIZADO3,
+                                       fila["tipo_calculo"] or "MENSUAL", periodo, f"{fila['codigo']} - {fila['indicador']}",
+                                       centros=f"{name_server}.vw_tmi_centro_base",
+                                       indicador=dict(fila) if con_estandares else None,
+                                       esquema=name_server)
+    except tmiFormula.ErrorFormula as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-def queryConsultaIndicadorTMI(db: Session, id_indicador: int, periodo: int):
+def queryConsultaIndicadorTMI(db: Session, id_indicador: int, periodo: int, con_estandares: bool = False):
     """Texto del query que calcula el indicador directo de TOTALIZADO3 (para verlo o copiarlo)."""
-    return {"sql": _consulta_indicador(db, id_indicador, periodo)}
+    return {"sql": _consulta_indicador(db, id_indicador, periodo, con_estandares)}
 
 
 def queryResultadoDirectoTMI(db: Session, id_indicador: int, periodo: int):

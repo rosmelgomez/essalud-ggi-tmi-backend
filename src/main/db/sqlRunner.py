@@ -40,6 +40,7 @@ SQL_SCRIPTS = [
     "03_datos.sql",
     "05_variables_pivot.sql",   # variables de Generar_pivot.sql (una sola vez; no pisa cambios del usuario)
     "04_procedimientos.sql",
+    "06_historial.sql",         # triggers del historial de cambios de la configuración (tmi_config_historial)
 ]
 
 # Datos iniciales de centros y estándares: se cargan solo si la tabla está vacía (recién creada).
@@ -157,10 +158,14 @@ def _sincronizar_formulas(cursor, resultado: Dict[str, str]) -> None:
                 cursor.execute("UPDATE dbo.tmi_indicador SET formula = ? WHERE id = ?", formula, id_ind)
             except tmiFormula.ErrorFormula as e:
                 errores.append(f"{codigo}: {e} (se mantiene la fórmula anterior)")
-        for id_ind, codigo, texto in cursor.execute(
-                "SELECT id, codigo, formula FROM dbo.tmi_indicador WHERE NULLIF(LTRIM(formula), '') IS NOT NULL").fetchall():
+        # regla de nulos de cada indicador (si la tabla aún no tiene las columnas: CERO / NA, el comportamiento anterior)
+        con_regla = cursor.execute("SELECT COL_LENGTH('dbo.tmi_indicador', 'si_division_cero')").fetchone()[0] is not None
+        regla = "si_variable_nula, si_division_cero" if con_regla else "'CERO', 'NA'"
+        for id_ind, codigo, texto, si_variable_nula, si_division_cero in cursor.execute(
+                f"SELECT id, codigo, formula, {regla} FROM dbo.tmi_indicador "
+                "WHERE NULLIF(LTRIM(formula), '') IS NOT NULL").fetchall():
             try:
-                f = tmiFormula.analizar(texto)
+                f = tmiFormula.analizar(texto, si_variable_nula, si_division_cero)
             except tmiFormula.ErrorFormula as e:
                 errores.append(f"{codigo}: {e}")
                 cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = NULL WHERE id = ?", id_ind)

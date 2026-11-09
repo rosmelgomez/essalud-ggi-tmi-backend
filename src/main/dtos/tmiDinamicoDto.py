@@ -60,6 +60,10 @@ class tmiIndicadorDto(BaseModel):
     mostrar_no_aplica: bool = True
     activo: bool = True
     formato: Literal["NUMERO", "PORCENTAJE"] = "NUMERO"   # formato de los valores en el Excel
+    # regla de nulos de la fórmula: letra sin dato (CERO = vale 0, NA = el mes queda NA) y división entre 0 (NA o 0).
+    # CERO + CERO = ISNULL(ISNULL(A,0) / NULLIF(ISNULL(B,0),0), 0) de 00_TMI_CREACION_VISTAS_2025.sql
+    si_variable_nula: Literal["CERO", "NA"] = "CERO"
+    si_division_cero: Literal["NA", "CERO"] = "NA"
 
 
 class tmiTipoEstandarDto(BaseModel):
@@ -133,6 +137,9 @@ class tmiFormulaDto(BaseModel):
     El backend la expande a términos de TOTALIZADO3 (src/main/core/tmiFormula.py)."""
     formula_alias: str = Field(min_length=1, max_length=500)
     variables: Dict[str, int] = Field(default_factory=dict)
+    # solo para la vista previa (POST /formula/analizar): al guardar se usa la regla de nulos del indicador
+    si_variable_nula: Literal["CERO", "NA"] = "CERO"
+    si_division_cero: Literal["NA", "CERO"] = "NA"
 
     @field_validator("variables")
     @classmethod

@@ -147,6 +147,15 @@ def queryValidarConfigTMI(db: Session):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def queryAvisosConfigTMI(db: Session, periodo: int):
+    """Avisos que no bloquean el cálculo: centros que quedarían NA por falta de estándar o de % Acept en el periodo."""
+    try:
+        result = db.execute(text(f"EXEC {name_server}.usp_tmi_avisos_config @PERIODO = :p"), {"p": periodo})
+        return [dict(row) for row in result.mappings()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 _MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre',
           'noviembre', 'diciembre']
 
