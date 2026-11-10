@@ -44,7 +44,7 @@ def queryIndicadoresActivosTMI(db: Session):
 
 def queryEliminarIndicador(db: Session, id: int):
     try:
-        for tabla in ("tmi_indicador_tolerancia", "tmi_indicador_termino", "tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar", "tmi_resultado"):
+        for tabla in ("tmi_indicador_tolerancia", "tmi_indicador_termino", "tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar", "tmi_resultado", "tmi_resultado_termino"):
             db.execute(text(f"IF OBJECT_ID('{name_server}.{tabla}') IS NOT NULL DELETE FROM {name_server}.{tabla} WHERE id_indicador = :id"), {"id": id})
         db.commit()
     except Exception as e:
@@ -105,8 +105,8 @@ def queryRegenerarFormulaSqlTMI(db: Session, id_indicador: int):
         return None
     f = _analizar(fila["formula"], dict(fila))
     try:
-        db.execute(text(f"UPDATE {name_server}.tmi_indicador SET formula_sql = :sql WHERE id = :id"),
-                   {"sql": f.sql, "id": id_indicador})
+        db.execute(text(f"UPDATE {name_server}.tmi_indicador SET formula_sql = :sql, formula_plantilla = :pl WHERE id = :id"),
+                   {"sql": f.sql, "pl": tmiFormula.plantilla(f), "id": id_indicador})
         db.commit()
     except Exception as e:
         db.rollback()
@@ -195,9 +195,9 @@ def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula_alias: str, v
     try:
         r = db.execute(text(f"""
             UPDATE {name_server}.tmi_indicador
-               SET formula_alias = :alias, formula = :formula, formula_sql = :sql,
+               SET formula_alias = :alias, formula = :formula, formula_sql = :sql, formula_plantilla = :pl,
                    usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
-             WHERE id = :id"""), {"alias": analisis["formula_alias"], "formula": f.texto, "sql": f.sql,
+             WHERE id = :id"""), {"alias": analisis["formula_alias"], "formula": f.texto, "sql": f.sql, "pl": tmiFormula.plantilla(f),
                                    "usuario": usuario, "id": id_indicador})
         if r.rowcount == 0:
             raise HTTPException(status_code=404, detail="Indicador no encontrado")

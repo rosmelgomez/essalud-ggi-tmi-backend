@@ -56,10 +56,24 @@ _TABLAS_QUITADAS = ["tmi_variable_pivot", "categoria_centro", "tmi_categoria_cen
 
 # columnas nuevas en tablas que ya existen (create_all no las agrega): tabla -> [(columna, tipo SQL)]
 _COLUMNAS_AGREGADAS = {
-    "tmi_resultado_indicador": [("nivel_estandar", "VARCHAR(50) NULL")],
+    "tmi_resultado_indicador": [("nivel_estandar", "VARCHAR(50) NULL"),
+                                ("origen_datos", "VARCHAR(10) NOT NULL CONSTRAINT DF_tmi_resultado_indicador_origen "
+                                                 "DEFAULT 'ACTUAL'"), ("periodo_backup", "INT NULL")],
+    # justificación del cálculo: de dónde salieron los datos (los resultados anteriores se calcularon con TOTALIZADO3
+    # de ese momento: ACTUAL) y la fórmula con la que se calculó
+    "tmi_resultado": [("origen_datos", "VARCHAR(10) NOT NULL CONSTRAINT DF_tmi_resultado_origen_datos DEFAULT 'ACTUAL' "
+                                      "CONSTRAINT CK_tmi_resultado_origen CHECK (origen_datos IN ('ACTUAL', 'BACKUP'))"),
+                      ("periodo_backup", "INT NULL"), ("tipo_calculo", "VARCHAR(20) NULL"),
+                      ("formula_alias", "NVARCHAR(500) NULL"), ("formula", "NVARCHAR(2000) NULL"),
+                      ("formula_desarrollo", "NVARCHAR(4000) NULL"), ("usuario_calculo", "NVARCHAR(50) NULL")],
     # regla de nulos por indicador (por defecto, el comportamiento anterior: letra sin dato = 0, división entre 0 = NA)
-    "tmi_indicador": [("si_variable_nula", "VARCHAR(4) NOT NULL CONSTRAINT DF_tmi_indicador_si_variable_nula DEFAULT 'CERO'"),
+    "tmi_indicador": [("formula_plantilla", "NVARCHAR(2000) NULL"),
+                      ("si_variable_nula", "VARCHAR(4) NOT NULL CONSTRAINT DF_tmi_indicador_si_variable_nula DEFAULT 'CERO'"),
                       ("si_division_cero", "VARCHAR(4) NOT NULL CONSTRAINT DF_tmi_indicador_si_division_cero DEFAULT 'NA'")],
+    # resultado propio de cada mes excluido ('0' o 'NA'); NULL = el de la columna resultado
+    "tmi_exclusion_centro_indicador": [
+        (f"res_{m:02d}", f"VARCHAR(2) NULL CONSTRAINT ck_tmi_exclusion_res_{m:02d} CHECK (res_{m:02d} IN ('NA', '0'))")
+        for m in range(1, 13)],
 }
 
 
@@ -92,6 +106,47 @@ def _renombrar_tablas(conexion) -> None:
             renombrar(viejo, nuevo, "OBJECT")
 
 
+# tablas que guardan el cálculo con la copia del cierre (BACKUP) y el de los datos actuales (ACTUAL) del mismo periodo
+_CLAVES_ORIGEN = {"tmi_resultado": "periodo_corte, origen_datos, id_indicador, codcentro",
+                  "tmi_resultado_indicador": "periodo, origen_datos, id_indicador, codcentro"}
+
+
+def _clave_resultado(conexion) -> None:
+    for tabla, columnas in _CLAVES_ORIGEN.items():
+        _clave_con_origen(conexion, tabla, columnas)
+
+
+def _clave_con_origen(conexion, tabla: str, columnas: str) -> None:
+    """La clave de la tabla pasa a incluir origen_datos (las filas que ya había quedan como ACTUAL)."""
+    nombre = f"{TMI_SCHEMA}.{tabla}"
+    if conexion.execute(text("SELECT OBJECT_ID(:t, 'U')"), {"t": nombre}).scalar() is None:
+        return
+    # la columna se agregó antes como NULL: se completa y pasa a NOT NULL con su valor por defecto
+    nula = conexion.execute(text("SELECT is_nullable FROM sys.columns WHERE object_id = OBJECT_ID(:t) "
+                                 "AND name = 'origen_datos'"), {"t": nombre}).scalar()
+    if nula:
+        conexion.execute(text(f"UPDATE {nombre} SET origen_datos = 'ACTUAL' WHERE origen_datos IS NULL"))
+        conexion.execute(text(f"ALTER TABLE {nombre} ALTER COLUMN origen_datos VARCHAR(10) NOT NULL"))
+        tiene_defecto = conexion.execute(text("SELECT default_object_id FROM sys.columns WHERE object_id = OBJECT_ID(:t) "
+                                              "AND name = 'origen_datos'"), {"t": nombre}).scalar()
+        if not tiene_defecto:
+            conexion.execute(text(f"ALTER TABLE {nombre} ADD CONSTRAINT DF_{tabla}_origen DEFAULT 'ACTUAL' "
+                                  "FOR origen_datos"))
+    con_origen = conexion.execute(text("""
+        SELECT COUNT(*) FROM sys.indexes i
+        JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+        JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+        WHERE i.object_id = OBJECT_ID(:t) AND i.is_primary_key = 1 AND c.name = 'origen_datos'"""), {"t": nombre}).scalar()
+    if con_origen:
+        return
+    pk = conexion.execute(text("SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID(:t) AND is_primary_key = 1"),
+                          {"t": nombre}).scalar()
+    if pk:
+        conexion.execute(text(f"ALTER TABLE {nombre} DROP CONSTRAINT [{pk}]"))
+    conexion.execute(text(f"ALTER TABLE {nombre} ADD CONSTRAINT PK_{tabla} PRIMARY KEY ({columnas})"))
+    logger.info("%s: clave con origen_datos", tabla)
+
+
 def _migrar_tablas(engine) -> None:
     """Cambios de estructura que create_all no hace: quita tablas que ya no se usan, agrega columnas nuevas y quita las
     que ya no están en los modelos."""
@@ -110,6 +165,7 @@ def _migrar_tablas(engine) -> None:
                 if conexion.execute(text("SELECT COL_LENGTH(:t, :c)"), {"t": nombre, "c": columna}).scalar() is None:
                     conexion.execute(text(f"ALTER TABLE {nombre} ADD {columna} {tipo}"))
                     logger.info("%s: columna agregada %s", tabla, columna)
+        _clave_resultado(conexion)
         for tabla, columnas in _COLUMNAS_QUITADAS.items():
             nombre = f"{TMI_SCHEMA}.{tabla}"
             existentes = [c for c in columnas

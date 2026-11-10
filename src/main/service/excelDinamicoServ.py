@@ -28,6 +28,7 @@ from src.main.repositories.estandarRep import queryEstandaresExcelTMI
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
 from src.main.repositories.tmiDinamicoRep import (
     queryCalcularTMI,
+    queryHayBackupTMI,
     queryResultadoFinalTMI,
     queryResultadoTMI,
 )
@@ -337,18 +338,20 @@ def _llenar_estandares(wb, db: Session, anio: str, mes: int) -> None:
 
 
 def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
-                               ids: Optional[List[int]] = None) -> io.BytesIO:
+                               ids: Optional[List[int]] = None, origen: Optional[str] = None) -> io.BytesIO:
     """Genera el libro TMI del periodo AAAAMM con el resultado final guardado de ese periodo.
     Si calcular=True ejecuta antes el cálculo del periodo (solo para el periodo abierto, ver apiTmiDinamico).
-    ids: indicadores que lleva el Excel (sus hojas y los puntajes); None = todos los calculados."""
+    ids: indicadores que lleva el Excel (sus hojas y los puntajes); None = todos los calculados.
+    origen: resultado que lleva (ACTUAL = TOTALIZADO3, BACKUP = copia del cierre); None = el oficial."""
     from src.main.service.excelPuntajesServ import llenar_puntajes
 
     p = _validar_periodo(periodo)
     anio, mes = periodo[:4], p % 100
     if calcular:
-        queryCalcularTMI(db, p)
+        # el Excel es el oficial: con la copia del cierre del periodo si existe (como fue), si no con TOTALIZADO3 de hoy
+        queryCalcularTMI(db, p, origen or ("BACKUP" if queryHayBackupTMI(db, p) else "ACTUAL"))
 
-    filas_final = queryResultadoFinalTMI(db, p)
+    filas_final = queryResultadoFinalTMI(db, p, origen)
     if not filas_final:
         raise ValueError(f"No hay resultado guardado del periodo {periodo}: ese periodo no se calculó.")
     final: Dict[int, Dict[int, Dict[str, Any]]] = defaultdict(dict)
@@ -368,7 +371,7 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
         if not indicadores:
             raise ValueError(f"Ninguno de los indicadores elegidos tiene resultado guardado en {periodo}.")
     res: Dict[int, Dict[int, Dict[int, Dict[str, Any]]]] = defaultdict(lambda: defaultdict(dict))
-    for r in queryResultadoTMI(db, p):
+    for r in queryResultadoTMI(db, p, origen):
         res[r["id_indicador"]][r["codcentro"]][r["mes"]] = r
 
     wb = load_workbook(PLANTILLA_BASE)

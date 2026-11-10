@@ -5,7 +5,7 @@
    backend desde src/main/model/historialModel.py) una fila por registro que cambió, con la fila antes y después en XML.
    - usuario: el del token, que el backend pone en CONTEXT_INFO al tomar una conexión del pool
      (src/main/db/auditoria.py); si el cambio no vino de la API (SSMS, scripts), el login de SQL Server.
-   - No guarda las columnas de auditoría ni formula_sql (se deriva de la fórmula), y descarta los UPDATE que no
+   - No guarda las columnas de auditoría ni formula_sql / formula_plantilla (se derivan de la fórmula), y descarta los UPDATE que no
      cambiaron nada (por ejemplo, al volver a generar formula_sql al iniciar).
    Los triggers se generan desde sys.columns: si se agrega una columna a una tabla, al reiniciar el backend el
    trigger la incluye. Compatible con SQL Server 2008 R2 (FOR XML, sin STRING_AGG ni JSON). */
@@ -58,7 +58,7 @@ BEGIN
                        FROM sys.columns c JOIN sys.types ty ON ty.user_type_id = c.user_type_id
                        WHERE c.object_id = OBJECT_ID(N'dbo.' + @tabla)
                          AND ty.name NOT IN ('text', 'ntext', 'image', 'timestamp')
-                         AND c.name NOT IN ('usuario_creacion', 'fecha_creacion', 'usuario_modificacion', 'fecha_modificacion', 'formula_sql')
+                         AND c.name NOT IN ('usuario_creacion', 'fecha_creacion', 'usuario_modificacion', 'fecha_modificacion', 'formula_sql', 'formula_plantilla')
                        ORDER BY c.column_id
                        FOR XML PATH('')), 1, 2, N'');
     SET @sql = REPLACE(REPLACE(REPLACE(REPLACE(@plantilla,

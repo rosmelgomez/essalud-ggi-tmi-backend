@@ -74,6 +74,7 @@ class TmiExclusionCentroIndicador(Base):
     __tablename__ = "tmi_exclusion_centro_indicador"
     __table_args__ = (
         CheckConstraint("resultado IN ('NA', '0')", name="ck_tmi_exclusion_resultado"),
+        *(CheckConstraint(f"res_{m:02d} IN ('NA', '0')", name=f"ck_tmi_exclusion_res_{m:02d}") for m in range(1, 13)),
         {"schema": TMI_SCHEMA},
     )
     id = Column(Integer, primary_key=True)
@@ -96,3 +97,16 @@ class TmiExclusionCentroIndicador(Base):
     motivo = Column(String(300))
     # cómo queda el mes excluido en el resultado final: '0' (puntaje 0, valor 0; por defecto) o 'NA' (no aplica)
     resultado = Column(String(2), nullable=False, server_default=defecto("0"))
+    # resultado propio de cada mes excluido ('0' o 'NA'); NULL = el de la columna resultado
+    res_01 = Column(String(2))
+    res_02 = Column(String(2))
+    res_03 = Column(String(2))
+    res_04 = Column(String(2))
+    res_05 = Column(String(2))
+    res_06 = Column(String(2))
+    res_07 = Column(String(2))
+    res_08 = Column(String(2))
+    res_09 = Column(String(2))
+    res_10 = Column(String(2))
+    res_11 = Column(String(2))
+    res_12 = Column(String(2))

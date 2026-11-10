@@ -144,5 +144,18 @@ class tmiExclusionCentroEstandarDto(_conIndicador):
     motivo: Optional[str] = None
     # cómo queda el mes excluido en el resultado final: '0' (puntaje 0; por defecto) o 'NA' (no aplica)
     resultado: Literal["NA", "0"] = "0"
+    # resultado propio de cada mes excluido; None = el de resultado
+    res_01: Optional[Literal["NA", "0"]] = None
+    res_02: Optional[Literal["NA", "0"]] = None
+    res_03: Optional[Literal["NA", "0"]] = None
+    res_04: Optional[Literal["NA", "0"]] = None
+    res_05: Optional[Literal["NA", "0"]] = None
+    res_06: Optional[Literal["NA", "0"]] = None
+    res_07: Optional[Literal["NA", "0"]] = None
+    res_08: Optional[Literal["NA", "0"]] = None
+    res_09: Optional[Literal["NA", "0"]] = None
+    res_10: Optional[Literal["NA", "0"]] = None
+    res_11: Optional[Literal["NA", "0"]] = None
+    res_12: Optional[Literal["NA", "0"]] = None
     # alta de varias exclusiones a la vez: un registro por indicador (si ya existe para el centro y año, se actualiza)
     ids_indicador: Optional[List[int]] = None

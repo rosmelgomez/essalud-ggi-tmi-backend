@@ -168,7 +168,7 @@ def _sincronizar_formulas(cursor, resultado: Dict[str, str]) -> None:
                 f = tmiFormula.analizar(texto, si_variable_nula, si_division_cero)
             except tmiFormula.ErrorFormula as e:
                 errores.append(f"{codigo}: {e}")
-                cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = NULL WHERE id = ?", id_ind)
+                cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = NULL, formula_plantilla = NULL WHERE id = ?", id_ind)
                 cursor.execute("DELETE FROM dbo.tmi_indicador_termino WHERE id_indicador = ?", id_ind)
                 continue
             cursor.execute("DELETE FROM dbo.tmi_indicador_termino WHERE id_indicador = ?", id_ind)
@@ -176,7 +176,8 @@ def _sincronizar_formulas(cursor, resultado: Dict[str, str]) -> None:
                 cursor.execute("""INSERT INTO dbo.tmi_indicador_termino (id_indicador, codigo, tipgrupo, actividad, servicio,
                                   mediana, texto) VALUES (?, ?, ?, ?, ?, ?, ?)""",
                                id_ind, r["codigo"], r["tipgrupo"], r["actividad"], r["servicio"], r["mediana"], r["texto"])
-            cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = ? WHERE id = ?", f.sql, id_ind)
+            cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = ?, formula_plantilla = ? WHERE id = ?",
+                           f.sql, tmiFormula.plantilla(f), id_ind)
         resultado["formulas"] = "OK" if not errores else "AVISO: " + "; ".join(errores)
     except Exception as e:
         resultado["formulas"] = f"ERROR {e}"

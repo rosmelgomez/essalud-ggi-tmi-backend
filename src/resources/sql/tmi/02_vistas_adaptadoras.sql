@@ -133,7 +133,7 @@ EXEC sp_executesql @sql;
 GO
 
 /* ---------- vw_tmi_exclusion: exclusión por centro, indicador (NULL = todos) y mes ---------- */
-DECLARE @sql NVARCHAR(MAX), @pre SYSNAME, @cols NVARCHAR(MAX), @cod NVARCHAR(400), @motivo NVARCHAR(100), @resultado NVARCHAR(100);
+DECLARE @sql NVARCHAR(MAX), @pre SYSNAME, @cols NVARCHAR(MAX), @cod NVARCHAR(400), @motivo NVARCHAR(100), @resultado NVARCHAR(100), @rescols NVARCHAR(MAX);
 SET @pre = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'excl_01') IS NOT NULL THEN 'excl_' ELSE 'estandar_' END;
 SELECT @cols = STUFF((
     SELECT ', CAST(ISNULL(e.' + QUOTENAME(@pre + RIGHT('0' + CAST(n AS VARCHAR), 2)) + ', 0) AS BIT) AS x'
@@ -147,12 +147,20 @@ SET @motivo = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'motivo
 -- resultado del mes excluido: '0' (por defecto) o 'NA'
 SET @resultado = CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'resultado') IS NOT NULL
                       THEN N'CAST(ISNULL(e.resultado, ''0'') AS VARCHAR(2))' ELSE N'CAST(''0'' AS VARCHAR(2))' END;
+-- resultado de cada mes (r01..r12): el propio del mes (res_MM) o, si no tiene, el de la fila
+SELECT @rescols = STUFF((
+    SELECT ', ' + CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'res_01') IS NOT NULL
+                       THEN N'CAST(COALESCE(e.res_' + RIGHT('0' + CAST(n AS VARCHAR), 2) + N', ' + @resultado + N') AS VARCHAR(2))'
+                       ELSE @resultado END + N' AS r' + RIGHT('0' + CAST(n AS VARCHAR), 2)
+    FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) x(n)
+    ORDER BY n
+    FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '');
 /* ALTER en lugar de DROP + CREATE: la vista nunca deja de existir (las consultas en curso no fallan) */
 IF OBJECT_ID('dbo.vw_tmi_exclusion', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_exclusion AS SELECT 1 AS x');
 SET @sql = N'ALTER VIEW dbo.vw_tmi_exclusion AS
 SELECT ' + @cod + N' AS codcentro, e.' + CASE WHEN COL_LENGTH('dbo.tmi_exclusion_centro_indicador', 'id_estandar') IS NOT NULL
                                               THEN N'id_estandar' ELSE N'id_indicador' END + N' AS id_estandar,
-       e.anio, ' + @cols + N', ' + @motivo + N' AS motivo, ' + @resultado + N' AS resultado
+       e.anio, ' + @cols + N', ' + @motivo + N' AS motivo, ' + @resultado + N' AS resultado, ' + @rescols + N'
 FROM dbo.tmi_exclusion_centro_indicador e
 LEFT JOIN dbo.vw_tmi_centro_base c ON c.id_centro = e.id_centro';
 EXEC sp_executesql @sql;

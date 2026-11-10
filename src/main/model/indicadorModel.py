@@ -52,6 +52,9 @@ class TmiIndicador(Base):
     formula_alias = Column(NVARCHAR(500))
     formula = Column(NVARCHAR(2000))
     formula_sql = Column(NVARCHAR(None))
+    # la fórmula con los códigos de sus términos (([T1] - [T2]) / [T3]): el cálculo reemplaza cada código por su valor
+    # y guarda el desarrollo en tmi_resultado.formula_desarrollo
+    formula_plantilla = Column(NVARCHAR(2000))
     formato = Column(String(12), nullable=False, server_default=defecto("NUMERO"))     # NUMERO | PORCENTAJE
 
 

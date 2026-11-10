@@ -179,13 +179,17 @@ def _ejecutarInserts(db: Session, periodo_actual: str, origenes: dict[str, str])
 
 
 def _calcularTMI(db: Session, periodo: str):
-    """Calcula el TMI del periodo y guarda su resultado final; con la configuración con errores no se calcula."""
+    """Guarda la copia de TOTALIZADO3 del periodo (TOTALIZADO3_BACKUP; si ya existe no se toca) y calcula el TMI con
+    esa copia: es el resultado oficial del periodo ("como fue"). Con la configuración con errores no se calcula."""
     errores = tmiDinamicoRep.queryValidarConfigTMI(db)
     if errores:
         primero = errores[0]
         raise RuntimeError(f"No se calculó el TMI: la configuración tiene {len(errores)} problema(s); corríjalos en "
                            f"Variables o Indicadores. Primero: {primero.get('elemento')}: {primero.get('problema')}")
-    tmiDinamicoRep.queryCalcularTMI(db, int(periodo))
+    copia = tmiDinamicoRep.queryBackupTotalizado3TMI(db, int(periodo), "CIERRE")
+    logger.warning("Cierre %s: copia de TOTALIZADO3 %s (%s filas)", periodo,
+                   "guardada" if copia["copiado"] else "ya existía", copia["filas"])
+    tmiDinamicoRep.queryCalcularTMI(db, int(periodo), "BACKUP", "CIERRE")
 
 
 def _filasPeriodo(db: Session, periodo: str) -> int:

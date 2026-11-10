@@ -15,7 +15,7 @@ Spring Boot). Todos los scripts son idempotentes: crean lo que falta y no pisan 
 | 1 | `src/main/model/*.py` | Tablas `tmi_*` y `cierre`: `Base.metadata.create_all` crea las que faltan (no agrega columnas a las que ya existen) |
 | 2 | `02_vistas_adaptadoras.sql` | Vistas `vw_tmi_*` que leen las tablas existentes con sus columnas reales (`est_01` o `estandar_01`, `flag` o `flag_01..12`, `excl_01`…) |
 | 3 | `03_datos.sql` | Datos iniciales: tipos de cálculo, grupos, 37 variables y su lógica, 21 indicadores con su fórmula (`[grupo;actividad#servicio]`), estándares por centro, ámbito de Emergencia |
-| 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `fn_tmi_exclusion`, `fn_tmi_estandar` (regla única de exclusiones, estándar y % Acept: la usan `usp_tmi_calcular` y el SQL descargable del indicador), `usp_tmi_calcular`, `usp_tmi_avisos_config` (avisos que no bloquean: centros sin estándar o sin % Acept en el periodo) |
+| 4 | `04_procedimientos.sql` | `usp_tmi_validar_config`, `fn_tmi_exclusion` (cada mes excluido queda 0 o NA: `res_MM` del mes o, si es NULL, `resultado` de la fila), `fn_tmi_estandar` (regla única de exclusiones, estándar y % Acept: la usan `usp_tmi_calcular` y el SQL descargable del indicador), `usp_tmi_calcular`, `usp_tmi_avisos_config` (avisos que no bloquean: centros sin estándar o sin % Acept en el periodo) |
 | 5 | `06_historial.sql` | Triggers `tr_hist_*` de las tablas de configuración: guardan en `tmi_config_historial` quién cambió qué y cuándo (usuario del token vía `CONTEXT_INFO`) |
 
 ## Variables de entorno (`.env`)
@@ -59,6 +59,26 @@ remoto. Al iniciar, el backend comprueba que puede leer las dos fuentes y, si no
 1. `GET  /tmi/dinamico/validar-config`: errores de configuración (debe devolver `[]`).
 2. `POST /tmi/dinamico/calcular/{AAAAMM}`: fórmula de cada indicador sobre TOTALIZADO3 → `tmi_resultado`.
 3. `GET  /tmi/dinamico/generar-excel/{AAAAMM}?calcular=true`: Excel desde la plantilla vacía `TMI_PLANTILLA_BASE.xlsx`.
+
+### Versiones de TOTALIZADO3 y justificación del cálculo
+
+TOTALIZADO3 es la foto de hoy: los estadísticos pueden corregir meses anteriores. TOTALIZADO3 **nunca se modifica**;
+solo se lee.
+
+- `TOTALIZADO3_BACKUP` (en la base del TMI): la misma estructura de TOTALIZADO3 más `periodo_backup`, `fecha_backup`
+  y `usuario_backup`. La copia del periodo P tiene TOTALIZADO3 de enero a P tal como estaba. La guarda el cierre de P
+  (`usp_tmi_backup_totalizado3`); una copia guardada no se pisa salvo `POST /tmi/dinamico/backup/{AAAAMM}?reemplazar=true`.
+- `usp_tmi_calcular @PERIODO, @ORIGEN, @USUARIO`: `ACTUAL` lee TOTALIZADO3 de hoy; `BACKUP` lee la copia del cierre
+  del periodo ("como fue"). `tmi_resultado` guarda los dos (clave con `origen_datos`), con la fórmula, su desarrollo
+  con los valores (`formula_desarrollo`), quién calculó y la copia usada. `tmi_resultado_termino` guarda el valor de
+  cada término (grupo, actividad, servicio) y las filas sumadas.
+- Calcular (pantalla) usa siempre TOTALIZADO3 (ACTUAL); el cierre calcula con la copia (BACKUP). `tmi_resultado` y
+  `tmi_resultado_indicador` guardan los dos (clave con `origen_datos`) y la pantalla elige cuál ver y descargar
+  (`?origen=ACTUAL|BACKUP` en `/resultado` y `/generar-excel`). Sin origen se usa el oficial: BACKUP si existe, si no
+  ACTUAL (`vw_tmi_resultado`, `vw_tmi_resultado_indicador`, `fn_tmi_resultado`); el dashboard usa el oficial.
+- `GET /tmi/dinamico/justificacion/{AAAAMM}/{id_indicador}` (y `/{codcentro}/terminos`, `/{codcentro}/filas`):
+  resultado como fue y con datos actuales, términos y filas de TOTALIZADO3 que cambiaron (antes, ahora, `usuariomod`,
+  `fechamod`).
 
 La plantilla vacía se regenera desde `TMI_PLANTILLA.xlsx` con:
 

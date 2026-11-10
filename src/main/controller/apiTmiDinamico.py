@@ -119,11 +119,15 @@ async def periodoCalculoTMI(db: Session = Depends(get_db)):
     return {"periodo_calculo": calculable,
             "periodo_datos": tmiDinamicoRep.queryUltimoPeriodoDatosTMI(db, int(calculable)),
             "solo_periodo_anterior": TMI_CALCULO_SOLO_PERIODO_ANTERIOR,
-            "periodos": tmiDinamicoRep.queryPeriodosResultadoTMI(db)}
+            "periodos": tmiDinamicoRep.queryPeriodosResultadoTMI(db),
+            # copias de TOTALIZADO3 guardadas al cierre: con ellas se calcula el periodo "como fue"
+            "backups": tmiDinamicoRep.queryBackupsTMI(db)}
 
 
 @router.post("/calcular/{periodo}")
-def calcularTMI(periodo: str, db: Session = Depends(get_db)):
+def calcularTMI(periodo: str, origen: str = "ACTUAL", db: Session = Depends(get_db),
+                current_user: dict = Depends(get_current_user)):
+    """origen: ACTUAL = TOTALIZADO3 de hoy; BACKUP = la copia del cierre del periodo (como fue)."""
     # def (no async): FastAPI lo corre en un hilo aparte; el cálculo es largo y no debe bloquear el resto de la API
     p = _periodo(periodo)
     if not se_puede_calcular(periodo):
@@ -133,12 +137,58 @@ def calcularTMI(periodo: str, db: Session = Depends(get_db)):
     errores = tmiDinamicoRep.queryValidarConfigTMI(db)
     if errores:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=errores)
-    return {"periodo": periodo, "puntajes": tmiDinamicoRep.queryCalcularTMI(db, p)}
+    origen = (origen or "ACTUAL").upper()
+    usuario = (current_user or {}).get("username")
+    logger.info("Usuario '%s' calculando %s con datos %s", usuario, periodo, origen)
+    return {"periodo": periodo, "origen": origen,
+            "puntajes": tmiDinamicoRep.queryCalcularTMI(db, p, origen, usuario)}
+
+
+# ---------- copias de TOTALIZADO3 (TOTALIZADO3_BACKUP) y justificación del cálculo ----------
+@router.get("/backup")
+def backupsTMI(db: Session = Depends(get_db)):
+    """Copias de TOTALIZADO3 guardadas por periodo."""
+    return tmiDinamicoRep.queryBackupsTMI(db)
+
+
+@router.post("/backup/{periodo}")
+def backupTMI(periodo: str, reemplazar: bool = False, db: Session = Depends(get_db),
+              current_user: dict = Depends(get_current_user)):
+    """Copia TOTALIZADO3 (enero..periodo) como copia del periodo. Si ya existe no se toca, salvo reemplazar=true.
+    TOTALIZADO3 solo se lee."""
+    p = _periodo(periodo)
+    if not se_puede_calcular(periodo):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"El periodo {periodo} todavía no se puede copiar.")
+    usuario = (current_user or {}).get("username")
+    logger.info("Usuario '%s' copiando TOTALIZADO3 del periodo %s (reemplazar=%s)", usuario, periodo, reemplazar)
+    return tmiDinamicoRep.queryBackupTotalizado3TMI(db, p, usuario, reemplazar)
+
+
+@router.get("/justificacion/{periodo}/{id_indicador}")
+def justificacionTMI(periodo: str, id_indicador: int, db: Session = Depends(get_db)):
+    """Resultado de cada centro como fue (copia del cierre) y con los datos actuales, con la fórmula desarrollada."""
+    return tmiDinamicoRep.queryJustificacionTMI(db, _periodo(periodo), id_indicador)
+
+
+@router.get("/justificacion/{periodo}/{id_indicador}/{codcentro}/terminos")
+def terminosJustificacionTMI(periodo: str, id_indicador: int, codcentro: int, db: Session = Depends(get_db)):
+    """Valor de cada término (grupo, actividad, servicio) en cada cálculo guardado."""
+    return tmiDinamicoRep.queryTerminosResultadoTMI(db, _periodo(periodo), id_indicador, codcentro)
+
+
+@router.get("/justificacion/{periodo}/{id_indicador}/{codcentro}/filas")
+def filasJustificacionTMI(periodo: str, id_indicador: int, codcentro: int, codigo: Optional[str] = None,
+                          db: Session = Depends(get_db)):
+    """Filas de TOTALIZADO3 que cambiaron desde la copia del cierre (cantidad antes y ahora, quién y cuándo)."""
+    if codigo is not None and not (codigo.startswith("T") and codigo[1:].isdigit()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Término inválido")
+    return tmiDinamicoRep.queryFilasCambiadasTMI(db, _periodo(periodo), id_indicador, codcentro, codigo)
 
 
 @router.get("/resultado/{periodo}/{id_indicador}")
-def resultadoIndicador(periodo: str, id_indicador: int, db: Session = Depends(get_db)):
-    return tmiDinamicoRep.queryResultadoIndicadorTMI(db, _periodo(periodo), id_indicador)
+def resultadoIndicador(periodo: str, id_indicador: int, origen: Optional[str] = None, db: Session = Depends(get_db)):
+    """origen: ACTUAL = calculado con TOTALIZADO3; BACKUP = con la copia del cierre (TOTALIZADO3_BACKUP); sin él, el oficial."""
+    return tmiDinamicoRep.queryResultadoIndicadorTMI(db, _periodo(periodo), id_indicador, origen)
 
 
 @router.get("/dashboard/periodos")
@@ -166,18 +216,22 @@ def excelDashboardTMI(periodo: str, db: Session = Depends(get_db)):
 
 @router.get("/generar-excel/{periodo}")
 def generarExcelTMIDinamico(periodo: str, calcular: bool = True, indicadores: Optional[str] = None,
-                            db: Session = Depends(get_db)):
-    """Excel del periodo. indicadores = ids separados por coma (1,4,7) para generar solo esas hojas; sin él, todos."""
-    return _excel(db, periodo, calcular, indicadores)
+                            origen: Optional[str] = None, db: Session = Depends(get_db)):
+    """Excel del periodo. indicadores = ids separados por coma (1,4,7) para generar solo esas hojas; sin él, todos.
+    origen: ACTUAL (TOTALIZADO3) o BACKUP (copia del cierre); sin él, el oficial."""
+    return _excel(db, periodo, calcular, indicadores, origen)
 
 
-def _excel(db: Session, periodo: str, calcular: bool, indicadores: Optional[str]):
+def _excel(db: Session, periodo: str, calcular: bool, indicadores: Optional[str], origen: Optional[str] = None):
     try:
         ids = [int(x) for x in indicadores.split(",") if x.strip()] if indicadores else None
         from src.main.service.excelServ import MESES_NOMBRE
         from src.main.service.excelDinamicoServ import generar_excel_tmi_dinamico
         # los periodos cerrados no se recalculan: el Excel sale del resultado guardado
-        buffer = generar_excel_tmi_dinamico(db, periodo, calcular=calcular and se_puede_calcular(periodo), ids=ids)
+        if origen is not None and origen.upper() not in ("ACTUAL", "BACKUP"):
+            raise ValueError("El origen de los datos debe ser ACTUAL o BACKUP.")
+        buffer = generar_excel_tmi_dinamico(db, periodo, calcular=calcular and se_puede_calcular(periodo), ids=ids,
+                                            origen=origen.upper() if origen else None)
         filename = f"TMI_Prelim_Salud_{MESES_NOMBRE[int(periodo[4:]) - 1].capitalize()}_{periodo[:4]}.xlsx"
         return StreamingResponse(
             buffer,

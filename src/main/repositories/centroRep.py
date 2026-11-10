@@ -134,6 +134,10 @@ def queryExclusionCentroEstandar(db: Session, anio: int):
         join, tipo, orden = _indicador_join(db, f"exc.{col}")
         join = join.replace("JOIN ", "LEFT JOIN ", 1) if join.startswith("JOIN ") else join
         meses = ", ".join(f"exc.{pre}{m} AS excl_{m}" for m in MESES)
+        if _tiene_columna(db, tabla, "res_01"):   # resultado de cada mes: el propio o el de la fila
+            meses += ", " + ", ".join(f"COALESCE(exc.res_{m}, {resultado}) AS res_{m}" for m in MESES)
+        else:
+            meses += ", " + ", ".join(f"{resultado} AS res_{m}" for m in MESES)
         query = f"""
         SELECT exc.id, exc.id_centro, {cod} AS codcentro, cen.centro,
                {tipo} AS tipo, ISNULL(i.indicador, 'Todos los indicadores') AS indicador,
@@ -170,7 +174,11 @@ def _params_exclusion(db: Session, dto) -> tuple:
         cols["motivo"] = ":motivo"
     if _tiene_columna(db, tabla, "resultado"):
         cols["resultado"] = "ISNULL(:resultado, '0')"
-    for k in ("codcentro", "motivo", "id", "resultado"):
+    if _tiene_columna(db, tabla, "res_01"):
+        # resultado de cada mes excluido: el propio o el general; un mes no excluido no guarda resultado
+        cols.update({f"res_{m}": f"CASE WHEN ISNULL(:excl_{m}, 0) = 1 THEN COALESCE(:res_{m}, :resultado, '0') END"
+                     for m in MESES})
+    for k in ("codcentro", "motivo", "id", "resultado", *(f"res_{m}" for m in MESES)):
         params.setdefault(k, None)
     params.pop("ids_indicador", None)
     return params, cols, col
@@ -185,6 +193,11 @@ def queryInsertExclusionCentroEstandar(db: Session, dto:tmiExclusionCentroEstand
         ids = list(dict.fromkeys(dto.ids_indicador or [])) or [params["id_indicador"]]
         pre = "excl_" if "excl_01" in cols else "estandar_"
         meses = {f"{pre}{m}": f"CASE WHEN ISNULL(:excl_{m}, 0) = 1 THEN 1 ELSE ISNULL({pre}{m}, 0) END" for m in MESES}
+        if "res_01" in cols:
+            # un mes que ya estaba excluido conserva su resultado (aunque cambie el general de la fila)
+            meses.update({f"res_{m}": (f"CASE WHEN ISNULL(:excl_{m}, 0) = 1 THEN COALESCE(:res_{m}, :resultado, '0') "
+                                       f"WHEN ISNULL({pre}{m}, 0) = 1 THEN COALESCE(res_{m}, resultado) END")
+                          for m in MESES})
         sets = ", ".join(f"{c} = {meses.get(c, v)}" for c, v in cols.items())
         query = f"""
         UPDATE {name_server}.tmi_exclusion_centro_indicador SET {sets}

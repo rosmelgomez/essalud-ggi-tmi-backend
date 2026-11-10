@@ -198,6 +198,21 @@ def analizar(texto: Optional[str], si_variable_nula: str = "CERO", si_division_c
     return p.f
 
 
+def plantilla(f: Formula) -> str:
+    """La fórmula con el código de cada término entre corchetes: ([T1] - [T2]) / [T3]. El cálculo reemplaza cada
+    código por su valor para guardar cómo se llegó al resultado (tmi_resultado.formula_desarrollo)."""
+    salida, toks, i = [], _tokens(f.texto), 0
+    while i < len(toks):
+        tipo, v, _ = toks[i]
+        if tipo == "mediana" and i + 3 < len(toks) and toks[i + 2][0] == "termino":
+            salida.append(f"[{f.codigo(_termino(toks[i + 2][1], True))}]")
+            i += 4
+            continue
+        salida.append(f"[{f.codigo(_termino(v, False))}]" if tipo == "termino" else v)
+        i += 1
+    return re.sub(r"\( | \)", lambda m: m.group(0).strip(), " ".join(salida))
+
+
 def filas_termino(f: Formula):
     """Filas de tmi_indicador_termino: una por término y servicio (servicio NULL = todos)."""
     for t in f.terminos:
