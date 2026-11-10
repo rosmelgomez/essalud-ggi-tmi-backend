@@ -109,10 +109,15 @@ def queryInsertarFila(db: Session, tabla: str, datos: dict, usuario: str = None)
         extra_cols, extra_vals = ", usuario_creacion, fecha_creacion", ", :usuario, GETDATE()"
         params["usuario"] = usuario
     try:
+        # Las tablas tienen triggers de historial: SQL Server exige OUTPUT ... INTO (error 334).
+        # NOCOUNT evita que los conteos del INSERT/trigger tapen el resultado del SELECT final.
         result = db.execute(text(f"""
+            SET NOCOUNT ON;
+            DECLARE @ids TABLE (id BIGINT);
             INSERT INTO {name_server}.{tabla} ({', '.join(_columna(db, tabla, c) for c in columnas)}{extra_cols})
-            OUTPUT INSERTED.id
-            VALUES ({', '.join(':' + c for c in columnas)}{extra_vals})
+            OUTPUT INSERTED.id INTO @ids
+            VALUES ({', '.join(':' + c for c in columnas)}{extra_vals});
+            SELECT id FROM @ids;
         """), params)
         nuevo_id = result.scalar()
         db.commit()
