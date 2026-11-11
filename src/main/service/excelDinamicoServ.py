@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 from openpyxl import load_workbook
 from openpyxl.drawing.image import Image
 from openpyxl.formatting.rule import Rule
+from openpyxl.utils import get_column_letter
 from sqlalchemy.orm import Session
 
 from src.main.repositories.estandarRep import queryEstandaresExcelTMI
@@ -48,13 +49,15 @@ MODELO_PUNTAJES_RED = "_MODELO_PUNTAJES_RED"
 
 # Columnas de la hoja de indicador
 COL_PUNTAJE, COL_CODIGO, COL_MARCA, COL_COD, COL_CENTRO = 3, 4, 5, 6, 7
-COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT, COL_ACEPT_BANDA = 8, 9, 10, 11, 12, 13, 14
-COL_MES1 = 19                    # S
+COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT = 8, 9, 10, 11, 12, 13
+# la plantilla trae N:R (Rojo +, auxiliares y Anual) antes de los meses; se quitan y Ene queda en N
+COL_QUITAR, CANT_QUITAR = 14, 5  # N:R
+COL_MES1 = 14                    # N (en la plantilla, S)
 FILA_TOTAL, FILA_DATOS = 8, 10
 FILA_MODELO_RED, FILA_MODELO_CENTRO = 10, 11
 # Formato de los valores por indicador (tmi_indicador.formato), como en TMI_PLANTILLA.xlsx
 FORMATO_NUMERO = {"NUMERO": "0.00", "PORCENTAJE": "0.00%"}
-COLS_VALORES = [COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT, COL_ACEPT_BANDA] + [COL_MES1 + i for i in range(12)]
+COLS_VALORES = [COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT] + [COL_MES1 + i for i in range(12)]
 CODIGO_PUNTAJE = {5: 1, 3: 2, 1: 3, 0: 3}
 NA = "NA"
 
@@ -148,6 +151,38 @@ def _formato_condicional(ws, modelo, filas_centro: List[int]) -> None:
             ws.conditional_formatting.add(sqref, nueva)
 
 
+def _quitar_columnas_modelo(ws, desde: int, cantidad: int) -> None:
+    """Elimina columnas de la hoja modelo y corre a la izquierda lo que sigue (los meses de S:AD pasan a N:Y).
+    delete_cols solo mueve las celdas: las celdas combinadas y los anchos de columna se corren aquí."""
+    hasta = desde + cantidad - 1
+    ws.delete_cols(desde, cantidad)
+    for rango in list(ws.merged_cells.ranges):
+        if rango.min_col > hasta:
+            ws.merged_cells.remove(rango)
+            ws.merge_cells(start_row=rango.min_row, end_row=rango.max_row,
+                           start_column=rango.min_col - cantidad, end_column=rango.max_col - cantidad)
+    dims = []
+    for dim in ws.column_dimensions.values():
+        if not dim.min:
+            continue
+        lo, hi = dim.min, dim.max or dim.min
+        if lo < desde:                       # antes de lo borrado (M venía como rango M:N)
+            hi = min(hi, desde - 1)
+        elif lo <= hasta:                    # dentro de lo borrado
+            if hi <= hasta:
+                continue
+            lo = hasta + 1
+        if lo > hasta:
+            lo -= cantidad
+            hi = hi if hi >= 16384 else hi - cantidad
+        dims.append((lo, hi, dim))
+    ws.column_dimensions.clear()
+    for lo, hi, dim in dims:
+        nueva = ws.column_dimensions[get_column_letter(lo)]
+        nueva.min, nueva.max, nueva.width, nueva.hidden = lo, hi, dim.width, dim.hidden
+        nueva.outlineLevel, nueva.bestFit, nueva._style = dim.outlineLevel, dim.bestFit, copy(dim._style)
+
+
 def _es_red(nombre: str) -> bool:
     """Solo los grupos 'RED ...' tienen fila de red y entran al promedio nacional. Los institutos (INCOR, CNSR)
     figuran en tmi_centro con su propio nombre como red: se listan sin fila de red, como en el Excel oficial."""
@@ -180,11 +215,9 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
 
     ws.cell(3, COL_PUNTAJE, value=ind["titulo_hoja"] or ind["indicador"])
     ws.cell(5, COL_MES1, value=f"AÑO: {anio}")
-    # como en 002_TMI_CONSULTAS_VISTA.sql: en banda, M = % Aceptmenos (abajo) y N = % Acept (arriba)
+    # en banda, M = % Aceptmenos (abajo); el % Acept de arriba ya no tiene columna (N es Ene)
     ws.cell(6, COL_ACEPT).value = "% Aceptmenos" if banda else "% Acept"
-    ws.cell(6, COL_ACEPT_BANDA).value = "% Acept" if banda else None
     ws.column_dimensions["F"].hidden = True   # códigos de centro: se usan internamente, no se muestran
-    ws.column_dimensions["N"].hidden = not banda
 
     # filas de la plantilla copiada: se rehacen desde la fila de datos
     if ws.max_row >= FILA_DATOS:
@@ -231,8 +264,6 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
             if fila_na:
                 for col in (COL_NIVEL, COL_TIPO, COL_VALOR, COL_ESTANDAR, COL_VERDE, COL_ACEPT):
                     ws.cell(fila, col, value=NA)
-                if banda:
-                    ws.cell(fila, COL_ACEPT_BANDA, value=NA)
                 for i in range(12):
                     ws.cell(fila, COL_MES1 + i, value=NA)
             else:
@@ -243,8 +274,6 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
                 ws.cell(fila, COL_ESTANDAR, value=o_na(corte.get("estandar")))
                 ws.cell(fila, COL_VERDE, value=o_na(corte.get("estandar")))
                 ws.cell(fila, COL_ACEPT, value=o_na(corte.get("aceptmenos") if banda else corte.get("acept")))
-                if banda:
-                    ws.cell(fila, COL_ACEPT_BANDA, value=o_na(corte.get("acept")))
                 for i in range(12):
                     v = corte.get(f"periodo_{i + 1:02d}")
                     ws.cell(fila, COL_MES1 + i, value=v if v is not None else (NA if i < mes else 0))
@@ -378,6 +407,7 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
 
     wb = load_workbook(PLANTILLA_BASE)
     modelo = wb[MODELO_INDICADOR]
+    _quitar_columnas_modelo(modelo, COL_QUITAR, CANT_QUITAR)   # una vez: todas las hojas salen de este modelo
     hoja_origen: Dict[str, str] = {}
     resultados = []
     for ind in indicadores:
