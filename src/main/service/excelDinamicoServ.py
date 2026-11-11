@@ -171,6 +171,8 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
     ws.title = ind["nombre_hoja"]
     ws.sheet_state = "visible"
     ws.freeze_panes = modelo.freeze_panes
+    # copy_worksheet no copia la vista: sin esto la hoja sale con cuadrícula (debe verse en blanco como Estandares)
+    ws.sheet_view.showGridLines = False
     _copiar_imagenes(modelo, ws)
     ultima_col = modelo.max_column
     banda = (ind["sentido"] or "").upper() == "BANDA"
@@ -181,7 +183,7 @@ def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, A
     # como en 002_TMI_CONSULTAS_VISTA.sql: en banda, M = % Aceptmenos (abajo) y N = % Acept (arriba)
     ws.cell(6, COL_ACEPT).value = "% Aceptmenos" if banda else "% Acept"
     ws.cell(6, COL_ACEPT_BANDA).value = "% Acept" if banda else None
-    ws.column_dimensions["F"].hidden = False
+    ws.column_dimensions["F"].hidden = True   # códigos de centro: se usan internamente, no se muestran
     ws.column_dimensions["N"].hidden = not banda
 
     # filas de la plantilla copiada: se rehacen desde la fila de datos
