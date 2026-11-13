@@ -113,7 +113,7 @@ def se_puede_calcular(periodo: str) -> bool:
 @router.get("/periodo-calculo")
 async def periodoCalculoTMI(db: Session = Depends(get_db)):
     """Periodo que se puede calcular, último periodo con datos en TOTALIZADO3 (periodo_datos: si el mes anterior
-    todavía no se cargó, la pantalla muestra y calcula hasta este) y periodos con resultado guardado (para el Excel)."""
+    todavía no se cargó, la pantalla muestra y calcula hasta este) y periodos que se pueden calcular (para el Excel)."""
     from src.main.core.tmiConfig import TMI_CALCULO_SOLO_PERIODO_ANTERIOR
     calculable = periodo_calculable()
     return {"periodo_calculo": calculable,
@@ -127,7 +127,8 @@ async def periodoCalculoTMI(db: Session = Depends(get_db)):
 @router.post("/calcular/{periodo}")
 def calcularTMI(periodo: str, origen: str = "ACTUAL", db: Session = Depends(get_db),
                 current_user: dict = Depends(get_current_user)):
-    """origen: ACTUAL = TOTALIZADO3 de hoy; BACKUP = la copia del cierre del periodo (como fue)."""
+    """origen: ACTUAL = TOTALIZADO3 de hoy (enero..periodo); BACKUP = la copia del cierre del periodo (como fue,
+    periodo_backup = periodo). Los dos en tiempo real: el resultado no se guarda."""
     # def (no async): FastAPI lo corre en un hilo aparte; el cálculo es largo y no debe bloquear el resto de la API
     p = _periodo(periodo)
     if not se_puede_calcular(periodo):
@@ -164,6 +165,13 @@ def backupTMI(periodo: str, reemplazar: bool = False, db: Session = Depends(get_
     return tmiDinamicoRep.queryBackupTotalizado3TMI(db, p, usuario, reemplazar)
 
 
+@router.get("/justificacion/{periodo}/resumen")
+def resumenCambiosTMI(periodo: str, db: Session = Depends(get_db)):
+    """Por indicador: cuántos centros cambiaron entre como fue (cierre) y con los datos de hoy. Va antes de
+    /justificacion/{periodo}/{id_indicador} para que "resumen" no se tome como id."""
+    return tmiDinamicoRep.queryResumenCambiosTMI(db, _periodo(periodo))
+
+
 @router.get("/justificacion/{periodo}/{id_indicador}")
 def justificacionTMI(periodo: str, id_indicador: int, db: Session = Depends(get_db)):
     """Resultado de cada centro como fue (copia del cierre) y con los datos actuales, con la fórmula desarrollada."""
@@ -191,27 +199,42 @@ def resultadoIndicador(periodo: str, id_indicador: int, origen: Optional[str] = 
     return tmiDinamicoRep.queryResultadoIndicadorTMI(db, _periodo(periodo), id_indicador, origen)
 
 
+def _origenDashboard(origen: Optional[str]) -> Optional[str]:
+    """origen del dashboard: ACTUAL = calculado al momento con los datos de hoy; sin él, el oficial (el guardado del
+    cierre si existe). El dashboard nunca usa la copia del cierre en tiempo real."""
+    if origen is None:
+        return None
+    if origen.upper() != "ACTUAL":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El dashboard solo acepta origen=ACTUAL.")
+    return "ACTUAL"
+
+
 @router.get("/dashboard/periodos")
-def periodosDashboardTMI(db: Session = Depends(get_db)):
-    """Periodos con resultado guardado para el dashboard (pública, como /dashboard/{periodo})."""
-    return tmiDinamicoRep.queryPeriodosResultadoTMI(db)
+def periodosDashboardTMI(origen: Optional[str] = None, db: Session = Depends(get_db)):
+    """Periodos para el dashboard (pública, como /dashboard/{periodo}). Con origen=ACTUAL solo los que tienen datos
+    actuales, y cada uno se ve calculado con ellos."""
+    periodos = tmiDinamicoRep.queryPeriodosResultadoTMI(db)
+    if _origenDashboard(origen) is None:
+        return periodos
+    return [{**p, **p["origenes"]["ACTUAL"], "origen_datos": "ACTUAL"} for p in periodos if "ACTUAL" in p["origenes"]]
 
 
 @router.get("/dashboard/{periodo}")
-def dashboardTMI(periodo: str, db: Session = Depends(get_db)):
-    """Datos del dashboard: resultado final guardado del periodo, con los puntajes calculados como en el Excel."""
+def dashboardTMI(periodo: str, origen: Optional[str] = None, db: Session = Depends(get_db)):
+    """Datos del dashboard con los puntajes calculados como en el Excel: con origen=ACTUAL, calculado al momento con
+    los datos de hoy (sin él, también ACTUAL). Siempre en tiempo real."""
     from src.main.service.dashboardServ import dashboard_tmi
     try:
-        return dashboard_tmi(db, periodo)
+        return dashboard_tmi(db, periodo, _origenDashboard(origen))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/dashboard/{periodo}/excel")
-def excelDashboardTMI(periodo: str, db: Session = Depends(get_db)):
-    """Excel del periodo para los dashboards (pública, como /dashboard/{periodo}): el mismo de Administración, armado
-    con el resultado guardado y con todos los indicadores. Nunca recalcula."""
-    return _excel(db, periodo, calcular=False, indicadores=None)
+def excelDashboardTMI(periodo: str, origen: Optional[str] = None, db: Session = Depends(get_db)):
+    """Excel del periodo para los dashboards (pública, como /dashboard/{periodo}): el mismo de Administración, con
+    todos los indicadores, calculado en tiempo real con los datos de hoy."""
+    return _excel(db, periodo, calcular=False, indicadores=None, origen=_origenDashboard(origen))
 
 
 @router.get("/generar-excel/{periodo}")
@@ -227,7 +250,6 @@ def _excel(db: Session, periodo: str, calcular: bool, indicadores: Optional[str]
         ids = [int(x) for x in indicadores.split(",") if x.strip()] if indicadores else None
         from src.main.service.excelServ import MESES_NOMBRE
         from src.main.service.excelDinamicoServ import generar_excel_tmi_dinamico
-        # los periodos cerrados no se recalculan: el Excel sale del resultado guardado
         if origen is not None and origen.upper() not in ("ACTUAL", "BACKUP"):
             raise ValueError("El origen de los datos debe ser ACTUAL o BACKUP.")
         buffer = generar_excel_tmi_dinamico(db, periodo, calcular=calcular and se_puede_calcular(periodo), ids=ids,

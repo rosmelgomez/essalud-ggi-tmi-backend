@@ -2,7 +2,7 @@
    TMI DINAMICO - 04 PROCEDIMIENTOS
      EXEC dbo.usp_tmi_validar_config;          -- 0 filas = configuración correcta
      EXEC dbo.usp_tmi_calcular      202608;    -- fórmula de cada indicador sobre TOTALIZADO3, estándar, puntaje
-                                               -- -> tmi_resultado y tmi_resultado_indicador
+                                               -- en tiempo real: devuelve el resultado, no guarda nada
    Compatible con SQL Server 2008 R2+.
    ===================================================================================================== */
 
@@ -329,43 +329,10 @@ BEGIN
 END
 GO
 
-/* fn_tmi_resultado(@ORIGEN): un cálculo por periodo de tmi_resultado. El del origen pedido si ese periodo lo tiene;
-   si no (o @ORIGEN NULL), el oficial: el de la copia del cierre (BACKUP) si existe, si no el de los datos actuales.
-   Así cada mes del año sale del mismo origen que el periodo que se ve, o del oficial si ese mes no lo tiene. */
-IF OBJECT_ID('dbo.fn_tmi_resultado') IS NULL
-    EXEC(N'CREATE FUNCTION dbo.fn_tmi_resultado (@ORIGEN VARCHAR(10)) RETURNS TABLE AS RETURN SELECT 1 AS x');   -- luego ALTER
-GO
-ALTER FUNCTION dbo.fn_tmi_resultado (@ORIGEN VARCHAR(10))
-RETURNS TABLE
-AS
-RETURN
-SELECT r.*
-FROM   dbo.tmi_resultado r
-WHERE  r.origen_datos = CASE WHEN @ORIGEN IS NOT NULL AND EXISTS (SELECT 1 FROM dbo.tmi_resultado b
-                                          WHERE b.periodo_corte = r.periodo_corte AND b.origen_datos = @ORIGEN) THEN @ORIGEN
-                             WHEN EXISTS (SELECT 1 FROM dbo.tmi_resultado b
-                                          WHERE b.periodo_corte = r.periodo_corte AND b.origen_datos = 'BACKUP') THEN 'BACKUP'
-                             ELSE 'ACTUAL' END;
-GO
-
-/* vw_tmi_resultado: el resultado oficial de cada periodo (dashboard). */
-IF OBJECT_ID('dbo.vw_tmi_resultado', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_resultado AS SELECT 1 AS x');
-GO
-ALTER VIEW dbo.vw_tmi_resultado
-AS
-SELECT * FROM dbo.fn_tmi_resultado(NULL);
-GO
-
-/* vw_tmi_resultado_indicador: el resultado final oficial de cada periodo (BACKUP si existe, si no ACTUAL). */
-IF OBJECT_ID('dbo.vw_tmi_resultado_indicador', 'V') IS NULL EXEC(N'CREATE VIEW dbo.vw_tmi_resultado_indicador AS SELECT 1 AS x');
-GO
-ALTER VIEW dbo.vw_tmi_resultado_indicador
-AS
-SELECT r.*
-FROM   dbo.tmi_resultado_indicador r
-WHERE  r.origen_datos = CASE WHEN EXISTS (SELECT 1 FROM dbo.tmi_resultado_indicador b
-                                          WHERE b.periodo = r.periodo AND b.origen_datos = 'BACKUP')
-                             THEN 'BACKUP' ELSE 'ACTUAL' END;
+/* El resultado ya no se guarda (se calcula en tiempo real): se quitan la función y las vistas del resultado guardado. */
+IF OBJECT_ID('dbo.vw_tmi_resultado_indicador', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_resultado_indicador;
+IF OBJECT_ID('dbo.vw_tmi_resultado', 'V') IS NOT NULL DROP VIEW dbo.vw_tmi_resultado;
+IF OBJECT_ID('dbo.fn_tmi_resultado') IS NOT NULL DROP FUNCTION dbo.fn_tmi_resultado;
 GO
 
 /* fn_tmi_num: número en texto para el desarrollo de la fórmula (hasta 4 decimales, sin ceros a la derecha) */
@@ -393,11 +360,15 @@ GO
 ALTER PROCEDURE dbo.usp_tmi_calcular
     @PERIODO INT,
     @ORIGEN  VARCHAR(10) = 'ACTUAL',   -- ACTUAL: TOTALIZADO3 de hoy | BACKUP: la copia del cierre del periodo (TOTALIZADO3_BACKUP)
-    @USUARIO NVARCHAR(50) = NULL
+    @USUARIO NVARCHAR(50) = NULL,
+    /* Siempre en tiempo real: no escribe nada. Calcula cada mes de enero al corte con la misma regla (como si cada
+       mes fuera el corte) y devuelve 4 resultados: final por centro, resultado del mes de corte, términos y valor y
+       puntaje de cada mes. @GUARDAR queda por compatibilidad: solo acepta 0 (el resultado ya no se guarda). */
+    @GUARDAR BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
-    SET XACT_ABORT ON;   -- cualquier error deshace la transacción (no queda abierta con tmi_resultado a medio escribir)
+    SET XACT_ABORT ON;
     DECLARE @anio INT = @PERIODO / 100, @mes INT = @PERIODO % 100;
     IF @mes NOT BETWEEN 1 AND 12
     BEGIN
@@ -411,9 +382,13 @@ BEGIN
         RAISERROR('El origen de los datos debe ser ACTUAL o BACKUP.', 16, 1);
         RETURN;
     END
+    IF ISNULL(@GUARDAR, 0) = 1
+    BEGIN
+        RAISERROR('El resultado del TMI ya no se guarda: se calcula en tiempo real.', 16, 1);
+        RETURN;
+    END
 
-    /* Sin datos del periodo (aún no se cargó el mes, o no hay copia del cierre) no se calcula: el resultado guardado
-       no se toca */
+    /* Sin datos del periodo (aún no se cargó el mes, o no hay copia del cierre) no se calcula */
     DECLARE @hay INT = 0, @sql_hay NVARCHAR(MAX);
     IF @ORIGEN = 'BACKUP'
     BEGIN
@@ -433,17 +408,6 @@ BEGIN
     IF @hay = 0
     BEGIN
         RAISERROR('TOTALIZADO3 no tiene datos del periodo %d: no se calcula.', 16, 1, @PERIODO);
-        RETURN;
-    END
-
-    /* Un solo cálculo a la vez (dos usuarios o el cierre automático): el segundo recibe un aviso en lugar de chocar
-       con el primero al borrar e insertar los resultados. Lock de sesión: se libera al terminar, con o sin error. */
-    DECLARE @lock INT;
-    EXEC @lock = sp_getapplock @Resource = N'TMI_CALCULAR', @LockMode = 'Exclusive', @LockOwner = 'Session',
-                               @LockTimeout = 0;
-    IF @lock < 0
-    BEGIN
-        RAISERROR('Ya se está calculando el TMI en este momento: espere a que termine y vuelva a intentarlo.', 16, 1);
         RETURN;
     END
 
@@ -503,7 +467,7 @@ BEGIN
     CREATE CLUSTERED INDEX ix_letra_mes ON #letra_mes (id_indicador, codcentro, letra, mes);
 
     /* Justificación: lo mismo por cada parte del término (grupo, actividad y servicio de tmi_indicador_termino), con
-       las filas de TOTALIZADO3 que se sumaron -> tmi_resultado_termino */
+       las filas de TOTALIZADO3 que se sumaron (términos del resultado) */
     SELECT id_indicador, codigo, tipgrupo, actividad, servicio_def, codcentro, mes,
            SUM(cantidad) AS valor_mes, COUNT(*) AS filas
     INTO   #det_mes
@@ -524,8 +488,17 @@ BEGIN
     GROUP BY id_indicador, codigo, tipgrupo, actividad, servicio_def, codcentro, mes;
     CREATE CLUSTERED INDEX ix_det_mes ON #det_mes (id_indicador, codcentro, codigo, mes);
 
+    /* Meses que se calculan (#meses): cada mes de enero al corte, cada uno como si fuera el corte (sus centros vigentes, exclusiones, estándar y acumulado). Todos van en una sola pasada:
+       las tablas llevan la columna mes (el mes que se calcula) en lugar de repetir el cálculo una vez por mes.
+       @mes y @PERIODO siguen siendo los del mes de corte. */
+    CREATE TABLE #meses (mes INT PRIMARY KEY);
+    INSERT INTO #meses (mes)
+    SELECT v FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) z(v)
+    WHERE  v <= @mes;
+
     /* 2.2 Centros del reporte y situación de cada mes (exclusión por periodo)
-           - Filas = centros de tmi_centro del año (o sin año) visibles en el mes de corte (flag del mes).
+           - Centros de tmi_centro del año (o sin año) -> #centro_anio; los de cada mes calculado son los visibles en ese
+             mes (flag del mes distinto de 0, #centro_vig). #centro = los del mes de corte (filas del resultado final).
            - Cada mes: si el flag del mes es 0 -> NA ese mes (NO_VIGENTE_MES).
            - vw_tmi_exclusion: excl del mes = 1 -> NA ese mes, para un indicador o todos (id_estandar NULL). */
     SELECT c.codcentro, MIN(c.id_centro) AS id_centro, MAX(c.red) AS red, MIN(c.orden) AS orden, MIN(c.orden_tipo) AS orden_tipo,
@@ -533,22 +506,42 @@ BEGIN
            MAX(CAST(c.f01 AS INT)) f01, MAX(CAST(c.f02 AS INT)) f02, MAX(CAST(c.f03 AS INT)) f03, MAX(CAST(c.f04 AS INT)) f04,
            MAX(CAST(c.f05 AS INT)) f05, MAX(CAST(c.f06 AS INT)) f06, MAX(CAST(c.f07 AS INT)) f07, MAX(CAST(c.f08 AS INT)) f08,
            MAX(CAST(c.f09 AS INT)) f09, MAX(CAST(c.f10 AS INT)) f10, MAX(CAST(c.f11 AS INT)) f11, MAX(CAST(c.f12 AS INT)) f12
-    INTO   #centro
+    INTO   #centro_anio
     FROM   dbo.vw_tmi_centro_base c
     WHERE  c.anio = @anio
        OR (c.anio IS NULL AND NOT EXISTS (SELECT 1 FROM dbo.vw_tmi_centro_base x WHERE x.anio = @anio))
     GROUP BY c.codcentro;
 
-    DELETE #centro
-    WHERE (CASE @mes WHEN 1 THEN f01 WHEN 2 THEN f02 WHEN 3 THEN f03 WHEN 4 THEN f04 WHEN 5 THEN f05 WHEN 6 THEN f06
-                     WHEN 7 THEN f07 WHEN 8 THEN f08 WHEN 9 THEN f09 WHEN 10 THEN f10 WHEN 11 THEN f11 WHEN 12 THEN f12 END) = 0;
+    -- flag de cada centro en cada mes de enero al corte (0 = no se lista ese mes)
+    SELECT c.codcentro, m.v AS mes,
+           CASE m.v WHEN 1 THEN c.f01 WHEN 2 THEN c.f02 WHEN 3 THEN c.f03 WHEN 4 THEN c.f04 WHEN 5 THEN c.f05 WHEN 6 THEN c.f06
+                    WHEN 7 THEN c.f07 WHEN 8 THEN c.f08 WHEN 9 THEN c.f09 WHEN 10 THEN c.f10 WHEN 11 THEN c.f11 WHEN 12 THEN c.f12 END AS flag
+    INTO   #centro_vig
+    FROM   #centro_anio c
+    CROSS JOIN (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) m(v)
+    WHERE  m.v <= @mes;
+    CREATE CLUSTERED INDEX ix_centro_vig ON #centro_vig (codcentro, mes);
 
-    /* Exclusiones y estándar del mes de corte con la regla única (fn_tmi_exclusion, fn_tmi_estandar: la misma que el
-       SQL descargable del indicador). Se copian una sola vez a tablas temporales con índice. */
+    SELECT c.* INTO #centro FROM #centro_anio c
+    JOIN   #centro_vig v ON v.codcentro = c.codcentro AND v.mes = @mes
+    WHERE  ISNULL(v.flag, 1) <> 0;
+
+    /* Exclusiones y estándar con la regla única (fn_tmi_exclusion, fn_tmi_estandar: la misma que el SQL descargable
+       del indicador). Se copian a tablas temporales con índice. Las exclusiones del corte traen enero..corte (cada mes
+       con la suya); el estándar y el % Acept son los de cada mes calculado. */
     SELECT * INTO #excl_mes FROM dbo.fn_tmi_exclusion(@PERIODO);
     CREATE CLUSTERED INDEX ix_excl_mes ON #excl_mes (id_indicador, codcentro, mes);
-    SELECT * INTO #est_ind FROM dbo.fn_tmi_estandar(@PERIODO);
-    CREATE CLUSTERED INDEX ix_est_ind ON #est_ind (id_indicador, codcentro);
+    SELECT CAST(@mes AS INT) AS mes, e.* INTO #est_ind FROM dbo.fn_tmi_estandar(@PERIODO) e WHERE 1 = 0;
+    DECLARE @k INT;
+    DECLARE cmes CURSOR LOCAL FAST_FORWARD FOR SELECT mes FROM #meses ORDER BY mes;
+    OPEN cmes; FETCH NEXT FROM cmes INTO @k;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        INSERT INTO #est_ind SELECT @k, e.* FROM dbo.fn_tmi_estandar(@anio * 100 + @k) e;
+        FETCH NEXT FROM cmes INTO @k;
+    END
+    CLOSE cmes; DEALLOCATE cmes;
+    CREATE CLUSTERED INDEX ix_est_ind ON #est_ind (id_indicador, codcentro, mes);
 
     SELECT i.id AS id_indicador, c.codcentro, c.red, c.orden, c.orden_tipo, c.id_centro, c.categoria, c.nivel, c.nivel_estandar, c.tipo, m.mes,
            CASE WHEN (CASE m.mes WHEN 1 THEN c.f01 WHEN 2 THEN c.f02 WHEN 3 THEN c.f03 WHEN 4 THEN c.f04 WHEN 5 THEN c.f05 WHEN 6 THEN c.f06
@@ -561,7 +554,7 @@ BEGIN
            CASE WHEN x.id_indicador IS NOT NULL THEN 1 ELSE 0 END AS excluido,
            ISNULL(x.resultado, 'NA') AS excl_resultado
     INTO   #centro_ind_mes
-    FROM   #centro c
+    FROM   #centro_anio c
     CROSS JOIN dbo.tmi_indicador i
     CROSS JOIN (SELECT v AS mes FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)) z(v) WHERE v <= @mes) m
     /* mes excluido ('NA' o '0'), regla de fn_tmi_exclusion */
@@ -579,30 +572,38 @@ BEGIN
     WHERE  i.activo = 1;
     CREATE CLUSTERED INDEX ix_centro_ind_mes ON #centro_ind_mes (id_indicador, codcentro, mes);
 
-    /* 2.3 Solo se calcula el mes de corte: MENSUAL = valor del periodo de corte; ACUMULADO = enero..corte, sin los
-           meses excluidos / no vigentes. Los meses anteriores no se recalculan: cada uno quedó guardado en tmi_resultado
-           al calcular su propio periodo. (Por eso TOTALIZADO3 se lee de enero al corte: lo usan el acumulado y la regla
-           "sin datos en el año".) */
-    SELECT g.id_indicador, g.codcentro, @mes AS mes, g.letra, lm.valor_mes,
-           CASE WHEN i.tipo_calculo = 'ACUMULADO' THEN ISNULL(ac.valor_acum, 0) ELSE lm.valor_mes END AS valor
-    INTO   #letra
-    FROM  (SELECT DISTINCT id_indicador, codcentro, letra FROM #letra_mes) g
-    LEFT JOIN #letra_mes lm ON lm.id_indicador = g.id_indicador AND lm.codcentro = g.codcentro AND lm.letra = g.letra AND lm.mes = @mes
-    JOIN   dbo.tmi_indicador i ON i.id = g.id_indicador
-    OUTER APPLY (
-        SELECT SUM(CASE WHEN n2.excluido = 1 OR n2.motivo_centro IS NOT NULL THEN 0 ELSE ISNULL(l2.valor_mes, 0) END) AS valor_acum
-        FROM #letra_mes l2
-        LEFT JOIN #centro_ind_mes n2 ON n2.id_indicador = l2.id_indicador AND n2.codcentro = l2.codcentro AND n2.mes = l2.mes
-        WHERE l2.id_indicador = g.id_indicador AND l2.codcentro = g.codcentro AND l2.letra = g.letra AND l2.mes <= @mes
-    ) ac;
+    /* 2.3 Valor de cada término en cada mes calculado: MENSUAL = valor del mes; ACUMULADO = enero..mes, sin los meses
+           excluidos / no vigentes / fuera del ámbito (su aporte es 0). Cada centro lleva todos los términos que tuvo en
+           el año (enero..corte), aunque ese mes no tenga dato. */
+    SELECT l.id_indicador, l.codcentro, l.letra, l.mes, l.valor_mes,
+           CASE WHEN n.excluido = 1 OR n.motivo_centro IS NOT NULL THEN 0 ELSE ISNULL(l.valor_mes, 0) END AS aporte
+    INTO   #letra_aporte
+    FROM   #letra_mes l
+    LEFT JOIN #centro_ind_mes n ON n.id_indicador = l.id_indicador AND n.codcentro = l.codcentro AND n.mes = l.mes;
+    CREATE CLUSTERED INDEX ix_letra_aporte ON #letra_aporte (id_indicador, codcentro, letra, mes);
 
-    -- datos del indicador en el año (enero..corte): 0 = el centro no reportó ninguno de los términos (SIN_DATOS_ANIO)
-    SELECT id_indicador, codcentro, SUM(ABS(ISNULL(valor_mes, 0))) AS datos_anio
+    SELECT x.id_indicador, x.codcentro, x.mes, x.letra, x.valor_mes,
+           CASE WHEN i.tipo_calculo = 'ACUMULADO' THEN ISNULL(x.acumulado, 0) ELSE x.valor_mes END AS valor
+    INTO   #letra
+    FROM  (SELECT g.id_indicador, g.codcentro, k.mes, g.letra,
+                  MAX(CASE WHEN a.mes = k.mes THEN a.valor_mes END) AS valor_mes,
+                  SUM(a.aporte) AS acumulado
+           FROM  (SELECT DISTINCT id_indicador, codcentro, letra FROM #letra_mes) g
+           CROSS JOIN #meses k
+           LEFT JOIN #letra_aporte a ON a.id_indicador = g.id_indicador AND a.codcentro = g.codcentro AND a.letra = g.letra
+                                    AND a.mes <= k.mes
+           GROUP BY g.id_indicador, g.codcentro, k.mes, g.letra) x
+    JOIN   dbo.tmi_indicador i ON i.id = x.id_indicador;
+    CREATE CLUSTERED INDEX ix_letra ON #letra (id_indicador, codcentro, letra, mes);
+
+    -- datos del indicador en el año (enero..mes): 0 = el centro no reportó ninguno de los términos (SIN_DATOS_ANIO)
+    SELECT d.id_indicador, d.codcentro, k.mes, SUM(d.datos) AS datos_anio
     INTO   #datos_anio
-    FROM   #letra_mes
-    WHERE  mes <= @mes
-    GROUP BY id_indicador, codcentro;
-    CREATE CLUSTERED INDEX ix_datos_anio ON #datos_anio (id_indicador, codcentro);
+    FROM  (SELECT id_indicador, codcentro, mes, SUM(ABS(ISNULL(valor_mes, 0))) AS datos
+           FROM #letra_mes GROUP BY id_indicador, codcentro, mes) d
+    JOIN   #meses k ON d.mes <= k.mes
+    GROUP BY d.id_indicador, d.codcentro, k.mes;
+    CREATE CLUSTERED INDEX ix_datos_anio ON #datos_anio (id_indicador, codcentro, mes);
 
     /* 2.4 Términos como columnas (T1, T2...): #letra_piv se crea aquí y se le agregan con SQL dinámico. Se crean todas
            las columnas de los términos, aunque un término no tenga datos, para que la fórmula siempre las encuentre.
@@ -629,7 +630,8 @@ BEGIN
 
         /* 2.5 Fórmula de cada indicador (formula_sql, generada por el backend desde tmi_indicador.formula): solo
                ISNULL(p.[Tn],0), NULLIF(..,0) en los divisores, números y + - * / ( ). Una división entre 0 da NULL (NA
-               ese mes). Por seguridad se comprueba que no tenga otra cosa antes de ejecutarla. */
+               ese mes). Por seguridad se comprueba que no tenga otra cosa antes de ejecutarla. Una sola vez por
+               indicador: #letra_piv trae todos los meses calculados. */
         DECLARE @id INT, @f NVARCHAR(MAX), @resto NVARCHAR(MAX);
         DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
             SELECT i.id, i.formula_sql FROM dbo.tmi_indicador i
@@ -651,18 +653,19 @@ BEGIN
     END
     CREATE CLUSTERED INDEX ix_num_den ON #num_den (id_indicador, codcentro, mes);
 
-    /* 2.6 Estándar y puntaje del mes de corte -> #res (el valor es el de la fórmula, sin reglas de ceros) ->
-           tmi_resultado: una fila por periodo de corte, indicador y centro */
-    BEGIN TRAN;
-    DELETE dbo.tmi_resultado WHERE periodo_corte = @PERIODO AND origen_datos = @ORIGEN;
-    DELETE dbo.tmi_resultado_termino WHERE periodo_corte = @PERIODO AND origen_datos = @ORIGEN;
-
+    /* 2.6 Estándar y puntaje de cada mes calculado -> #res_all (el valor es el de la fórmula, sin reglas de ceros);
+           #res = el mes de corte: una fila por periodo de corte, indicador y centro. Cada mes lleva
+           los centros visibles en ese mes. */
+    CREATE TABLE #res_all (id_indicador INT, codcentro INT, mes INT, valor FLOAT, estandar FLOAT, verde FLOAT,
+                           acept FLOAT, aceptmenos FLOAT, puntaje VARCHAR(2), motivo_na VARCHAR(30), visible INT);
     WITH malla AS (
         SELECT c.codcentro, c.red, c.tipo, c.nivel, c.nivel_estandar, c.categoria, c.motivo_centro, c.excluido, c.excl_resultado, c.mes,
                i.id, i.sin_datos_anio, i.sentido,
                i.decimales, i.cero_es_logro, i.mostrar_no_aplica
         FROM #centro_ind_mes c
-        JOIN dbo.tmi_indicador i ON i.id = c.id_indicador AND c.mes = @mes
+        JOIN #meses k ON k.mes = c.mes
+        JOIN #centro_vig cv ON cv.codcentro = c.codcentro AND cv.mes = c.mes AND ISNULL(cv.flag, 1) <> 0
+        JOIN dbo.tmi_indicador i ON i.id = c.id_indicador
     ),
     est AS (
         SELECT g.*,
@@ -670,14 +673,14 @@ BEGIN
                   #num_den porque no tiene términos; sin esto caía en SIN_DATO = NA) */
                CASE WHEN d.valor IS NULL AND ISNULL(da.datos_anio, 0) = 0 AND g.sin_datos_anio = 'MOSTRAR'
                     THEN 0 ELSE d.valor END AS valor,
-               -- datos del indicador en el año (enero..corte): 0 = el centro no reportó ninguno de los términos
+               -- datos del indicador en el año (enero..mes): 0 = el centro no reportó ninguno de los términos
                ISNULL(da.datos_anio, 0) AS datos_anio,
-               -- estándar y % Acept del mes de corte: regla única de fn_tmi_estandar (copiada en #est_ind)
+               -- estándar y % Acept del mes: regla única de fn_tmi_estandar (copiada en #est_ind)
                s.estandar, s.acept, s.aceptmenos
         FROM malla g
         LEFT JOIN #num_den d ON d.id_indicador = g.id AND d.codcentro = g.codcentro AND d.mes = g.mes
-        LEFT JOIN #datos_anio da ON da.id_indicador = g.id AND da.codcentro = g.codcentro
-        LEFT JOIN #est_ind s ON s.id_indicador = g.id AND s.codcentro = g.codcentro
+        LEFT JOIN #datos_anio da ON da.id_indicador = g.id AND da.codcentro = g.codcentro AND da.mes = g.mes
+        LEFT JOIN #est_ind s ON s.id_indicador = g.id AND s.codcentro = g.codcentro AND s.mes = g.mes
     ),
     lim AS (
         SELECT v.*,
@@ -692,6 +695,7 @@ BEGIN
                     WHEN v.valor IS NULL                                     THEN 'SIN_DATO' END AS motivo_na
         FROM est v
     )
+    INSERT INTO #res_all (id_indicador, codcentro, mes, valor, estandar, verde, acept, aceptmenos, puntaje, motivo_na, visible)
     SELECT l.id AS id_indicador, l.codcentro, l.mes,
            CASE WHEN l.motivo_na = 'EXCLUIDO_CERO' THEN 0 ELSE l.valor END AS valor, l.estandar, l.verde, l.acept, l.aceptmenos,
            CASE WHEN l.motivo_na = 'EXCLUIDO_CERO'             THEN '0'
@@ -709,11 +713,12 @@ BEGIN
            CASE WHEN l.motivo_na = 'SIN_DATOS_ANIO' AND l.sin_datos_anio = 'OCULTAR'                  THEN 0
                 WHEN l.motivo_na IN ('SIN_ESTANDAR', 'FUERA_DE_AMBITO') AND l.mostrar_no_aplica = 0  THEN 0
                 ELSE 1 END AS visible
-    INTO #res
     FROM lim l;
+
+    SELECT * INTO #res FROM #res_all WHERE mes = @mes;
     CREATE CLUSTERED INDEX ix_res ON #res (id_indicador, codcentro, mes);
 
-    /* tmi_resultado: una fila por periodo de corte, indicador y centro (codcentro = código del centro, no el id de
+    /* Resultado del mes: una fila por periodo de corte, indicador y centro (codcentro = código del centro, no el id de
        tmi_centro), con el valor y el puntaje de ese periodo. Cada periodo calculado guarda sus filas: al cerrar el año
        hay 12 periodos, y el valor de cada mes se lee de la fila de su periodo. */
     /* Desarrollo de la fórmula: la plantilla ([T1] - [T2]) / [T3] con el valor de cada término que entró en la
@@ -733,31 +738,31 @@ BEGIN
         SET    x.txt = REPLACE(x.txt, '[' + @cod + ']',
                                COALESCE(dbo.fn_tmi_num(l.valor), CASE WHEN x.si_variable_nula = 'NA' THEN 'sin dato' ELSE '0' END))
         FROM   #des x
-        LEFT JOIN #letra l ON l.id_indicador = x.id_indicador AND l.codcentro = x.codcentro AND l.letra = @cod
+        LEFT JOIN #letra l ON l.id_indicador = x.id_indicador AND l.codcentro = x.codcentro AND l.letra = @cod AND l.mes = @mes
         WHERE  CHARINDEX('[' + @cod + ']', x.txt) > 0;
         FETCH NEXT FROM cdes INTO @cod;
     END
     CLOSE cdes; DEALLOCATE cdes;
 
-    INSERT INTO dbo.tmi_resultado (periodo_corte, origen_datos, id_indicador, codcentro, valor,
-                                   estandar, verde, acept, aceptmenos, puntaje, motivo_na, visible,
-                                   periodo_backup, tipo_calculo, formula_alias, formula, formula_desarrollo, usuario_calculo)
-    SELECT @PERIODO, @ORIGEN, r.id_indicador, r.codcentro, r.valor, r.estandar, r.verde, r.acept, r.aceptmenos,
-           r.puntaje, r.motivo_na, r.visible,
-           CASE WHEN @ORIGEN = 'BACKUP' THEN @PERIODO END, i.tipo_calculo, i.formula_alias, i.formula,
-           LEFT(x.txt + N' = ' + ISNULL(dbo.fn_tmi_num(x.valor), N'NA'), 4000), @USUARIO
+    /* Resultados en tablas temporales: se guardan (BACKUP) o se devuelven (tiempo real) al final */
+    SELECT @PERIODO AS periodo_corte, CAST(@ORIGEN AS VARCHAR(10)) AS origen_datos, r.id_indicador, r.codcentro, r.valor,
+           r.estandar, r.verde, r.acept, r.aceptmenos, r.puntaje, r.motivo_na, CAST(r.visible AS BIT) AS visible,
+           CASE WHEN @ORIGEN = 'BACKUP' THEN @PERIODO END AS periodo_backup, i.tipo_calculo, i.formula_alias, i.formula,
+           CAST(LEFT(x.txt + N' = ' + ISNULL(dbo.fn_tmi_num(x.valor), N'NA'), 4000) AS NVARCHAR(4000)) AS formula_desarrollo,
+           @USUARIO AS usuario_calculo, GETDATE() AS fecha_calculo
+    INTO #out_res
     FROM #res r
     JOIN dbo.tmi_indicador i ON i.id = r.id_indicador
     LEFT JOIN #des x ON x.id_indicador = r.id_indicador AND x.codcentro = r.codcentro;
 
     /* Valor de cada término (grupo, actividad y servicio) con el que se calculó: donde la fórmula se calculó */
-    INSERT INTO dbo.tmi_resultado_termino (periodo_corte, origen_datos, id_indicador, codcentro, codigo, tipgrupo, actividad,
-                                           servicio, mediana, texto, valor_mes, valor, filas_mes, filas)
-    SELECT @PERIODO, @ORIGEN, r.id_indicador, r.codcentro, t.codigo, t.tipgrupo, t.actividad, t.servicio, t.mediana, t.texto,
+    SELECT @PERIODO AS periodo_corte, CAST(@ORIGEN AS VARCHAR(10)) AS origen_datos, r.id_indicador, r.codcentro, t.codigo,
+           t.tipgrupo, t.actividad, t.servicio, t.mediana, t.texto,
            dm.valor_mes,
-           CASE WHEN i.tipo_calculo = 'ACUMULADO' THEN ac.valor ELSE dm.valor_mes END,
-           dm.filas,
-           CASE WHEN i.tipo_calculo = 'ACUMULADO' THEN ac.filas ELSE dm.filas END
+           CASE WHEN i.tipo_calculo = 'ACUMULADO' THEN ac.valor ELSE dm.valor_mes END AS valor,
+           dm.filas AS filas_mes,
+           CASE WHEN i.tipo_calculo = 'ACUMULADO' THEN ac.filas ELSE dm.filas END AS filas
+    INTO   #out_term
     FROM   #res r
     JOIN   #num_den n ON n.id_indicador = r.id_indicador AND n.codcentro = r.codcentro AND n.mes = @mes
     JOIN   dbo.tmi_indicador i ON i.id = r.id_indicador
@@ -765,67 +770,70 @@ BEGIN
     LEFT JOIN #det_mes dm ON dm.id_indicador = r.id_indicador AND dm.codcentro = r.codcentro AND dm.codigo = t.codigo
                          AND dm.tipgrupo = t.tipgrupo AND dm.actividad = t.actividad AND dm.mes = @mes
                          AND (dm.servicio_def = t.servicio OR (dm.servicio_def IS NULL AND t.servicio IS NULL))
-    OUTER APPLY (
-        SELECT SUM(CASE WHEN n2.excluido = 1 OR n2.motivo_centro IS NOT NULL THEN 0 ELSE d2.valor_mes END) AS valor,
+    -- acumulado enero..corte de cada parte del término (sin los meses excluidos / no vigentes / fuera del ámbito)
+    LEFT JOIN (
+        SELECT d2.id_indicador, d2.codcentro, d2.codigo, d2.tipgrupo, d2.actividad, d2.servicio_def,
+               SUM(CASE WHEN n2.excluido = 1 OR n2.motivo_centro IS NOT NULL THEN 0 ELSE d2.valor_mes END) AS valor,
                SUM(CASE WHEN n2.excluido = 1 OR n2.motivo_centro IS NOT NULL THEN 0 ELSE d2.filas END) AS filas
         FROM #det_mes d2
         LEFT JOIN #centro_ind_mes n2 ON n2.id_indicador = d2.id_indicador AND n2.codcentro = d2.codcentro AND n2.mes = d2.mes
-        WHERE d2.id_indicador = r.id_indicador AND d2.codcentro = r.codcentro AND d2.codigo = t.codigo
-          AND d2.tipgrupo = t.tipgrupo AND d2.actividad = t.actividad AND d2.mes <= @mes
-          AND (d2.servicio_def = t.servicio OR (d2.servicio_def IS NULL AND t.servicio IS NULL))
-    ) ac;
+        WHERE d2.mes <= @mes
+        GROUP BY d2.id_indicador, d2.codcentro, d2.codigo, d2.tipgrupo, d2.actividad, d2.servicio_def
+    ) ac ON ac.id_indicador = r.id_indicador AND ac.codcentro = r.codcentro AND ac.codigo = t.codigo
+        AND ac.tipgrupo = t.tipgrupo AND ac.actividad = t.actividad
+        AND (ac.servicio_def = t.servicio OR (ac.servicio_def IS NULL AND t.servicio IS NULL));
 
-    /* Valores de los meses del año para periodo_01..periodo_12: los meses anteriores salen de tmi_resultado de su propio
-       periodo de corte (un mes que no se calculó queda vacío); el mes de corte, del cálculo de ahora. */
-    SELECT r.id_indicador, r.codcentro, r.periodo_corte % 100 AS mes, r.valor, r.estandar, r.acept, r.aceptmenos,
-           r.puntaje, r.motivo_na, r.visible
-    INTO   #hist
-    FROM   dbo.fn_tmi_resultado(@ORIGEN) r
-    WHERE  r.periodo_corte BETWEEN @anio * 100 + 1 AND @PERIODO - 1;
+    /* Valores de los meses del año para periodo_01..periodo_12: todos del cálculo de ahora (#res_all). */
+    CREATE TABLE #hist (id_indicador INT, codcentro INT, mes INT, valor FLOAT, estandar FLOAT, acept FLOAT,
+                        aceptmenos FLOAT, puntaje VARCHAR(2), motivo_na VARCHAR(30), visible INT);
     INSERT INTO #hist (id_indicador, codcentro, mes, valor, estandar, acept, aceptmenos, puntaje, motivo_na, visible)
-    SELECT id_indicador, codcentro, mes, valor, estandar, acept, aceptmenos, puntaje, motivo_na, visible FROM #res;
+    SELECT id_indicador, codcentro, mes, valor, estandar, acept, aceptmenos, puntaje, motivo_na, visible FROM #res_all;
     CREATE CLUSTERED INDEX ix_hist ON #hist (id_indicador, codcentro, mes);
 
-    /* 2.7 Resultado final por indicador (filas del Excel) -> tmi_resultado_indicador, del mismo origen de los datos:
-           el de TOTALIZADO3 (ACTUAL) y el de la copia del cierre (BACKUP) se guardan aparte. */
-    DELETE dbo.tmi_resultado_indicador WHERE periodo = @PERIODO AND origen_datos = @ORIGEN;
-    INSERT INTO dbo.tmi_resultado_indicador (periodo, anio, id_indicador, orden, orden_red, red, codcentro, centro, nivel, nivel_estandar, tipo,
-                                             categoria, estandar, acept, aceptmenos, total, puntaje, motivo_na, visible,
-                                             origen_datos, periodo_backup,
-                                             periodo_01, periodo_02, periodo_03, periodo_04, periodo_05, periodo_06, periodo_07, periodo_08, periodo_09, periodo_10, periodo_11, periodo_12)
-    SELECT @PERIODO, @anio, r.id_indicador, MIN(c.id_centro), MIN(c.orden), MAX(c.red), r.codcentro, MAX(c.centro), MAX(c.nivel), MAX(c.nivel_estandar), MAX(c.tipo),
-           MAX(c.categoria),
-           MAX(CASE WHEN r.mes = @mes THEN r.estandar END),
-           MAX(CASE WHEN r.mes = @mes THEN r.acept END),
-           MAX(CASE WHEN r.mes = @mes THEN r.aceptmenos END),
-           MAX(CASE WHEN r.mes = @mes THEN CASE WHEN r.puntaje = 'NA' THEN r.valor ELSE ISNULL(r.valor, 0) END END),
-           MAX(CASE WHEN r.mes = @mes THEN r.puntaje END),
-           MAX(CASE WHEN r.mes = @mes THEN r.motivo_na END),
-           CAST(MAX(CASE WHEN r.mes = @mes THEN CAST(r.visible AS INT) END) AS BIT),
-           @ORIGEN, CASE WHEN @ORIGEN = 'BACKUP' THEN @PERIODO END,
-           CASE WHEN 1 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 1 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 2 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 2 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 3 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 3 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 4 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 4 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 5 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 5 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 6 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 6 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 7 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 7 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 8 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 8 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 9 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 9 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 10 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 10 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 11 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 11 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END,
-           CASE WHEN 12 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 12 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END
+    /* 2.7 Resultado final por indicador (filas del Excel), del origen de los datos pedido. */
+    SELECT @PERIODO AS periodo, @anio AS anio, r.id_indicador, MIN(c.id_centro) AS orden, MIN(c.orden) AS orden_red,
+           MAX(c.red) AS red, r.codcentro, MAX(c.centro) AS centro, MAX(c.nivel) AS nivel,
+           MAX(c.nivel_estandar) AS nivel_estandar, MAX(c.tipo) AS tipo, MAX(c.categoria) AS categoria,
+           MAX(CASE WHEN r.mes = @mes THEN r.estandar END) AS estandar,
+           MAX(CASE WHEN r.mes = @mes THEN r.acept END) AS acept,
+           MAX(CASE WHEN r.mes = @mes THEN r.aceptmenos END) AS aceptmenos,
+           MAX(CASE WHEN r.mes = @mes THEN CASE WHEN r.puntaje = 'NA' THEN r.valor ELSE ISNULL(r.valor, 0) END END) AS total,
+           MAX(CASE WHEN r.mes = @mes THEN r.puntaje END) AS puntaje,
+           MAX(CASE WHEN r.mes = @mes THEN r.motivo_na END) AS motivo_na,
+           CAST(MAX(CASE WHEN r.mes = @mes THEN CAST(r.visible AS INT) END) AS BIT) AS visible,
+           CAST(@ORIGEN AS VARCHAR(10)) AS origen_datos, CASE WHEN @ORIGEN = 'BACKUP' THEN @PERIODO END AS periodo_backup,
+           CASE WHEN 1 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 1 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_01,
+           CASE WHEN 2 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 2 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_02,
+           CASE WHEN 3 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 3 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_03,
+           CASE WHEN 4 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 4 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_04,
+           CASE WHEN 5 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 5 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_05,
+           CASE WHEN 6 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 6 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_06,
+           CASE WHEN 7 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 7 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_07,
+           CASE WHEN 8 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 8 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_08,
+           CASE WHEN 9 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 9 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_09,
+           CASE WHEN 10 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 10 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_10,
+           CASE WHEN 11 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 11 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_11,
+           CASE WHEN 12 > @mes THEN 0 ELSE MAX(CASE WHEN r.mes = 12 THEN CASE WHEN r.motivo_na IN ('EXCLUIDO', 'NO_VIGENTE_MES', 'FUERA_DE_AMBITO') THEN NULL ELSE ISNULL(r.valor, 0) END END) END AS periodo_12,
+           GETDATE() AS fecha_calculo
+    INTO #out_final
     FROM #hist r
     JOIN #centro c ON c.codcentro = r.codcentro
     GROUP BY r.id_indicador, r.codcentro
     HAVING MAX(CASE WHEN r.mes = @mes THEN 1 END) = 1;
-    COMMIT;
-    EXEC sp_releaseapplock @Resource = N'TMI_CALCULAR', @LockOwner = 'Session';
+
+    BEGIN
+        -- 1) final por centro  2) resultado del mes de corte  3) términos  4) valor y puntaje de cada mes
+        SELECT * FROM #out_final;
+        SELECT * FROM #out_res;
+        SELECT * FROM #out_term;
+        SELECT @anio * 100 + mes AS periodo_corte, id_indicador, codcentro, mes, valor, estandar, acept, aceptmenos,
+               puntaje, motivo_na, visible
+        FROM #res_all;
+    END
     END TRY
     BEGIN CATCH
         DECLARE @error NVARCHAR(4000) = ERROR_MESSAGE(), @num INT = ERROR_NUMBER(), @linea INT = ERROR_LINE();
         IF @@TRANCOUNT > 0 ROLLBACK;
-        EXEC sp_releaseapplock @Resource = N'TMI_CALCULAR', @LockOwner = 'Session';
         -- RAISERROR y no THROW (compatibilidad con servidores anteriores a 2012). Los mensajes propios (50000) pasan
         -- igual; los de SQL Server van marcados [TMI-INTERNO]: el backend los deja en el log y no los muestra.
         IF @num = 50000
@@ -835,6 +843,7 @@ BEGIN
     END CATCH
 END
 GO
+
 
 
 /* =====================================================================================================================

@@ -57,8 +57,9 @@ remoto. Al iniciar, el backend comprueba que puede leer las dos fuentes y, si no
 ## Flujo
 
 1. `GET  /tmi/dinamico/validar-config`: errores de configuración (debe devolver `[]`).
-2. `POST /tmi/dinamico/calcular/{AAAAMM}`: fórmula de cada indicador sobre TOTALIZADO3 → `tmi_resultado`.
-3. `GET  /tmi/dinamico/generar-excel/{AAAAMM}?calcular=true`: Excel desde la plantilla vacía `TMI_PLANTILLA_BASE.xlsx`.
+2. `POST /tmi/dinamico/calcular/{AAAAMM}`: fórmula de cada indicador sobre TOTALIZADO3 (enero..AAAAMM), en tiempo
+   real: no se guarda.
+3. `GET  /tmi/dinamico/generar-excel/{AAAAMM}`: Excel desde la plantilla vacía `TMI_PLANTILLA_BASE.xlsx`.
 
 ### Versiones de TOTALIZADO3 y justificación del cálculo
 
@@ -68,14 +69,18 @@ solo se lee.
 - `TOTALIZADO3_BACKUP` (en la base del TMI): la misma estructura de TOTALIZADO3 más `periodo_backup`, `fecha_backup`
   y `usuario_backup`. La copia del periodo P tiene TOTALIZADO3 de enero a P tal como estaba. La guarda el cierre de P
   (`usp_tmi_backup_totalizado3`); una copia guardada no se pisa salvo `POST /tmi/dinamico/backup/{AAAAMM}?reemplazar=true`.
-- `usp_tmi_calcular @PERIODO, @ORIGEN, @USUARIO`: `ACTUAL` lee TOTALIZADO3 de hoy; `BACKUP` lee la copia del cierre
-  del periodo ("como fue"). `tmi_resultado` guarda los dos (clave con `origen_datos`), con la fórmula, su desarrollo
-  con los valores (`formula_desarrollo`), quién calculó y la copia usada. `tmi_resultado_termino` guarda el valor de
-  cada término (grupo, actividad, servicio) y las filas sumadas.
-- Calcular (pantalla) usa siempre TOTALIZADO3 (ACTUAL); el cierre calcula con la copia (BACKUP). `tmi_resultado` y
-  `tmi_resultado_indicador` guardan los dos (clave con `origen_datos`) y la pantalla elige cuál ver y descargar
-  (`?origen=ACTUAL|BACKUP` en `/resultado` y `/generar-excel`). Sin origen se usa el oficial: BACKUP si existe, si no
-  ACTUAL (`vw_tmi_resultado`, `vw_tmi_resultado_indicador`, `fn_tmi_resultado`); el dashboard usa el oficial.
+- `usp_tmi_calcular @PERIODO, @ORIGEN, @USUARIO`: `ACTUAL` lee TOTALIZADO3 de hoy (enero..periodo); `BACKUP` lee la
+  copia del cierre del periodo (`periodo_backup = periodo`, "como fue"). Siempre en tiempo real: no escribe nada.
+  Calcula cada mes de enero al periodo con la regla de ese mes y devuelve 4 resultados: final por centro, resultado
+  del mes (con la fórmula y su desarrollo), términos y cada mes. Todos los meses van en una sola pasada (tablas
+  temporales con la columna `mes`, tabla `#meses`), no un ciclo que repite el cálculo mes por mes; solo
+  `fn_tmi_estandar` se llama una vez por mes. `@GUARDAR` queda por compatibilidad y solo acepta 0.
+- El resultado no se guarda en ninguna tabla. El cierre solo guarda la copia de los datos (`TOTALIZADO3_BACKUP`);
+  las tablas `tmi_resultado`, `tmi_resultado_indicador` y `tmi_resultado_termino` se borran al iniciar el backend.
+- El backend guarda en memoria el cálculo en tiempo real de cada periodo y origen, y lo vuelve a calcular si cambia
+  TOTALIZADO3 (o la copia), la configuración (`tmi_config_historial`) o pasan `TMI_VIVO_CACHE_SEG` segundos (600).
+- `?origen=ACTUAL|BACKUP` en `/resultado` y `/generar-excel`: ACTUAL = datos de hoy; BACKUP = la copia del cierre.
+  Sin origen se usa ACTUAL. Los dashboards usan siempre ACTUAL.
 - `GET /tmi/dinamico/justificacion/{AAAAMM}/{id_indicador}` (y `/{codcentro}/terminos`, `/{codcentro}/filas`):
   resultado como fue y con datos actuales, términos y filas de TOTALIZADO3 que cambiaron (antes, ahora, `usuariomod`,
   `fechamod`).
@@ -121,7 +126,7 @@ python src/resources/plantillas/crear_plantilla_base.py
   `REL` = % del estándar, `ABS` = puntos; `tolerancia`; en banda `tolerancia` = hacia arriba y `tolerancia_menos` =
   hacia abajo, NULL = el mismo). Menor es mejor: estándar + %; mayor es mejor: estándar − %. El % Acept propio del
   centro (`tmi_centro_estandar.acept`) gana. Se edita en la pestaña "% Acept" (`PUT /indicadores/{id}/tolerancia`).
-  En los resultados (`tmi_resultado`, `tmi_resultado_indicador`) las columnas son `acept` y `aceptmenos`.
+  En el resultado del cálculo las columnas son `acept` y `aceptmenos`.
 * **Exclusión por periodo**: `tmi_exclusion_centro_indicador` (`excl_MM = 1`; `id_indicador` NULL = todos los indicadores del centro).
 * **Centro visible por mes**: `tmi_centro.flag` / `flag_MM`.
 * **Estándar propio de un centro**: `tmi_centro_estandar` (`aplica = 0` = NA; `acept` = % Acept propio).

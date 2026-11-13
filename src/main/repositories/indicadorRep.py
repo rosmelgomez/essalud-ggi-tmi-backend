@@ -44,7 +44,7 @@ def queryIndicadoresActivosTMI(db: Session):
 
 def queryEliminarIndicador(db: Session, id: int):
     try:
-        for tabla in ("tmi_indicador_tolerancia", "tmi_indicador_termino", "tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar", "tmi_resultado", "tmi_resultado_termino"):
+        for tabla in ("tmi_indicador_tolerancia", "tmi_indicador_termino", "tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar"):
             db.execute(text(f"IF OBJECT_ID('{name_server}.{tabla}') IS NOT NULL DELETE FROM {name_server}.{tabla} WHERE id_indicador = :id"), {"id": id})
         db.commit()
     except Exception as e:

@@ -38,8 +38,8 @@ def _nota(puntajes: List[Any], mensuales: List[List[Any]], mes: int):
 
 def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores: List[Dict[str, Any]],
                     filas_mes: List[Dict[str, Any]], activos: Optional[Set[int]] = None) -> Dict[str, Any]:
-    """filas_final: tmi_resultado_indicador del periodo; indicadores: activos de tmi_indicador;
-    filas_mes: tmi_resultado del periodo (puntaje de cada mes); activos: códigos de los centros activos (None = todos)."""
+    """filas_final: resultado final del periodo (cálculo en tiempo real); indicadores: activos de tmi_indicador;
+    filas_mes: valor y puntaje de cada mes; activos: códigos de los centros activos (None = todos)."""
     p = _validar_periodo(periodo)
     anio, mes = int(periodo[:4]), p % 100
     final: Dict[int, Dict[int, Dict[str, Any]]] = defaultdict(dict)
@@ -123,13 +123,15 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
             "indicadores": salida_ind, "redes": salida_redes, "centros": salida_centros}
 
 
-def dashboard_tmi(db: Session, periodo: str) -> Dict[str, Any]:
+def dashboard_tmi(db: Session, periodo: str, origen: Optional[str] = None) -> Dict[str, Any]:
+    """Siempre en tiempo real con los datos de hoy (origen ACTUAL o None); el resultado no se guarda."""
     p = _validar_periodo(periodo)
-    filas_final = queryResultadoFinalTMI(db, p)
+    filas_final = queryResultadoFinalTMI(db, p, origen)
     if not filas_final:
-        raise ValueError(f"No hay resultado guardado del periodo {periodo}: ese periodo no se calculó.")
-    datos = armar_dashboard(periodo, filas_final, queryIndicadoresActivosTMI(db), queryResultadoTMI(db, p),
+        raise ValueError(f"No hay resultado del periodo {periodo}: ese periodo no tiene datos.")
+    datos = armar_dashboard(periodo, filas_final, queryIndicadoresActivosTMI(db), queryResultadoTMI(db, p, origen),
                             queryCentrosActivosTMI(db, p))
+    datos["origen_datos"] = "ACTUAL"
     # nombres y orden de nivel (de atención: I, II, III, tmi_nivel_centro) y tipo para los filtros del tablero
     datos["catalogos"] = queryCatalogosCentroTMI(db)
     return datos

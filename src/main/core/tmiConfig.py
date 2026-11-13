@@ -24,5 +24,5 @@ TMI_DIM = f"{DIM}"
 # Ejecutar los scripts SQL al iniciar la aplicación (como ExecuteQuery de essalud-gcpp-backend)
 TMI_EJECUTAR_SQL = os.getenv("TMI_EJECUTAR_SQL", "true").lower() in {"1", "true", "yes"}
 # Solo se calcula el periodo anterior al mes actual (hoy 2026-10 -> 202609): los anteriores ya pasaron su
-# fecha de cierre y su Excel se arma con el resultado guardado. false = permite recalcular cualquier periodo.
+# fecha de cierre. false = permite calcular cualquier periodo.
 TMI_CALCULO_SOLO_PERIODO_ANTERIOR = os.getenv("TMI_CALCULO_SOLO_PERIODO_ANTERIOR", "false").lower() in {"1", "true", "yes"}

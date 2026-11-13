@@ -178,18 +178,18 @@ def _ejecutarInserts(db: Session, periodo_actual: str, origenes: dict[str, str])
     return total
 
 
-def _calcularTMI(db: Session, periodo: str):
-    """Guarda la copia de TOTALIZADO3 del periodo (TOTALIZADO3_BACKUP; si ya existe no se toca) y calcula el TMI con
-    esa copia: es el resultado oficial del periodo ("como fue"). Con la configuración con errores no se calcula."""
+def _guardarCopiaTMI(db: Session, periodo: str):
+    """Guarda la copia de TOTALIZADO3 del periodo (TOTALIZADO3_BACKUP; si ya existe no se toca): son los datos "como
+    fueron" al cierre. El resultado no se guarda: se calcula en tiempo real con esta copia o con los datos de hoy.
+    Con la configuración con errores no se cierra."""
     errores = tmiDinamicoRep.queryValidarConfigTMI(db)
     if errores:
         primero = errores[0]
-        raise RuntimeError(f"No se calculó el TMI: la configuración tiene {len(errores)} problema(s); corríjalos en "
+        raise RuntimeError(f"No se cerró el TMI: la configuración tiene {len(errores)} problema(s); corríjalos en "
                            f"Variables o Indicadores. Primero: {primero.get('elemento')}: {primero.get('problema')}")
     copia = tmiDinamicoRep.queryBackupTotalizado3TMI(db, int(periodo), "CIERRE")
     logger.warning("Cierre %s: copia de TOTALIZADO3 %s (%s filas)", periodo,
                    "guardada" if copia["copiado"] else "ya existía", copia["filas"])
-    tmiDinamicoRep.queryCalcularTMI(db, int(periodo), "BACKUP", "CIERRE")
 
 
 def _filasPeriodo(db: Session, periodo: str) -> int:
@@ -250,20 +250,13 @@ def ejecutarCierreServ(db: Session, hoy: date | None = None):
             insertadas = _ejecutarInserts(db, periodo, origenes)
             # al llegar la fecha de cierre, el mes toma el estándar fijo y el % Acept fijo del año (si aún no tiene valor)
             insertadas += estandarRep.aplicarCierrePeriodoTMI(db, periodo)
-            # con los estándares y % Acept del mes ya listos, el cierre calcula el TMI y guarda el resultado final
-            _calcularTMI(db, periodo)
+            # con los estándares y % Acept del mes ya listos, el cierre guarda la copia de los datos del periodo
+            _guardarCopiaTMI(db, periodo)
             filas = _filasPeriodo(db, periodo)
             cierreRep.queryFinalizarCierre(db, cierre["id"], "EJECUTADO", filas, None)
             resultados.append({"periodo": periodo, "estado": "EJECUTADO", "filas_insertadas": insertadas, "filas_periodo": filas})
         except Exception as e:
             db.rollback()
-            if _CALCULO_OCUPADO in str(e):
-                # otro cálculo en curso (un usuario o el cierre de otro proceso): no es un error, se reintenta luego
-                cierreRep.queryFinalizarCierre(db, cierre["id"], "PENDIENTE", None,
-                                               "En espera: había otro cálculo del TMI en curso; se reintenta en la "
-                                               "próxima revisión.")
-                logger.info("Cierre %s en espera: había otro cálculo en curso", periodo)
-                continue
             logger.error("Error en cierre %s: %s", periodo, _detalle(e), exc_info=True)
             cierreRep.queryFinalizarCierre(db, cierre["id"], "ERROR", None, _detalle(e))
             resultados.append({"periodo": periodo, "estado": "ERROR", "mensaje": _detalle(e)})
@@ -275,17 +268,9 @@ def ejecutarCierreServ(db: Session, hoy: date | None = None):
 # endpoints
 def queryListaCierreServ(db: Session):
     try:
-        cierres = cierreRep.queryListaCierre(db)
-        calculos = {str(r["periodo"]).strip(): r for r in tmiDinamicoRep.queryPeriodosResultadoTMI(db)}
+        return cierreRep.queryListaCierre(db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    # resultado final guardado de cada periodo (lo deja el cierre o el cálculo manual)
-    for cierre in cierres:
-        calculo = calculos.get(cierre["periodo"].strip()) or {}
-        cierre["fecha_calculo"] = calculo.get("fecha_calculo")
-        cierre["indicadores_calculados"] = calculo.get("indicadores")
-        cierre["centros_calculados"] = calculo.get("centros")
-    return cierres
 
 
 _MESES = ("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre",
@@ -385,10 +370,6 @@ def revisarCierre():
         finally:
             db.close()
             candado.execute(text("EXEC sp_releaseapplock @Resource = N'TMI_CIERRE', @LockOwner = 'Session'"))
-
-
-# mensaje de usp_tmi_calcular cuando ya hay un cálculo en curso (sp_getapplock TMI_CALCULAR)
-_CALCULO_OCUPADO = "Ya se está calculando el TMI"
 
 
 async def tareaCierre():

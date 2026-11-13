@@ -200,7 +200,7 @@ def analizar(texto: Optional[str], si_variable_nula: str = "CERO", si_division_c
 
 def plantilla(f: Formula) -> str:
     """La fórmula con el código de cada término entre corchetes: ([T1] - [T2]) / [T3]. El cálculo reemplaza cada
-    código por su valor para guardar cómo se llegó al resultado (tmi_resultado.formula_desarrollo)."""
+    código por su valor para mostrar cómo se llegó al resultado (formula_desarrollo)."""
     salida, toks, i = [], _tokens(f.texto), 0
     while i < len(toks):
         tipo, v, _ = toks[i]
@@ -243,7 +243,7 @@ def consulta_sql(f: Formula, totalizado3: str, tipo_calculo: str, periodo: int, 
     leyenda = "\n".join(f"--   {f.codigo(t)} = {t.texto}" for t in f.terminos)
     union_mes = "v.mes <= g.mes" if tipo_calculo == "ACUMULADO" else "v.mes = g.mes"
     anio = int(periodo) // 100
-    # meses como en tmi_resultado_indicador: los posteriores al corte salen 0
+    # meses como en el resultado final: los posteriores al corte salen 0
     meses = ",\n       ".join(f"CASE WHEN {m} > @MES THEN 0 ELSE MAX(CASE WHEN r.mes = {m} THEN r.valor END) END "
                                f"AS [{anio * 100 + m}]" for m in range(1, 13))
     centro_cte = f""",
@@ -322,14 +322,14 @@ estandar AS (   -- estándar del mes de corte (el específico del centro gana) y
         cols_extra = ("\n       MAX(es.estandar) AS Estandar, MAX(es.acept) AS [% Acept],"
                       + (" MAX(es.aceptmenos) AS [% Aceptmenos]," if str(indicador.get("sentido") or "").upper() == "BANDA"
                          else ""))
-        # mes excluido: NA = vacío, 0 = 0; el resto como tmi_resultado_indicador (sin dato = 0)
+        # mes excluido: NA = vacío, 0 = 0; el resto como el resultado final (sin dato = 0)
         filtro = "\nHAVING MAX(es.estandar) IS NOT NULL   -- centro sin estándar en el mes de corte: no se muestra"
         salida_cte = """,
 rs AS (   -- exclusiones aplicadas al valor de cada mes
     SELECT r.codcentro, r.mes,
            CASE x.resultado WHEN 'NA' THEN NULL WHEN '0' THEN 0 ELSE ISNULL(r.valor, 0) END AS valor,
            -- Total como Calcular: si la fórmula da NA en el mes de corte (división entre 0 con la regla NA), el
-           -- Total queda NA (SIN_DATO); las columnas de los meses lo muestran 0, como tmi_resultado_indicador
+           -- Total queda NA (SIN_DATO); las columnas de los meses lo muestran 0, como el resultado final
            CASE x.resultado WHEN 'NA' THEN NULL WHEN '0' THEN 0 ELSE r.valor END AS valor_total
     FROM   r
     LEFT JOIN excl x ON x.codcentro = r.codcentro AND x.mes = r.mes
