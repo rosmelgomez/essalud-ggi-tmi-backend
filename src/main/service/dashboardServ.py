@@ -15,7 +15,10 @@ from sqlalchemy.orm import Session
 
 from src.main.repositories.centroRep import queryCatalogosCentroTMI
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
-from src.main.repositories.tmiDinamicoRep import queryCentrosActivosTMI, queryResultadoFinalTMI, queryResultadoTMI
+from fastapi import HTTPException, status
+
+from src.main.repositories.dashboardRep import queryCentrosActivosTMI
+from src.main.repositories.resultadoRep import queryPeriodosResultadoTMI, queryResultadoFinalTMI, queryResultadoTMI
 from src.main.service.excelDinamicoServ import (
     NA, _es_red, _fuera_del_excel, _sin_produccion, _orden_redes, _promedio, _puntaje, _validar_periodo,
 )
@@ -46,10 +49,10 @@ def armar_dashboard(periodo: str, filas_final: List[Dict[str, Any]], indicadores
     centros_por_cod: Dict[int, Dict[str, Any]] = {}
     if activos is not None:   # centros dados de baja después del cálculo: no se muestran ni se cuentan
         filas_final = [r for r in filas_final if r["codcentro"] in activos]
-    for r in filas_final:   # vienen ordenadas por orden_red, orden
+    for r in filas_final:   # vienen ordenadas por orden (id_centro)
         final[r["id_indicador"]][r["codcentro"]] = r
         centros_por_cod.setdefault(r["codcentro"], {
-            "codcentro": r["codcentro"], "centro": r["centro"], "red": r["red"], "orden": r["orden_red"],
+            "codcentro": r["codcentro"], "centro": r["centro"], "red": r["red"],
             "nivel": r["nivel"], "tipo": r.get("tipo"), "categoria": r["categoria"]})
     fecha = max((r["fecha_calculo"] for r in filas_final if r.get("fecha_calculo")), default=None)
     centros = list(centros_por_cod.values())
@@ -136,3 +139,29 @@ def dashboard_tmi(db: Session, periodo: str, origen: Optional[str] = None) -> Di
     datos["catalogos"] = queryCatalogosCentroTMI(db)
     return datos
 
+
+def origenDashboard(origen: Optional[str]) -> Optional[str]:
+    """origen del dashboard: ACTUAL = calculado al momento con los datos de hoy; sin él, el oficial (el guardado del
+    cierre si existe). El dashboard nunca usa la copia del cierre en tiempo real."""
+    if origen is None:
+        return None
+    if origen.upper() != "ACTUAL":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El dashboard solo acepta origen=ACTUAL.")
+    return "ACTUAL"
+
+
+def periodosDashboardServ(db: Session, origen: Optional[str] = None):
+    """Periodos para el dashboard. Con origen=ACTUAL solo los que tienen datos actuales, y cada uno se ve calculado
+    con ellos."""
+    periodos = queryPeriodosResultadoTMI(db)
+    if origenDashboard(origen) is None:
+        return periodos
+    return [{**p, **p["origenes"]["ACTUAL"], "origen_datos": "ACTUAL"} for p in periodos if "ACTUAL" in p["origenes"]]
+
+
+def dashboardServ(db: Session, periodo: str, origen: Optional[str] = None):
+    """Datos del dashboard del periodo; 404 si el periodo no tiene datos."""
+    try:
+        return dashboard_tmi(db, periodo, origenDashboard(origen))
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

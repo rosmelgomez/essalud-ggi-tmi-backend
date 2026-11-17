@@ -88,3 +88,17 @@ def _restaurar_dibujos(generado: bytes, plantilla: Path = PLANTILLA,
             for nombre, contenido in nuevas_imagenes.items():
                 out.writestr(nombre, contenido)
     return salida.getvalue()
+
+
+def generarExcelServ(db, periodo: str, calcular: bool, indicadores: Optional[str], origen: Optional[str] = None):
+    """Excel del TMI del periodo y el nombre del archivo. indicadores = ids separados por coma (1,4,7); sin él, todos.
+    origen: ACTUAL o BACKUP; sin él, el oficial. ValueError si los datos pedidos no son válidos."""
+    from src.main.service.calculoServ import se_puede_calcular
+    from src.main.service.excelDinamicoServ import generar_excel_tmi_dinamico
+    ids = [int(x) for x in indicadores.split(",") if x.strip()] if indicadores else None
+    if origen is not None and origen.upper() not in ("ACTUAL", "BACKUP"):
+        raise ValueError("El origen de los datos debe ser ACTUAL o BACKUP.")
+    buffer = generar_excel_tmi_dinamico(db, periodo, calcular=calcular and se_puede_calcular(periodo), ids=ids,
+                                        origen=origen.upper() if origen else None)
+    nombre = f"TMI_Prelim_Salud_{MESES_NOMBRE[int(periodo[4:]) - 1].capitalize()}_{periodo[:4]}.xlsx"
+    return buffer, nombre

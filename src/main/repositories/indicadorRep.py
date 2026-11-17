@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session
 
 from src.main.core import tmiFormula
 from src.main.core.tmiConfig import TMI_DIM, TMI_TOTALIZADO3
-from src.main.repositories import tmiDinamicoRep
+from src.main.repositories import catalogoRep
 from src.main.repositories.tmiBaseRep import (
     name_server,
+    _acept_del_anio,
     _consulta,
     queryEliminarFila,
 )
@@ -19,11 +20,14 @@ def queryIndicadoresTMI(db: Session):
     return _consulta(db, f"""
         SELECT i.id, i.grupo, i.indicador, i.codigo, i.nombre_hoja, i.titulo_hoja, i.orden, i.formula_alias, i.formula,
                i.tipo_calculo,
-               i.sin_datos_anio, i.base_estandar, i.sentido, i.tipo_tolerancia, i.tolerancia, i.tolerancia_menos, i.decimales,
+               i.sin_datos_anio, i.base_estandar, i.sentido,
+               -- % Acept fijo del año actual (tmi_indicador_acept)
+               ISNULL(a.tipo_acept, 'REL') AS tipo_acept, a.acept_fijo AS acept, a.aceptmenos_fijo AS aceptmenos, i.decimales,
                i.cero_es_logro, i.mostrar_no_aplica, i.activo, i.formato, i.si_variable_nula, i.si_division_cero,
                LTRIM(RTRIM(g.desctipgrupo)) AS grupo_descripcion
         FROM {name_server}.tmi_indicador i
         LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = i.grupo
+        {_acept_del_anio("YEAR(GETDATE())")}
         ORDER BY i.orden, i.id""")
 
 
@@ -44,8 +48,7 @@ def queryIndicadoresActivosTMI(db: Session):
 
 def queryEliminarIndicador(db: Session, id: int):
     try:
-        for tabla in ("tmi_indicador_tolerancia", "tmi_indicador_termino", "tmi_indicador_variable", "tmi_indicador_ambito", "tmi_indicador_estandar"):
-            db.execute(text(f"IF OBJECT_ID('{name_server}.{tabla}') IS NOT NULL DELETE FROM {name_server}.{tabla} WHERE id_indicador = :id"), {"id": id})
+        db.execute(text(f"DELETE FROM {name_server}.tmi_indicador_acept WHERE id_indicador = :id"), {"id": id})
         db.commit()
     except Exception as e:
         db.rollback()
@@ -53,30 +56,41 @@ def queryEliminarIndicador(db: Session, id: int):
     return queryEliminarFila(db, "tmi_indicador", id)
 
 
+def queryLetrasIndicador(db: Session, id_indicador: int) -> dict:
+    """Variable de cada letra del indicador ({"A": 1, "B": 2}), leída de formula_alias y formula_variable."""
+    fila = db.execute(text(f"SELECT formula_alias, formula_variable FROM {name_server}.tmi_indicador WHERE id = :id"),
+                      {"id": id_indicador}).first()
+    if not fila or not (fila[0] or "").strip():
+        return {}
+    try:
+        return tmiFormula.letras_de_formula(fila[0], fila[1])
+    except tmiFormula.ErrorFormula as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 def queryIndicadorLetrasTMI(db: Session, id_indicador: int):
-    return _consulta(db, f"""
-        SELECT iv.id, iv.id_indicador, iv.letra, iv.id_variable, v.nombre AS variable, v.agregacion, v.total_anual,
+    letras = queryLetrasIndicador(db, id_indicador)
+    if not letras:
+        return []
+    variables = {r["id_variable"]: r for r in _consulta(db, f"""
+        SELECT v.id AS id_variable, v.nombre AS variable, v.agregacion, v.total_anual,
                (SELECT COUNT(*) FROM {name_server}.tmi_variable_logica l WHERE l.id_variable = v.id) AS filas_logica,
                STUFF((SELECT ' | ' + (
                     CAST(l.tipgrupo AS VARCHAR) + '·' + ISNULL(LTRIM(RTRIM(g.desctipgrupo)), '')
                     + ' / ' + CAST(l.actividad AS VARCHAR) + '·' + ISNULL(COALESCE(NULLIF(LTRIM(RTRIM(a.desclarga)), ''), LTRIM(RTRIM(a.descactividad))), '')
-                    + ' (Serv: ' + ISNULL(CAST(l.servicio AS VARCHAR), 'Todos') + ')')
+                    + ' (Serv: ' + ISNULL(CAST(l.servicio AS VARCHAR), 'Todos') + ')'
+                    -- condición de hoja: solo las hojas de DIM_HOJA con esa condición ([g;a@CONDICION])
+                    + ISNULL(' @' + REPLACE(UPPER(LTRIM(RTRIM(NULLIF(l.condicion_hoja, '')))), ' ', '_'), ''))
                 FROM {name_server}.tmi_variable_logica l
                 LEFT JOIN {TMI_DIM}.DIM_GRUPO g ON g.tipgrupo = l.tipgrupo
                 LEFT JOIN {TMI_DIM}.DIM_ACTIVIDAD a ON a.actividad = l.actividad
                 WHERE l.id_variable = v.id AND l.activo = 1
                 ORDER BY l.tipgrupo, l.actividad, l.servicio
                 FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 3, '') AS detalle_logica
-        FROM {name_server}.tmi_indicador_variable iv
-        JOIN {name_server}.tmi_variable v ON v.id = iv.id_variable
-        WHERE iv.id_indicador = :id ORDER BY iv.letra, v.nombre""", {"id": id_indicador})
-
-
-def queryIndicadorAmbitoTMI(db: Session, id_indicador: int):
-    return _consulta(db, f"""
-        SELECT id, id_indicador, red, nivel, categoria, tipo, codcentro, incluir, periodo_desde, periodo_hasta
-        FROM {name_server}.tmi_indicador_ambito WHERE id_indicador = :id
-        ORDER BY incluir DESC, red, nivel, categoria, tipo, codcentro""", {"id": id_indicador})
+        FROM {name_server}.tmi_variable v
+        WHERE v.id IN ({", ".join(str(int(x)) for x in set(letras.values()))})""")}
+    return [{"id_indicador": id_indicador, "letra": letra, **variables.get(id_var, {"id_variable": id_var})}
+            for letra, id_var in sorted(letras.items())]
 
 
 def _analizar(texto: str, regla: dict = None) -> tmiFormula.Formula:
@@ -96,22 +110,14 @@ def _regla_nulos(db: Session, id_indicador: int) -> dict:
     return dict(fila)
 
 
-def queryRegenerarFormulaSqlTMI(db: Session, id_indicador: int):
-    """Vuelve a generar formula_sql desde la fórmula guardada con la regla de nulos actual del indicador (se llama
-    al editar el indicador: si cambia la regla, el cálculo la toma sin volver a guardar la fórmula)."""
+def queryFormulaSqlTMI(db: Session, id_indicador: int):
+    """Expresión SQL de la fórmula guardada con la regla de nulos actual del indicador (solo se muestra: el cálculo
+    la arma de nuevo cada vez desde la fórmula)."""
     fila = db.execute(text(f"""SELECT formula, si_variable_nula, si_division_cero FROM {name_server}.tmi_indicador
                                WHERE id = :id"""), {"id": id_indicador}).mappings().first()
     if not fila or not fila["formula"]:
         return None
-    f = _analizar(fila["formula"], dict(fila))
-    try:
-        db.execute(text(f"UPDATE {name_server}.tmi_indicador SET formula_sql = :sql, formula_plantilla = :pl WHERE id = :id"),
-                   {"sql": f.sql, "pl": tmiFormula.plantilla(f), "id": id_indicador})
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    return f.sql
+    return _analizar(fila["formula"], dict(fila)).sql
 
 
 def _analizarTokens(db: Session, texto: str, regla: dict = None):
@@ -127,7 +133,7 @@ def _analizarTokens(db: Session, texto: str, regla: dict = None):
         SELECT actividad, COALESCE(NULLIF(LTRIM(RTRIM(desclarga)), ''), LTRIM(RTRIM(descactividad))) AS d
         FROM {TMI_DIM}.DIM_ACTIVIDAD WHERE actividad IN ({", ".join(map(str, actividades))})""")}
     desc_s = {}
-    if servicios and tmiDinamicoRep._CON_DIM_SERVICIO is not False:
+    if servicios and catalogoRep._CON_DIM_SERVICIO is not False:
         try:
             desc_s = {r["servicio"]: r["d"] for r in db.execute(text(f"""
                 SELECT servicio, LTRIM(RTRIM(desclarga)) AS d FROM {TMI_DIM}.DIM_SERVICIO
@@ -136,8 +142,8 @@ def _analizarTokens(db: Session, texto: str, regla: dict = None):
             db.rollback()
     terminos = []
     for t in f.terminos:
-        problemas = [x for x, ok in (("grupo no existe en DIM_GRUPO", t.tipgrupo in desc_g),
-                                     ("actividad no existe en DIM_ACTIVIDAD", t.actividad in desc_a)) if not ok]
+        problemas = [x for x, ok in (("el grupo no existe en los datos", t.tipgrupo in desc_g),
+                                     ("la actividad no existe en los datos", t.actividad in desc_a)) if not ok]
         terminos.append({
             "codigo": f.codigo(t), "texto": t.texto, "tipgrupo": t.tipgrupo, "grupo": desc_g.get(t.tipgrupo),
             "actividad": t.actividad, "descactividad": desc_a.get(t.actividad),
@@ -150,7 +156,7 @@ def _expandir(db: Session, formula_alias: str, variables: dict):
     """Fórmula con letras -> fórmula interna con términos de TOTALIZADO3, y el detalle de la variable de cada letra."""
     usadas = set(tmiFormula.letras_usadas(formula_alias))
     filas = {r["id"]: r for r in _consulta(db, f"""
-        SELECT id, nombre, agregacion FROM {name_server}.tmi_variable
+        SELECT id, nombre, agregacion, total_anual FROM {name_server}.tmi_variable
         WHERE id IN ({", ".join(str(int(v)) for v in variables.values()) or "NULL"})""")}
     mapa, detalle = {}, []
     for letra, id_var in sorted(variables.items()):
@@ -159,7 +165,7 @@ def _expandir(db: Session, formula_alias: str, variables: dict):
             raise HTTPException(status_code=400, detail=f"La variable de la letra {letra} no existe.")
         conjuntos = db.execute(text(tmiFormula.SQL_CONJUNTOS.format(esq=name_server, p=":id")), {"id": id_var}).all()
         try:
-            expr, aviso = tmiFormula.expresion_variable(v["nombre"], v["agregacion"], conjuntos)
+            expr, aviso = tmiFormula.expresion_variable(v["nombre"], v["agregacion"], conjuntos, v["total_anual"])
         except tmiFormula.ErrorFormula as e:
             if letra in usadas:
                 raise HTTPException(status_code=400, detail=f"{letra}: {e}")
@@ -183,8 +189,10 @@ def queryAnalizarFormulaTMI(db: Session, formula_alias: str, variables: dict, re
 
 
 def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula_alias: str, variables: dict, usuario: str = None):
-    """Guarda la fórmula con letras, la variable de cada letra usada (tmi_indicador_variable) y la fórmula interna
-    generada ([3;50#0] - [3;49#0]) / [3;47#0] con sus términos (tmi_indicador_termino) y formula_sql, en una transacción."""
+    """Guarda la fórmula con letras, la misma con el id de la variable de cada letra (formula_variable: {1} / {2}) y
+    la fórmula interna
+    generada ([3;50#0] - [3;49#0]) / [3;47#0], en una transacción. Los términos no se guardan: el cálculo los lee de
+    la fórmula."""
     regla = _regla_nulos(db, id_indicador)
     analisis = queryAnalizarFormulaTMI(db, formula_alias, variables, regla)
     malos = [f"{t['texto']}: {t['problema']}" for t in analisis["terminos"] if t["problema"]]
@@ -193,24 +201,18 @@ def queryGuardarFormulaTMI(db: Session, id_indicador: int, formula_alias: str, v
     f = _analizar(analisis["formula"], regla)
     usadas = [v for v in analisis["variables"] if v["usada"]]
     try:
+        formula_variable = tmiFormula.formula_con_ids(analisis["formula_alias"], {v["letra"]: v["id_variable"] for v in usadas})
+    except tmiFormula.ErrorFormula as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    try:
         r = db.execute(text(f"""
             UPDATE {name_server}.tmi_indicador
-               SET formula_alias = :alias, formula = :formula, formula_sql = :sql, formula_plantilla = :pl,
+               SET formula_alias = :alias, formula_variable = :fv, formula = :formula,
                    usuario_modificacion = :usuario, fecha_modificacion = GETDATE()
-             WHERE id = :id"""), {"alias": analisis["formula_alias"], "formula": f.texto, "sql": f.sql, "pl": tmiFormula.plantilla(f),
+             WHERE id = :id"""), {"alias": analisis["formula_alias"], "fv": formula_variable, "formula": f.texto,
                                    "usuario": usuario, "id": id_indicador})
         if r.rowcount == 0:
             raise HTTPException(status_code=404, detail="Indicador no encontrado")
-        db.execute(text(f"DELETE FROM {name_server}.tmi_indicador_termino WHERE id_indicador = :id"), {"id": id_indicador})
-        for t in tmiFormula.filas_termino(f):
-            db.execute(text(f"""INSERT INTO {name_server}.tmi_indicador_termino
-                                    (id_indicador, codigo, tipgrupo, actividad, servicio, mediana, texto)
-                                VALUES (:id, :codigo, :tipgrupo, :actividad, :servicio, :mediana, :texto)"""),
-                       {"id": id_indicador, **t})
-        db.execute(text(f"DELETE FROM {name_server}.tmi_indicador_variable WHERE id_indicador = :id"), {"id": id_indicador})
-        for v in usadas:
-            db.execute(text(f"""INSERT INTO {name_server}.tmi_indicador_variable (id_indicador, letra, id_variable)
-                                VALUES (:id, :letra, :v)"""), {"id": id_indicador, "letra": v["letra"], "v": v["id_variable"]})
         db.commit()
     except HTTPException:
         db.rollback()
@@ -238,6 +240,7 @@ def _consulta_indicador(db: Session, id_indicador: int, periodo: int, con_estand
         return tmiFormula.consulta_sql(_analizar(fila["formula"], dict(fila)), TMI_TOTALIZADO3,
                                        fila["tipo_calculo"] or "MENSUAL", periodo, f"{fila['codigo']} - {fila['indicador']}",
                                        centros=f"{name_server}.vw_tmi_centro_base",
+                                       dim=TMI_DIM,
                                        indicador=dict(fila) if con_estandares else None,
                                        esquema=name_server)
     except tmiFormula.ErrorFormula as e:
@@ -247,14 +250,3 @@ def _consulta_indicador(db: Session, id_indicador: int, periodo: int, con_estand
 def queryConsultaIndicadorTMI(db: Session, id_indicador: int, periodo: int, con_estandares: bool = False):
     """Texto del query que calcula el indicador directo de TOTALIZADO3 (para verlo o copiarlo)."""
     return {"sql": _consulta_indicador(db, id_indicador, periodo, con_estandares)}
-
-
-def queryResultadoDirectoTMI(db: Session, id_indicador: int, periodo: int):
-    """Ejecuta ese query: valor de la fórmula por centro y mes, sin estándares ni exclusiones."""
-    sql = _consulta_indicador(db, id_indicador, periodo)
-    try:
-        filas = [dict(r) for r in db.execute(text(sql)).mappings()]
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    return {"sql": sql, "filas": filas}

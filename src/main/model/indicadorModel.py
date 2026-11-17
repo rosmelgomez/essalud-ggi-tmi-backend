@@ -1,10 +1,9 @@
 """Indicadores definidos por el usuario: secciones del reporte, fórmula, letras y ámbito."""
 
-from sqlalchemy import CHAR, CheckConstraint, Column, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, Integer, String
 from sqlalchemy.dialects.mssql import BIT, DATE, NVARCHAR
 
 from src.main.model.base import TMI_SCHEMA, Base, defecto
-from src.main.model.variableModel import TmiVariable
 
 
 class TmiTipoCalculo(Base):
@@ -37,67 +36,20 @@ class TmiIndicador(Base):
     sin_datos_anio = Column(String(7), nullable=False, server_default=defecto("NA"))   # MOSTRAR (0) | NA | OCULTAR
     base_estandar = Column(String(30))                         # tmi_tipo_estandar.codigo (TIPO, NIVEL, NIVEL_TIPO...)
     sentido = Column(String(5))                                # MENOR | MAYOR | BANDA
-    tipo_tolerancia = Column(String(3))                        # REL | ABS
-    tolerancia = Column(Float)
-    tolerancia_menos = Column(Float)                           # % Acept hacia abajo en banda (NULL = el de arriba)
+    # el % Acept (tipo_acept, acept, aceptmenos) está en tmi_indicador_acept, por año
     decimales = Column(Integer)
     cero_es_logro = Column(BIT, nullable=False, server_default=defecto(0))
-    # regla de nulos de la fórmula (la elige el usuario por indicador; se aplica al generar formula_sql)
+    # regla de nulos de la fórmula (la elige el usuario por indicador; se aplica al leer la fórmula para calcular)
     si_variable_nula = Column(String(4), nullable=False, server_default=defecto("CERO"))   # CERO: ISNULL(letra,0) | NA: la letra sin dato deja el mes en NA
     si_division_cero = Column(String(4), nullable=False, server_default=defecto("NA"))     # NA: x/0 = NA | CERO: x/0 = 0
     mostrar_no_aplica = Column(BIT, nullable=False, server_default=defecto(1))
     activo = Column(BIT, nullable=False, server_default=defecto(1))
-    # fórmula con letras ((A - B) / C), fórmula con términos de TOTALIZADO3 ([3;50#0] - [3;49#0]) / [3;47#0]
-    # y la expresión SQL sobre los términos (src/main/core/tmiFormula.py)
+    # fórmula con letras ((A - B) / C) y fórmula con términos de TOTALIZADO3 ([3;50#0] - [3;49#0]) / [3;47#0]
+    # (src/main/core/tmiFormula.py)
     formula_alias = Column(NVARCHAR(500))
+    # la misma fórmula con el id de la variable de cada letra entre llaves: A / B -> {1} / {2} (A = variable 1)
+    formula_variable = Column(NVARCHAR(500))
     formula = Column(NVARCHAR(2000))
-    formula_sql = Column(NVARCHAR(None))
-    # la fórmula con los códigos de sus términos (([T1] - [T2]) / [T3]): el cálculo reemplaza cada código por su valor
-    # y devuelve el desarrollo en formula_desarrollo
-    formula_plantilla = Column(NVARCHAR(2000))
+    # los términos de la fórmula, la expresión SQL y la plantilla del desarrollo no se guardan: Python los lee de
+    # formula cada vez que se calcula (tmiBaseRep.crear_tablas_formula -> #formula y #termino)
     formato = Column(String(12), nullable=False, server_default=defecto("NUMERO"))     # NUMERO | PORCENTAJE
-
-
-class TmiIndicadorTermino(Base):
-    """Términos de la fórmula: una fila por término y servicio (servicio NULL = todos los servicios)."""
-    __tablename__ = "tmi_indicador_termino"
-    __table_args__ = {"schema": TMI_SCHEMA}
-    id = Column(Integer, primary_key=True)
-    id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    codigo = Column(String(5), nullable=False)                 # T1, T2... (columna de la fórmula en formula_sql)
-    tipgrupo = Column(Integer, nullable=False)
-    actividad = Column(Integer, nullable=False)
-    servicio = Column(Integer)
-    mediana = Column(BIT, nullable=False, server_default=defecto(0))   # 1 = MEDIANA([..])
-    texto = Column(String(60), nullable=False)                 # [g;a#s] como está en la fórmula
-
-
-class TmiIndicadorVariable(Base):
-    """Variable de cada letra de la fórmula (una variable por letra)."""
-    __tablename__ = "tmi_indicador_variable"
-    __table_args__ = (
-        UniqueConstraint("id_indicador", "letra", "id_variable", name="UX_tmi_indicador_variable"),
-        CheckConstraint("letra LIKE '[A-Z]'", name="CK_tmi_indicador_variable_letra"),
-        {"schema": TMI_SCHEMA},
-    )
-    id = Column(Integer, primary_key=True)
-    id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    letra = Column(CHAR(1), nullable=False)
-    id_variable = Column(Integer, ForeignKey(TmiVariable.id), nullable=False)
-
-
-class TmiIndicadorAmbito(Base):
-    """Qué centros entran a un indicador (por nivel, categoría, tipo, red o centro, y por periodo).
-    Sin filas = todos. incluir = 1 lista blanca, 0 lista negra."""
-    __tablename__ = "tmi_indicador_ambito"
-    __table_args__ = {"schema": TMI_SCHEMA}
-    id = Column(Integer, primary_key=True)
-    id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    red = Column(String(100))
-    nivel = Column(String(50))                                 # valor de tmi_centro.nivel_estandar
-    categoria = Column(String(50))
-    tipo = Column(String(50))
-    codcentro = Column(Integer)
-    incluir = Column(BIT, nullable=False, server_default=defecto(1))
-    periodo_desde = Column(Integer, nullable=False, server_default=defecto(200001))
-    periodo_hasta = Column(Integer, nullable=False, server_default=defecto(999912))

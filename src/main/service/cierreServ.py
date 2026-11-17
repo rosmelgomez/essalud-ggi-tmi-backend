@@ -11,7 +11,7 @@ from sqlalchemy import text
 
 from src.main.db.auditoria import USUARIO_ACTUAL
 from src.main.db.databaseConexion import SessionLocal, engine
-from src.main.repositories import cierreRep, estandarRep, tmiDinamicoRep
+from src.main.repositories import backupRep, calculoRep, cierreRep, configuracionRep, estandarRep
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +20,6 @@ CIERRE_DIA_DEFAULT = int(os.getenv("CIERRE_DIA_DEFAULT", "07"))
 # Cada cuántos minutos se revisa si hoy es la fecha de cierre
 CIERRE_INTERVALO_MINUTOS = int(os.getenv("CIERRE_INTERVALO_MINUTOS", "60"))
 
-# Inserción del periodo nuevo copiando el periodo anterior (funciones existentes)
-INSERTS_CIERRE = {
-    ##"tmi_centro": centroRep.queryInsertCentrosTMI,
-    ##"tmi_estandar_tipo": estandarRep.queryInsertEstandarTipo,
-    ##"tmi_estandar_nivel": estandarRep.queryInsertEstandarNivel,
-    # desactivado por ahora: tmi_estandar_categoria aún no tiene datos
-    # "tmi_estandar_categoria": estandarRep.queryInsertEstandarCategoria,
-}
-
-
 # procesos internos
 def periodo_a_generar(hoy: date) -> str:
     """El cierre del mes M genera el periodo M-1 (ej. cierre de 2026-09 -> 202608).
@@ -37,22 +27,6 @@ def periodo_a_generar(hoy: date) -> str:
     if hoy.month == 1:
         return f"{hoy.year - 1}12"
     return f"{hoy.year}{hoy.month - 1:02d}"
-
-
-def calcular_periodo_anterior(periodo: str) -> str:
-    try:
-        if not periodo or len(periodo) != 6:
-            return periodo
-        anio = int(periodo[:4])
-        mes = int(periodo[4:])
-        if mes == 1:
-            anio -= 1
-            mes = 12
-        else:
-            mes -= 1
-        return f"{anio}{mes:02d}"
-    except Exception:
-        return periodo
 
 
 def periodo_siguiente(periodo: str) -> str:
@@ -91,11 +65,6 @@ def _detalle(e: Exception) -> str:
     return str(e.detail) if isinstance(e, HTTPException) else str(e)
 
 
-def _conteos(db: Session, hasta: str) -> dict[str, dict[str, int]]:
-    """Filas por periodo de cada tabla del cierre: {tabla: {periodo: filas}}."""
-    return {tabla: cierreRep.queryConteoPorPeriodo(db, tabla, hasta) for tabla in INSERTS_CIERRE}
-
-
 def inicializarCierreServ(db: Session, hoy: date | None = None):
     """Registra el cierre del periodo que se cierra este mes, con la fecha de su calendario
     (las tablas tmi_cierre y tmi_cierre_calendario las crea src/main/model)."""
@@ -106,96 +75,20 @@ def inicializarCierreServ(db: Session, hoy: date | None = None):
         logger.warning("Cierre registrado: periodo %s, fecha %s", periodo, fecha)
 
 
-def _prepararCierres(db: Session, hoy: date) -> dict[str, str]:
-    """Deja listos los cierres desde el primer periodo con datos hasta el último cierre cuya fecha ya llegó:
-    crea la fila de cierre de cada periodo que falte (02 viene de 01, 03 de 02...), reabre los cierres con
-    ERROR que ya se pueden generar porque se guardaron datos nuevos, y los EJECUTADO que se quedaron sin datos.
-    Devuelve el primer periodo con datos de cada tabla."""
-    objetivo = cierreRep.queryUltimoPeriodoCierre(db, hoy)
-    if not objetivo:
-        return {}
-    conteos = _conteos(db, objetivo)
-    origenes = {tabla: min(c) for tabla, c in conteos.items() if c}
-    if not origenes:
-        return {}
-
-    periodos = []
-    periodo = periodo_siguiente(min(origenes.values()))
-    while periodo <= objetivo:
-        periodos.append(periodo)
-        if cierreRep.queryInsertCierreDefault(db, periodo, _fechaCierre(db, periodo)):
-            logger.warning("Cierre registrado para completar periodos: %s", periodo)
-        periodo = periodo_siguiente(periodo)
-
-    # simula el cierre en orden para saber qué periodos se pueden generar con los datos actuales
-    disponibles = {tabla: set(c) for tabla, c in conteos.items()}
-    generables = set()
-    for periodo in periodos:
-        anterior = calcular_periodo_anterior(periodo)
-        ok = True
-        for tabla in INSERTS_CIERRE:
-            if periodo in disponibles[tabla]:
-                continue
-            if anterior in disponibles[tabla]:
-                disponibles[tabla].add(periodo)
-            elif not (tabla in origenes and anterior < origenes[tabla]):
-                ok = False
-        if ok:
-            generables.add(periodo)
-
-    for cierre in cierreRep.queryListaCierre(db):
-        periodo = cierre["periodo"].strip()
-        if periodo not in periodos:
-            continue
-        sin_datos = any(
-            conteos[tabla].get(periodo, 0) == 0
-            for tabla in INSERTS_CIERRE
-            if tabla not in origenes or periodo >= origenes[tabla]
-        )
-        if (cierre["estado"] == "EJECUTADO" and sin_datos) or (cierre["estado"] == "ERROR" and periodo in generables):
-            logger.warning("Cierre %s reabierto (%s)", periodo, cierre["estado"])
-            cierreRep.queryReabrirCierre(db, cierre["id"])
-    return origenes
-
-
-def _ejecutarInserts(db: Session, periodo_actual: str, origenes: dict[str, str]) -> int:
-    periodo_anterior = calcular_periodo_anterior(periodo_actual)
-    total = 0
-    for tabla, insertar in INSERTS_CIERRE.items():
-        # si el periodo ya tiene datos no se vuelve a insertar (evita duplicados)
-        if cierreRep.queryContarPeriodo(db, tabla, periodo_actual) > 0:
-            logger.warning("Cierre %s: %s ya tiene datos, se omite", periodo_actual, tabla)
-            continue
-        # la tabla empieza en un periodo posterior: todavía no hay de dónde copiar
-        if tabla in origenes and periodo_anterior < origenes[tabla]:
-            logger.warning("Cierre %s: %s empieza en %s, se omite", periodo_actual, tabla, origenes[tabla])
-            continue
-        if cierreRep.queryContarPeriodo(db, tabla, periodo_anterior) == 0:
-            raise RuntimeError(f"{tabla} no tiene datos en el periodo anterior {periodo_anterior}")
-        result = insertar(db, periodo_actual, periodo_anterior)
-        total += result.get("rows_inserted", 0) or 0
-        logger.warning("Cierre %s: %s filas insertadas en %s", periodo_actual, result.get("rows_inserted"), tabla)
-    return total
-
-
 def _guardarCopiaTMI(db: Session, periodo: str):
     """Guarda la copia de TOTALIZADO3 del periodo (TOTALIZADO3_BACKUP; si ya existe no se toca): son los datos "como
     fueron" al cierre. El resultado no se guarda: se calcula en tiempo real con esta copia o con los datos de hoy.
     Con la configuración con errores no se cierra."""
-    errores = tmiDinamicoRep.queryValidarConfigTMI(db)
+    errores = configuracionRep.queryValidarConfigTMI(db)
     if errores:
         primero = errores[0]
-        raise RuntimeError(f"No se cerró el TMI: la configuración tiene {len(errores)} problema(s); corríjalos en "
-                           f"Variables o Indicadores. Primero: {primero.get('elemento')}: {primero.get('problema')}")
-    copia = tmiDinamicoRep.queryBackupTotalizado3TMI(db, int(periodo), "CIERRE")
+        n = len(errores)
+        raise RuntimeError(f"No se cerró el TMI: hay {n} {'problema' if n == 1 else 'problemas'} en la configuración. "
+                           f"Corríjalos en Variables o Indicadores. El primero: {primero.get('elemento')}: "
+                           f"{primero.get('problema')}")
+    copia = backupRep.queryBackupTotalizado3TMI(db, int(periodo), "CIERRE")
     logger.warning("Cierre %s: copia de TOTALIZADO3 %s (%s filas)", periodo,
                    "guardada" if copia["copiado"] else "ya existía", copia["filas"])
-
-
-def _filasPeriodo(db: Session, periodo: str) -> int:
-    """Filas del periodo en las tablas que copia el cierre más los estándares y % Acept del mes."""
-    copiadas = sum(cierreRep.queryContarPeriodo(db, tabla, periodo) for tabla in INSERTS_CIERRE)
-    return copiadas + estandarRep.contarFilasCierrePeriodoTMI(db, periodo)
 
 
 # Mensaje del cierre que espera datos: el cierre queda PENDIENTE y se vuelve a intentar en cada revisión
@@ -218,41 +111,34 @@ def _reabrirSinDatos(db: Session):
 
 
 def _actualizarFilasCierres(db: Session):
-    """filas_insertadas de cada cierre ejecutado = filas de su periodo (tablas copiadas, estándares y % Acept del mes)."""
-    cierres = [c for c in cierreRep.queryListaCierre(db) if c["estado"] == "EJECUTADO"]
-    if not cierres:
-        return
-    conteos = _conteos(db, max(c["periodo"].strip() for c in cierres))
-    for cierre in cierres:
-        periodo = cierre["periodo"].strip()
-        filas = sum(c.get(periodo, 0) for c in conteos.values()) + estandarRep.contarFilasCierrePeriodoTMI(db, periodo)
-        cierreRep.queryActualizarFilasCierre(db, cierre["id"], filas)
+    """filas_insertadas de cada cierre ejecutado = filas de su periodo (estándares y % Acept del mes)."""
+    for cierre in cierreRep.queryListaCierre(db):
+        if cierre["estado"] == "EJECUTADO":
+            filas = estandarRep.contarFilasCierrePeriodoTMI(db, cierre["periodo"].strip())
+            cierreRep.queryActualizarFilasCierre(db, cierre["id"], filas)
 
 
 def ejecutarCierreServ(db: Session, hoy: date | None = None):
     """Ejecuta todos los cierres cuya fecha de cierre ya llegó o ya pasó, de cualquier periodo
-    (ej. cierre programado el 07 y hoy es 11: se ejecuta igual). Van del periodo más antiguo al más reciente,
-    completando los periodos que falten desde el primero con datos."""
+    (ej. cierre programado el 07 y hoy es 11: se ejecuta igual). Van del periodo más antiguo al más reciente."""
     hoy = hoy or date.today()
     inicializarCierreServ(db, hoy)
     _reabrirSinDatos(db)
-    origenes = _prepararCierres(db, hoy)
     resultados = []
     for cierre in cierreRep.queryTomarCierresPendientes(db, hoy):
         periodo = cierre["periodo"].strip()
         # sin datos del mes en TOTALIZADO3 no es un error: el cierre espera (PENDIENTE) y se reintenta en la
         # próxima revisión (cada CIERRE_INTERVALO_MINUTOS) hasta que lleguen los datos
-        if not tmiDinamicoRep.queryHayDatosTotalizadoTMI(db, int(periodo)):
+        if not calculoRep.queryHayDatosTotalizadoTMI(db, int(periodo)):
             cierreRep.queryFinalizarCierre(db, cierre["id"], "PENDIENTE", None, _mensajeEspera(periodo))
             logger.info("Cierre %s en espera: TOTALIZADO3 todavía no tiene datos del periodo", periodo)
             continue
         try:
-            insertadas = _ejecutarInserts(db, periodo, origenes)
             # al llegar la fecha de cierre, el mes toma el estándar fijo y el % Acept fijo del año (si aún no tiene valor)
-            insertadas += estandarRep.aplicarCierrePeriodoTMI(db, periodo)
+            insertadas = estandarRep.aplicarCierrePeriodoTMI(db, periodo)
             # con los estándares y % Acept del mes ya listos, el cierre guarda la copia de los datos del periodo
             _guardarCopiaTMI(db, periodo)
-            filas = _filasPeriodo(db, periodo)
+            filas = estandarRep.contarFilasCierrePeriodoTMI(db, periodo)
             cierreRep.queryFinalizarCierre(db, cierre["id"], "EJECUTADO", filas, None)
             resultados.append({"periodo": periodo, "estado": "EJECUTADO", "filas_insertadas": insertadas, "filas_periodo": filas})
         except Exception as e:

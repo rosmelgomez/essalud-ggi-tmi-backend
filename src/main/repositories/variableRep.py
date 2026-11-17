@@ -6,7 +6,8 @@ from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from src.main.core.tmiConfig import TMI_DIM
+from src.main.core import tmiFormula
+from src.main.core.tmiConfig import TMI_DIM, TMI_TOTALIZADO3
 from src.main.repositories.tmiBaseRep import (
     name_server,
     _consulta,
@@ -14,7 +15,7 @@ from src.main.repositories.tmiBaseRep import (
     queryActualizarFila,
     queryEliminarFila,
 )
-from src.main.repositories.indicadorRep import queryGuardarFormulaTMI
+from src.main.repositories.indicadorRep import queryGuardarFormulaTMI, queryLetrasIndicador
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +43,7 @@ def queryActualizarVariableTMI(db: Session, id: int, datos: dict, usuario: str =
 
 
 def queryEliminarVariable(db: Session, id: int):
-    usada = _consulta(db, f"""
-        SELECT DISTINCT i.codigo FROM {name_server}.tmi_indicador_variable iv
-        JOIN {name_server}.tmi_indicador i ON i.id = iv.id_indicador WHERE iv.id_variable = :id""", {"id": id})
+    usada = [i for i in _indicadores_con_formula_variable(db) if int(id) in tmiFormula.ids_variables(i["formula_variable"])]
     if usada:
         raise HTTPException(status_code=400, detail="La variable se usa en los indicadores: "
                             + ", ".join(sorted(u["codigo"] or "" for u in usada)))
@@ -99,10 +98,28 @@ def queryInsertarComponenteTMI(db: Session, datos: dict):
     return queryInsertarFila(db, "tmi_variable_componente", datos)
 
 
+def queryConsultaVariableTMI(db: Session, id_variable: int, periodo: int):
+    """Texto del query que calcula la variable directo de TOTALIZADO3 (valor de cada mes y de enero al mes)."""
+    if periodo % 100 not in range(1, 13):
+        raise HTTPException(status_code=400, detail="El periodo debe tener formato AAAAMM.")
+    v = db.execute(text(f"""SELECT id, nombre, agregacion, total_anual FROM {name_server}.tmi_variable
+                           WHERE id = :id"""), {"id": id_variable}).mappings().first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Variable no encontrada")
+    conjuntos = db.execute(text(tmiFormula.SQL_CONJUNTOS.format(esq=name_server, p=":id")), {"id": id_variable}).all()
+    try:
+        expr, _ = tmiFormula.expresion_variable(v["nombre"], v["agregacion"], conjuntos, v["total_anual"])
+        total_anual = "MEDIANA_PERIODO" if (v["agregacion"] or "").upper() == "MEDIANA" else v["total_anual"]
+        return {"sql": tmiFormula.consulta_variable_sql(expr, TMI_TOTALIZADO3, periodo, v["nombre"], total_anual,
+                                                        centros=f"{name_server}.vw_tmi_centro_base", dim=TMI_DIM)}
+    except tmiFormula.ErrorFormula as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 def queryVariableLogicaTMI(db: Session, id_variable: int):
     return _consulta(db, f"""
         SELECT l.id, l.id_variable, l.tipgrupo, l.actividad, l.servicio, l.condicion_hoja,
-               l.periodo_desde, l.periodo_hasta, l.activo, g.desctipgrupo,
+               l.activo, g.desctipgrupo,
                a.descactividad AS descactividad_corta, a.desclarga, a.Recurso, a.Proceso,
                COALESCE(NULLIF(LTRIM(RTRIM(a.desclarga)), ''), a.descactividad) AS descactividad
         FROM {name_server}.tmi_variable_logica l
@@ -119,10 +136,23 @@ def queryVariableDeFila(db: Session, tabla: str, id: int):
     return db.execute(text(f"SELECT id_variable FROM {name_server}.{tabla} WHERE id = :id"), {"id": id}).scalar()
 
 
-def regenerarFormulasVariable(db: Session, id_variable: int) -> None:
-    """Una variable cambió (conjuntos, componentes o cálculo): se vuelve a generar la fórmula interna de los indicadores
-    que la usan, directo o dentro de una variable compuesta. Si no se puede (p. ej. quedó sin conjuntos), el indicador
-    conserva su fórmula anterior y se avisa en el log."""
+def _indicadores_con_formula_variable(db: Session) -> list:
+    """Indicadores con variables en la fórmula (formula_variable: {1} / {2})."""
+    return _consulta(db, f"""SELECT id, codigo, formula_variable FROM {name_server}.tmi_indicador
+                               WHERE NULLIF(LTRIM(formula_variable), '') IS NOT NULL""")
+
+
+def regenerarFormulasVariable(db: Session, *ids_variable: int) -> list:
+    """Una o varias variables cambiaron (conjuntos, componentes o cálculo): se vuelve a generar la fórmula interna de
+    los indicadores que las usan, directo o dentro de una variable compuesta. Si no se puede (p. ej. la variable quedó
+    sin conjuntos), el indicador conserva su fórmula anterior. Devuelve esos avisos para mostrarlos al usuario."""
+    avisos, hechos = [], set()
+    for id_variable in dict.fromkeys(i for i in ids_variable if i):
+        avisos += _regenerarFormulasVariable(db, id_variable, hechos)
+    return avisos
+
+
+def _regenerarFormulasVariable(db: Session, id_variable: int, hechos: set) -> list:
     try:
         ids = [r[0] for r in db.execute(text(f"""
             WITH arriba AS (
@@ -132,22 +162,25 @@ def regenerarFormulasVariable(db: Session, id_variable: int) -> None:
                 FROM arriba a JOIN {name_server}.tmi_variable_componente c ON c.id_variable_componente = a.id_var
                 WHERE a.nivel < 10
             )
-            SELECT DISTINCT iv.id_indicador
-            FROM {name_server}.tmi_indicador_variable iv
-            JOIN {name_server}.tmi_indicador i ON i.id = iv.id_indicador AND i.formula_alias IS NOT NULL
-            WHERE iv.id_variable IN (SELECT id_var FROM arriba)
+            SELECT DISTINCT id_var FROM arriba
             OPTION (MAXRECURSION 20)"""), {"id": id_variable}).all()]
+        indicadores = [(i["id"], i["codigo"]) for i in _indicadores_con_formula_variable(db)
+                       if set(ids) & tmiFormula.ids_variables(i["formula_variable"]) and i["id"] not in hechos]
     except Exception as e:
         db.rollback()
         logger.warning("No se pudo buscar los indicadores de la variable %s: %s", id_variable, e)
-        return
-    for id_ind in ids:
+        return [f"No se pudo buscar los indicadores que usan la variable: {e}"]
+    avisos = []
+    for id_ind, codigo in indicadores:
+        hechos.add(id_ind)
         try:
             alias = db.execute(text(f"SELECT formula_alias FROM {name_server}.tmi_indicador WHERE id = :id"),
                                {"id": id_ind}).scalar()
-            letras = {r[0]: r[1] for r in db.execute(text(f"""SELECT letra, id_variable FROM {name_server}.tmi_indicador_variable
-                                                             WHERE id_indicador = :id"""), {"id": id_ind}).all()}
+            letras = queryLetrasIndicador(db, id_ind)
             queryGuardarFormulaTMI(db, id_ind, alias, letras, "sistema")
         except Exception as e:
             db.rollback()
             logger.warning("No se pudo regenerar la fórmula del indicador %s: %s", id_ind, getattr(e, "detail", e))
+            avisos.append(f"{codigo}: no se pudo actualizar su fórmula ({getattr(e, 'detail', e)}); "
+                          "el cálculo sigue usando la fórmula anterior.")
+    return avisos

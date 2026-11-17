@@ -139,45 +139,37 @@ def _ejecutar(cursor, script: str, carpeta: Path, resultado: Dict[str, str]) -> 
 
 
 def _sincronizar_formulas(cursor, resultado: Dict[str, str]) -> None:
-    """Regenera la fórmula interna de cada indicador: desde la fórmula con letras (formula_alias) y las variables
-    actuales de cada letra cuando la tiene, y luego sus términos (tmi_indicador_termino) y formula_sql."""
+    """Regenera la fórmula interna de cada indicador desde la fórmula con letras (formula_alias) y las variables
+    actuales de cada letra cuando la tiene, y avisa de las fórmulas que no se pueden leer. Los términos y la expresión
+    SQL no se guardan: el cálculo los arma cada vez desde la fórmula (tmiBaseRep.crear_tablas_formula)."""
     errores = []
     try:
-        if cursor.execute("SELECT COL_LENGTH('dbo.tmi_indicador', 'formula_alias')").fetchone()[0] is None:
-            return
-        for id_ind, codigo, alias in cursor.execute(
-                "SELECT id, codigo, formula_alias FROM dbo.tmi_indicador WHERE NULLIF(LTRIM(formula_alias), '') IS NOT NULL").fetchall():
+        for id_ind, codigo, alias, formula_variable in cursor.execute(
+                """SELECT id, codigo, formula_alias, formula_variable FROM dbo.tmi_indicador
+                   WHERE NULLIF(LTRIM(formula_alias), '') IS NOT NULL""").fetchall():
             try:
                 mapa = {}
-                for letra, nombre, agregacion, id_var in cursor.execute(
-                        """SELECT iv.letra, v.nombre, v.agregacion, v.id FROM dbo.tmi_indicador_variable iv
-                           JOIN dbo.tmi_variable v ON v.id = iv.id_variable WHERE iv.id_indicador = ?""", id_ind).fetchall():
+                # variable de cada letra: el id en la misma posición de formula_variable ({1} / {2})
+                for letra, id_var in tmiFormula.letras_de_formula(alias, formula_variable).items():
+                    fila = cursor.execute("SELECT nombre, agregacion, total_anual FROM dbo.tmi_variable WHERE id = ?",
+                                          id_var).fetchone()
+                    if not fila:
+                        raise tmiFormula.ErrorFormula(f"la variable {id_var} de la letra {letra} no existe")
+                    nombre, agregacion, total_anual = fila
                     conjuntos = cursor.execute(tmiFormula.SQL_CONJUNTOS.format(esq="dbo", p="?"), id_var, id_var).fetchall()
-                    mapa[letra] = tmiFormula.expresion_variable(nombre, agregacion, conjuntos)[0]
+                    mapa[letra] = tmiFormula.expresion_variable(nombre, agregacion, conjuntos, total_anual)[0]
                 formula = tmiFormula.expandir_alias(alias, mapa)
                 cursor.execute("UPDATE dbo.tmi_indicador SET formula = ? WHERE id = ?", formula, id_ind)
             except tmiFormula.ErrorFormula as e:
                 errores.append(f"{codigo}: {e} (se mantiene la fórmula anterior)")
-        # regla de nulos de cada indicador (si la tabla aún no tiene las columnas: CERO / NA, el comportamiento anterior)
-        con_regla = cursor.execute("SELECT COL_LENGTH('dbo.tmi_indicador', 'si_division_cero')").fetchone()[0] is not None
-        regla = "si_variable_nula, si_division_cero" if con_regla else "'CERO', 'NA'"
+        # regla de nulos de cada indicador
         for id_ind, codigo, texto, si_variable_nula, si_division_cero in cursor.execute(
-                f"SELECT id, codigo, formula, {regla} FROM dbo.tmi_indicador "
+                "SELECT id, codigo, formula, si_variable_nula, si_division_cero FROM dbo.tmi_indicador "
                 "WHERE NULLIF(LTRIM(formula), '') IS NOT NULL").fetchall():
             try:
-                f = tmiFormula.analizar(texto, si_variable_nula, si_division_cero)
+                tmiFormula.analizar(texto, si_variable_nula, si_division_cero)
             except tmiFormula.ErrorFormula as e:
-                errores.append(f"{codigo}: {e}")
-                cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = NULL, formula_plantilla = NULL WHERE id = ?", id_ind)
-                cursor.execute("DELETE FROM dbo.tmi_indicador_termino WHERE id_indicador = ?", id_ind)
-                continue
-            cursor.execute("DELETE FROM dbo.tmi_indicador_termino WHERE id_indicador = ?", id_ind)
-            for r in tmiFormula.filas_termino(f):
-                cursor.execute("""INSERT INTO dbo.tmi_indicador_termino (id_indicador, codigo, tipgrupo, actividad, servicio,
-                                  mediana, texto) VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                               id_ind, r["codigo"], r["tipgrupo"], r["actividad"], r["servicio"], r["mediana"], r["texto"])
-            cursor.execute("UPDATE dbo.tmi_indicador SET formula_sql = ?, formula_plantilla = ? WHERE id = ?",
-                           f.sql, tmiFormula.plantilla(f), id_ind)
+                errores.append(f"{codigo}: {e} (no entra al cálculo)")
         resultado["formulas"] = "OK" if not errores else "AVISO: " + "; ".join(errores)
     except Exception as e:
         resultado["formulas"] = f"ERROR {e}"
@@ -186,8 +178,6 @@ def _sincronizar_formulas(cursor, resultado: Dict[str, str]) -> None:
 
 def _cargar_semillas(cursor, resultado: Dict[str, str]) -> None:
     for tabla, archivo in SEMILLAS:
-        if cursor.execute("SELECT OBJECT_ID(?)", f"dbo.{tabla}").fetchone()[0] is None:
-            continue
         if cursor.execute(f"SELECT TOP 1 1 FROM dbo.{tabla}").fetchone() is not None:
             continue   # ya tiene datos: no se pisa lo que cargó el usuario
         _ejecutar(cursor, archivo, RESOURCES_DIR, resultado)

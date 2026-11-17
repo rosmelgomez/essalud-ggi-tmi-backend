@@ -12,9 +12,9 @@ from src.main.repositories.tmiBaseRep import name_server
 TABLAS = {
     "tmi_indicador": "Indicador",
     "tmi_indicador_estandar": "Estándar por nivel/categoría/tipo",
-    "tmi_indicador_tolerancia": "% Acept del mes",
+    "tmi_indicador_acept": "% Acept del año",
     "tmi_indicador_ambito": "Ámbito (centros del indicador)",
-    "tmi_centro_estandar": "Estándar específico del centro",
+    "tmi_estandar_centro": "Estándar específico del centro",
     "tmi_exclusion_centro_indicador": "Exclusión de centro",
     "tmi_estandar_tipo": "Estándar por tipo",
     "tmi_estandar_nivel": "Estándar por nivel",

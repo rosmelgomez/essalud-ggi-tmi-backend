@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from src.main.security.jwtRequestFilter import get_current_user
@@ -14,20 +14,14 @@ from src.main.repositories import centroRep, tmiBaseRep
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/tmi",
-    tags=["TMI Centros"],
-    dependencies=[Depends(get_current_user)],
-)
-
-routerDinamico = APIRouter(
-    prefix="/tmi/dinamico",
+    prefix="/centro",
     tags=["TMI Centros"],
     dependencies=[Depends(get_current_user)],
 )
 
 
 # Catálogos de nivel, tipo y categoría del centro (tmi_nivel_centro, tmi_nivel_estandar_centro, tmi_tipo_centro)
-@routerDinamico.get("/catalogos-centro")
+@router.get("/catalogos-centro")
 async def listaCatalogosCentro(db: Session = Depends(get_db)):
     return centroRep.queryCatalogosCentroTMI(db)
 
@@ -169,25 +163,47 @@ async def queryUpdateExclusionCentroEstandar(
 
 
 
-@routerDinamico.get("/catalogo/centros")
+@router.delete("/delete-exclusion-centro-estandar/{id}")
+async def queryDeleteExclusionCentroEstandar(
+    id: int,
+    mes: int | None = Query(default=None, ge=1, le=12, description="Solo quita ese mes; sin mes, todo el año"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        logger.info("Usuario '%s' eliminando exclusión de centro estándar %s (mes %s)", current_user.get("username"), id, mes)
+        from src.main.service.centroServ import queryDeleteExclusionCentroEstandarServ
+        return queryDeleteExclusionCentroEstandarServ(db, id, mes)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error al eliminar la exclusión de centro estándar: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ocurrió un error al eliminar la exclusión de centro estándar.",
+        )
+
+
+@router.get("/catalogo/centros")
 async def catalogoCentros(db: Session = Depends(get_db)):
     return centroRep.queryCatalogoCentrosTMI(db)
 
-@routerDinamico.get("/centro-estandar/{anio}")
-async def listaCentroEstandar(anio: int, db: Session = Depends(get_db)):
-    return centroRep.queryCentroEstandarTMI(db, anio)
+@router.get("/centro-estandar/{anio}")
+async def listaCentroEstandar(anio: int, mes: int | None = Query(None, ge=1, le=12), db: Session = Depends(get_db)):
+    return centroRep.queryCentroEstandarTMI(db, anio, mes)
 
 
-@routerDinamico.post("/centro-estandar")
+@router.post("/centro-estandar")
 async def crearCentroEstandar(dto: tmiCentroEstandarDto, db: Session = Depends(get_db)):
-    return tmiBaseRep.queryInsertarFila(db, "tmi_centro_estandar", dto.model_dump())
+    # si el centro ya tiene registro del indicador en el año, solo cambia el periodo (no se duplica)
+    return centroRep.queryCrearCentroEstandar(db, dto.model_dump())
 
 
-@routerDinamico.put("/centro-estandar/{id}")
+@router.put("/centro-estandar/{id}")
 async def actualizarCentroEstandar(id: int, dto: tmiCentroEstandarDto, db: Session = Depends(get_db)):
-    return tmiBaseRep.queryActualizarFila(db, "tmi_centro_estandar", id, dto.model_dump())
+    return tmiBaseRep.queryActualizarFila(db, "tmi_estandar_centro", id, dto.model_dump())
 
 
-@routerDinamico.delete("/centro-estandar/{id}")
+@router.delete("/centro-estandar/{id}")
 async def eliminarCentroEstandar(id: int, db: Session = Depends(get_db)):
-    return tmiBaseRep.queryEliminarFila(db, "tmi_centro_estandar", id)
+    return tmiBaseRep.queryEliminarFila(db, "tmi_estandar_centro", id)

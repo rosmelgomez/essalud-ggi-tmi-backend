@@ -5,8 +5,8 @@
    backend desde src/main/model/historialModel.py) una fila por registro que cambió, con la fila antes y después en XML.
    - usuario: el del token, que el backend pone en CONTEXT_INFO al tomar una conexión del pool
      (src/main/db/auditoria.py); si el cambio no vino de la API (SSMS, scripts), el login de SQL Server.
-   - No guarda las columnas de auditoría ni formula_sql / formula_plantilla (se derivan de la fórmula), y descarta los UPDATE que no
-     cambiaron nada (por ejemplo, al volver a generar formula_sql al iniciar).
+   - No guarda las columnas de auditoría, y descarta los UPDATE que no cambiaron nada (por ejemplo, al volver a
+     generar la fórmula al iniciar).
    Los triggers se generan desde sys.columns: si se agrega una columna a una tabla, al reiniciar el backend el
    trigger la incluye. Compatible con SQL Server 2008 R2 (FOR XML, sin STRING_AGG ni JSON). */
 
@@ -14,10 +14,16 @@ IF OBJECT_ID('dbo.tmi_config_historial', 'U') IS NULL
     RAISERROR('Falta dbo.tmi_config_historial: la crea el backend al iniciar (historialModel.py).', 16, 1);
 GO
 
+/* tablas renombradas en src/main/model/tablas.py (tmi_centro_estandar -> tmi_estandar_centro, tmi_indicador_tolerancia -> tmi_indicador_acept): los cambios ya registrados pasan al
+   nombre nuevo para que el historial los siga mostrando juntos */
+UPDATE dbo.tmi_config_historial SET tabla = 'tmi_estandar_centro' WHERE tabla = 'tmi_centro_estandar';
+UPDATE dbo.tmi_config_historial SET tabla = 'tmi_indicador_acept' WHERE tabla = 'tmi_indicador_tolerancia';
+GO
+
 DECLARE @tablas TABLE (tabla SYSNAME PRIMARY KEY);
 INSERT INTO @tablas (tabla) VALUES
-    ('tmi_indicador'), ('tmi_indicador_estandar'), ('tmi_indicador_tolerancia'), ('tmi_indicador_ambito'),
-    ('tmi_centro_estandar'), ('tmi_exclusion_centro_indicador'),
+    ('tmi_indicador'), ('tmi_indicador_acept'),
+    ('tmi_estandar_centro'), ('tmi_exclusion_centro_indicador'),
     ('tmi_estandar_tipo'), ('tmi_estandar_nivel'), ('tmi_estandar_categoria'), ('tmi_estandar'), ('tmi_tipo_estandar'),
     ('tmi_variable'), ('tmi_variable_logica'), ('tmi_variable_componente'), ('tmi_centro');
 
@@ -51,7 +57,6 @@ WHILE @@FETCH_STATUS = 0
 BEGIN
     SET @ind = CASE WHEN @tabla = 'tmi_indicador' THEN N'COALESCE(i.id, d.id)'
                     WHEN COL_LENGTH(N'dbo.' + @tabla, 'id_indicador') IS NOT NULL THEN N'COALESCE(i.id_indicador, d.id_indicador)'
-                    WHEN COL_LENGTH(N'dbo.' + @tabla, 'id_estandar') IS NOT NULL THEN N'COALESCE(i.id_estandar, d.id_estandar)'
                     ELSE N'CAST(NULL AS INT)' END;
     -- text/ntext/image no se pueden leer en inserted/deleted
     SET @cols = STUFF((SELECT N', x.' + QUOTENAME(c.name)

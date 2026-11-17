@@ -16,7 +16,7 @@ from src.main.service.cierreServ import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/tmi/cierre",
+    prefix="/cierre",
     tags=["TMI Cierre"],
     dependencies=[Depends(get_current_user)],
 )

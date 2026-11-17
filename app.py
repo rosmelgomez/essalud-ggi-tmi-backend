@@ -11,8 +11,11 @@ load_dotenv()
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper(),
                     format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
 
-from fastapi import FastAPI, Request
-from src.main.controller import apiCentro, apiCierre, apiEstandar, apiIndicador, apiTmiDinamico, apiVariable
+from fastapi import APIRouter, FastAPI, Request
+from src.main.controller import (apiBackup, apiCalculo, apiCatalogo, apiCentro, apiCierre, apiConfiguracion,
+                                 apiDashboard, apiEstandar, apiExcel, apiHistorial, apiIndicador, apiJustificacion,
+                                 apiResultado, apiVariable)
+from src.main.core.serverConfig import CONTEXT_PATH
 from src.main.core.tmiConfig import TMI_EJECUTAR_SQL
 from src.main.db.auditoria import USUARIO_ACTUAL
 from src.main.db.sqlRunner import ejecutar_scripts
@@ -63,12 +66,11 @@ async def usuario_para_historial(request: Request, call_next):
     finally:
         USUARIO_ACTUAL.reset(marca)
 
-app.include_router(apiCentro.router)
-app.include_router(apiEstandar.router)
-app.include_router(apiCierre.router)
-app.include_router(apiTmiDinamico.router)
-app.include_router(apiVariable.router)
-app.include_router(apiIndicador.router)
-app.include_router(apiEstandar.routerDinamico)
-app.include_router(apiCentro.routerDinamico)
+# Todas las APIs bajo un solo prefijo (CONTEXT_PATH, /tmi por defecto), como el context-path /ggi de
+# essalud-gcpp-backend: cada controlador solo declara el suyo, por ejemplo /variable -> /tmi/variable/...
+api = APIRouter(prefix=CONTEXT_PATH)
+for controlador in (apiCatalogo, apiCentro, apiEstandar, apiIndicador, apiVariable, apiConfiguracion, apiCalculo,
+                    apiBackup, apiJustificacion, apiResultado, apiDashboard, apiExcel, apiHistorial, apiCierre):
+    api.include_router(controlador.router)
+app.include_router(api)
 

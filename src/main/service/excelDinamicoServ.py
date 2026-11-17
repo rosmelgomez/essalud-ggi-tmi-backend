@@ -25,9 +25,9 @@ from openpyxl.formatting.rule import Rule
 from openpyxl.utils import get_column_letter
 from sqlalchemy.orm import Session
 
-from src.main.repositories.estandarRep import queryEstandaresExcelTMI
+from src.main.repositories.excelRep import queryEstandaresExcelTMI
 from src.main.repositories.indicadorRep import queryIndicadoresActivosTMI
-from src.main.repositories.tmiDinamicoRep import (
+from src.main.repositories.resultadoRep import (
     queryResultadoFinalTMI,
     queryResultadoTMI,
 )
@@ -188,11 +188,8 @@ def _es_red(nombre: str) -> bool:
 
 
 def _orden_redes(centros: List[Dict[str, Any]]) -> List[str]:
-    vistos: Dict[str, tuple] = {}
-    for c in centros:
-        red = c["red"] or ""
-        vistos.setdefault(red, (c["orden"] if c["orden"] is not None else 9999, len(vistos)))
-    return [red for red, _ in sorted(vistos.items(), key=lambda x: x[1])]
+    """Redes en el orden en que aparecen sus centros."""
+    return list(dict.fromkeys(c["red"] or "" for c in centros))
 
 
 def _llenar_indicador(wb, modelo, ind: Dict[str, Any], centros: List[Dict[str, Any]],
@@ -319,7 +316,7 @@ def _normalizar_titulo(texto: Any) -> str:
 def _llenar_estandares(wb, db: Session, anio: str, mes: int) -> None:
     """Hoja Estandares con el estándar y el % Acept del mes de corte (cambian de un mes a otro). Cada bloque de la
     plantilla (título "- INDICADOR", fila Nivel con las claves, fila Estandar y filas de % Acept) se llena con el
-    indicador del mismo título; la columna P lleva la tolerancia del mes."""
+    indicador del mismo título; la columna P lleva el % Acept del mes."""
     if "Estandares" not in wb.sheetnames:
         return
     ws = wb["Estandares"]
@@ -341,8 +338,8 @@ def _llenar_estandares(wb, db: Session, anio: str, mes: int) -> None:
         if ind is None:
             logger.warning("Hoja Estandares: el bloque %r no corresponde a ningún indicador activo", titulo)
             continue
-        tol, tol_menos = ind["tolerancia"] or 0, ind["tolerancia_menos"] or 0
-        rel = (ind["tipo_tolerancia"] or "REL") != "ABS"
+        tol, tol_menos = ind["acept"] or 0, ind["aceptmenos"] or 0
+        rel = (ind["tipo_acept"] or "REL") != "ABS"
         for col in range(4, 15):   # D..N
             clave = str(ws.cell(cab, col).value or "").strip()
             if not clave:
@@ -382,10 +379,10 @@ def generar_excel_tmi_dinamico(db: Session, periodo: str, calcular: bool = True,
         raise ValueError(f"No hay resultado del periodo {periodo}: ningún indicador activo tiene centros en ese periodo.")
     final: Dict[int, Dict[int, Dict[str, Any]]] = defaultdict(dict)
     centros_por_cod: Dict[int, Dict[str, Any]] = {}
-    for r in filas_final:   # vienen ordenadas por orden_red, orden
+    for r in filas_final:   # vienen ordenadas por orden (id_centro)
         final[r["id_indicador"]][r["codcentro"]] = r
         centros_por_cod.setdefault(r["codcentro"], {
-            "codcentro": r["codcentro"], "centro": r["centro"], "red": r["red"], "orden": r["orden_red"],
+            "codcentro": r["codcentro"], "centro": r["centro"], "red": r["red"],
             "id_centro": r["orden"], "nivel": r["nivel"], "categoria": r["categoria"], "tipo": r["tipo"]})
     centros = list(centros_por_cod.values())
     # indicadores calculados en el periodo (en el orden actual de tmi_indicador)

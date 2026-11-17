@@ -9,9 +9,10 @@ from src.main.model.base import AHORA, TMI_SCHEMA, Base, defecto
 class TmiVariable(Base):
     __tablename__ = "tmi_variable"
     __table_args__ = (
-        # la mediana del periodo solo tiene sentido en una variable MEDIANA
+        # SUMA acumula con la suma de los meses o la mediana del periodo (CONSO11); MEDIANA solo con la mediana del
+        # periodo (CONSO1..10, 12..14)
         CheckConstraint("agregacion IN ('SUMA', 'MEDIANA') AND total_anual IN ('SUMA_MESES', 'MEDIANA_PERIODO') "
-                        "AND (agregacion = 'MEDIANA' OR total_anual = 'SUMA_MESES')", name="CK_tmi_variable_calculo"),
+                        "AND (agregacion = 'SUMA' OR total_anual = 'MEDIANA_PERIODO')", name="CK_tmi_variable_calculo"),
         {"schema": TMI_SCHEMA},
     )
     id = Column(Integer, primary_key=True)
@@ -35,8 +36,6 @@ class TmiVariableLogica(Base):
     actividad = Column(Integer, nullable=False)                # DIM_ACTIVIDAD.actividad
     servicio = Column(Integer)                                 # TOTALIZADO3.servicio ; NULL = todos
     condicion_hoja = Column(String(20))                        # DIM_HOJA.condicion ; NULL = todas
-    periodo_desde = Column(Integer, nullable=False, server_default=defecto(200001))
-    periodo_hasta = Column(Integer, nullable=False, server_default=defecto(999912))
     activo = Column(BIT, nullable=False, server_default=defecto(1))
 
 

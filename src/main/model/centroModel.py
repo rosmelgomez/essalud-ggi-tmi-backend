@@ -1,6 +1,6 @@
 """Centros: tmi_centro, estándar propio de centro y exclusión de centro por indicador."""
 
-from sqlalchemy import CheckConstraint, Column, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.mssql import BIT
 
 from src.main.model.base import TMI_SCHEMA, Base, defecto
@@ -56,15 +56,14 @@ class TmiCentro(Base):
 
 class TmiCentroEstandar(_EstandarMensual, Base):
     """Estándar específico de un centro (gana sobre tipo, nivel y categoría)."""
-    __tablename__ = "tmi_centro_estandar"
+    __tablename__ = "tmi_estandar_centro"
     __table_args__ = {"schema": TMI_SCHEMA}
     id = Column(Integer, primary_key=True)
     id_centro = Column(Integer)
     codcentro = Column(String(50), nullable=False)
     id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
     anio = Column(Integer, nullable=False)
-    aplica = Column(BIT, nullable=False, server_default=defecto(1))    # 0 = NA
-    acept = Column(Float)                                      # % Acept propio
+    aplica = Column(BIT, nullable=False, server_default=defecto(1))    # 0 = NA (el % Acept es el del indicador)
     sustento = Column(String(300))
 
 
@@ -95,8 +94,8 @@ class TmiExclusionCentroIndicador(Base):
     excl_11 = Column(BIT)
     excl_12 = Column(BIT)
     motivo = Column(String(300))
-    # cómo queda el mes excluido en el resultado final: '0' (puntaje 0, valor 0; por defecto) o 'NA' (no aplica)
-    resultado = Column(String(2), nullable=False, server_default=defecto("0"))
+    # cómo queda el mes excluido en el resultado final: 'NA' (no aplica; por defecto) o '0' (puntaje 0, valor 0)
+    resultado = Column(String(2), nullable=False, server_default=defecto("NA"))
     # resultado propio de cada mes excluido ('0' o 'NA'); NULL = el de la columna resultado
     res_01 = Column(String(2))
     res_02 = Column(String(2))

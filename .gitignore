@@ -37,3 +37,7 @@ build/
 .env
 
 __pycache__/
+
+# pruebas (pytest)
+tests/
+.pytest_cache/

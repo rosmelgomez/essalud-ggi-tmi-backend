@@ -11,11 +11,6 @@ IF NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_calculo WHERE codigo = 'ACUMULADO')
 GO
 
 /* ---------- Secciones del reporte: se leen de DIM_GRUPO (tmi_indicador.grupo = DIM_GRUPO.tipgrupo) ---------- */
--- bases creadas antes: quita la FK de tmi_indicador.grupo hacia tmi_grupo (la tabla ya no se usa)
-DECLARE @fk_grupo sysname = (SELECT TOP 1 name FROM sys.foreign_keys
-                             WHERE parent_object_id = OBJECT_ID('dbo.tmi_indicador')
-                               AND referenced_object_id = OBJECT_ID('dbo.tmi_grupo'));
-IF @fk_grupo IS NOT NULL EXEC('ALTER TABLE dbo.tmi_indicador DROP CONSTRAINT ' + @fk_grupo);
 GO
 
 /* ---------- Variables y su lógica (grupo / actividad / servicio de TOTALIZADO3) ---------- */
@@ -104,52 +99,81 @@ GO
 /* ---------- Indicadores (id = id_estandar de tmi_estandar y de las tablas de estándar) ---------- */
 SET IDENTITY_INSERT dbo.tmi_indicador ON;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 1) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (1, 1, 'Concentracion de Consultas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'CE_Concent', nombre_hoja = 'C.E_Concent.', titulo_hoja = 'CONCENTRACION DE CONSULTAS', orden = 1, tipo_calculo = 'ACUMULADO', sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 1 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'CE_Concent', nombre_hoja = 'C.E_Concent.', titulo_hoja = 'CONCENTRACION DE CONSULTAS', orden = 1, tipo_calculo = 'ACUMULADO', sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MENOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 1 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 2) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (2, 1, 'Rendimiento Hora Medico', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'CE_RHrMedico', nombre_hoja = 'C.E_R.Hr.Medico', titulo_hoja = 'RENDIMIENTO HORA MEDICO', orden = 2, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'NIVEL_TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = 2, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 2 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'CE_RHrMedico', nombre_hoja = 'C.E_R.Hr.Medico', titulo_hoja = 'RENDIMIENTO HORA MEDICO', orden = 2, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'NIVEL_TIPO', sentido = 'MAYOR', decimales = 2, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 2 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 3) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (3, 1, 'Grado de Cumplimiento de Horas Programadas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'CE_GCHProg', nombre_hoja = 'C.E_G.C.H.Prog', titulo_hoja = 'GRADO DE CUMPLIMIENTO DE HORAS PROGRAMADAS', orden = 3, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.05, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 3 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'CE_GCHProg', nombre_hoja = 'C.E_G.C.H.Prog', titulo_hoja = 'GRADO DE CUMPLIMIENTO DE HORAS PROGRAMADAS', orden = 3, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 3 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 4) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (4, 1, 'Promedio de Recetas por Consultas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'CE_Recetas', nombre_hoja = 'C.E_Recetas', titulo_hoja = 'PROMEDIO DE RECETAS POR CONSULTAS', orden = 4, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = 2, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 4 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'CE_Recetas', nombre_hoja = 'C.E_Recetas', titulo_hoja = 'PROMEDIO DE RECETAS POR CONSULTAS', orden = 4, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = 2, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 4 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 5) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (5, 3, 'Promedio Dia Estancia', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'H_Estancias', nombre_hoja = 'H_Estancias', titulo_hoja = 'PROMEDIO DIA ESTANCIA', orden = 5, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.2, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 5 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'H_Estancias', nombre_hoja = 'H_Estancias', titulo_hoja = 'PROMEDIO DIA ESTANCIA', orden = 5, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 5 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 6) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (6, 3, 'Porcentaje de Ocupación de Cama', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'H_OCama', nombre_hoja = 'H_% O.Cama', titulo_hoja = 'PORCENTAJE DE OCUPACIÓN DE CAMA', orden = 6, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'BANDA', tipo_tolerancia = 'ABS', tolerancia = 0.05, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 6 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'H_OCama', nombre_hoja = 'H_% O.Cama', titulo_hoja = 'PORCENTAJE DE OCUPACIÓN DE CAMA', orden = 6, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'BANDA', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 6 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 7) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (7, 3, 'Intervalo de Sustitución', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'H_ISust', nombre_hoja = 'H_I.Sust.', titulo_hoja = 'INTERVALO DE SUSTITUCIÓN', orden = 7, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.2, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 7 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'H_ISust', nombre_hoja = 'H_I.Sust.', titulo_hoja = 'INTERVALO DE SUSTITUCIÓN', orden = 7, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 7 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 8) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (8, 3, 'Rendimiento Cama', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'H_RCama', nombre_hoja = 'H_R.Cama', titulo_hoja = 'RENDIMIENTO CAMA', orden = 8, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.2, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 8 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'H_RCama', nombre_hoja = 'H_R.Cama', titulo_hoja = 'RENDIMIENTO CAMA', orden = 8, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 8 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 9) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (9, 3, 'Tasa Neta de Mortalidad Hospitalaria', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'H_TBMHosp', nombre_hoja = 'H_T.B.M.Hosp', titulo_hoja = 'TASA NETA DE MORTALIDAD HOSPITALARIA', orden = 9, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 1, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 9 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'H_TBMHosp', nombre_hoja = 'H_T.B.M.Hosp', titulo_hoja = 'TASA NETA DE MORTALIDAD HOSPITALARIA', orden = 9, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 1, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 9 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 10) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (10, 6, 'Porcentaje de Intervenciones Menores', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Qx_IMenor', nombre_hoja = 'Qx_I.Menor', titulo_hoja = 'PORCENTAJE DE INTERVENCIONES MENORES', orden = 10, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.2, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 10 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Qx_IMenor', nombre_hoja = 'Qx_I.Menor', titulo_hoja = 'PORCENTAJE DE INTERVENCIONES MENORES', orden = 10, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 10 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 11) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (11, 6, 'Porcentaje de Intervenciones de Alta Complejidad', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Qx_IAlta', nombre_hoja = 'Qx_I.Alta', titulo_hoja = 'PORCENTAJE DE INTERVENCIONES DE ALTA COMPLEJIDAD', orden = 11, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.2, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 11 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Qx_IAlta', nombre_hoja = 'Qx_I.Alta', titulo_hoja = 'PORCENTAJE DE INTERVENCIONES DE ALTA COMPLEJIDAD', orden = 11, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 11 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 12) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (12, 6, 'Porcentaje de Horas Quirúrgicas Efectivas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Qx_GCHProg', nombre_hoja = 'Qx_G.C.H.Prog', titulo_hoja = 'PORCENTAJE DE HORAS QUIRÚRGICAS EFECTIVAS', orden = 12, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'ABS', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 12 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Qx_GCHProg', nombre_hoja = 'Qx_G.C.H.Prog', titulo_hoja = 'PORCENTAJE DE HORAS QUIRÚRGICAS EFECTIVAS', orden = 12, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 12 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 13) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (13, 6, 'Rendimiento de Sala de Operaciones', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Qx_RendSO', nombre_hoja = 'Qx_Rend.SO', titulo_hoja = 'RENDIMIENTO DE SALA DE OPERACIONES', orden = 13, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 13 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Qx_RendSO', nombre_hoja = 'Qx_Rend.SO', titulo_hoja = 'RENDIMIENTO DE SALA DE OPERACIONES', orden = 13, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 13 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 14) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (14, 6, 'Porcentaje de Operaciones Suspendidas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Qx_IntSusp', nombre_hoja = 'Qx.Int.Susp', titulo_hoja = 'PORCENTAJE DE OPERACIONES SUSPENDIDAS', orden = 14, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 1, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 14 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Qx_IntSusp', nombre_hoja = 'Qx.Int.Susp', titulo_hoja = 'PORCENTAJE DE OPERACIONES SUSPENDIDAS', orden = 14, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 1, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 14 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 15) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (15, 6, 'Tasa de Cesáreas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Qx_HTCesareas', nombre_hoja = 'H_T.Cesareas', titulo_hoja = 'TASA DE CESÁREAS', orden = 15, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 1, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 15 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Qx_HTCesareas', nombre_hoja = 'H_T.Cesareas', titulo_hoja = 'TASA DE CESÁREAS', orden = 15, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 1, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 15 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 16) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (16, 8, '% Prioridad IV y V con respecto al Total de Emergencias', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Em_PrioIV_V', nombre_hoja = 'Em_Prio.IV_V', titulo_hoja = '% PRIORIDAD IV Y V CON RESPECTO AL TOTAL DE EMERGENCIAS', orden = 16, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.2, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 16 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Em_PrioIV_V', nombre_hoja = 'Em_Prio.IV_V', titulo_hoja = '% PRIORIDAD IV Y V CON RESPECTO AL TOTAL DE EMERGENCIAS', orden = 16, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MENOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 16 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 17) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (17, 8, '% Prioridad I y II con respecto al Total de Emergencias', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'Em_PrioI_II', nombre_hoja = 'Em_Prio.I_II', titulo_hoja = '% PRIORIDAD I Y II CON RESPECTO AL TOTAL DE EMERGENCIAS', orden = 17, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 17 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'Em_PrioI_II', nombre_hoja = 'Em_Prio.I_II', titulo_hoja = '% PRIORIDAD I Y II CON RESPECTO AL TOTAL DE EMERGENCIAS', orden = 17, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 17 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 18) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (18, 19, 'Concentración de Sesiones Odontológicas', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'O_Concent', nombre_hoja = 'O_Concent.', titulo_hoja = 'CONCENTRACIÓN DE SESIONES ODONTOLÓGICAS', orden = 18, tipo_calculo = 'ACUMULADO', sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MENOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 18 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'O_Concent', nombre_hoja = 'O_Concent.', titulo_hoja = 'CONCENTRACIÓN DE SESIONES ODONTOLÓGICAS', orden = 18, tipo_calculo = 'ACUMULADO', sin_datos_anio = 'NA', base_estandar = 'NIVEL', sentido = 'MENOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 18 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 19) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (19, 19, 'Rendimiento Hora Odontológica', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'O_HrOdont', nombre_hoja = 'O_Hr.Odont', titulo_hoja = 'RENDIMIENTO HORA ODONTOLÓGICA', orden = 19, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'NIVEL_TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 19 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'O_HrOdont', nombre_hoja = 'O_Hr.Odont', titulo_hoja = 'RENDIMIENTO HORA ODONTOLÓGICA', orden = 19, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'NIVEL_TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 19 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 20) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (20, 19, 'Grado de Cumplimiento de Hora Odontólogo', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'O_GCHOdon', nombre_hoja = 'O_G.C.H.Odon', titulo_hoja = 'GRADO DE CUMPLIMIENTO DE HORA ODONTÓLOGO', orden = 20, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.05, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 20 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'O_GCHOdon', nombre_hoja = 'O_G.C.H.Odon', titulo_hoja = 'GRADO DE CUMPLIMIENTO DE HORA ODONTÓLOGO', orden = 20, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1, formato = 'PORCENTAJE' WHERE id = 20 AND codigo IS NULL;
 IF NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE id = 21) INSERT INTO dbo.tmi_indicador (id, grupo, indicador, fecha_creacion) VALUES (21, 19, 'Número de trabajos Odontológicos por Sesión', GETDATE());
-UPDATE dbo.tmi_indicador SET codigo = 'O_NTOdontS', nombre_hoja = 'O_N.T.Odont.S', titulo_hoja = 'NÚMERO DE TRABAJOS ODONTOLÓGICOS POR SESIÓN', orden = 21, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', tipo_tolerancia = 'REL', tolerancia = 0.1, decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 21 AND codigo IS NULL;
+UPDATE dbo.tmi_indicador SET codigo = 'O_NTOdontS', nombre_hoja = 'O_N.T.Odont.S', titulo_hoja = 'NÚMERO DE TRABAJOS ODONTOLÓGICOS POR SESIÓN', orden = 21, tipo_calculo = 'MENSUAL', sin_datos_anio = 'NA', base_estandar = 'TIPO', sentido = 'MAYOR', decimales = NULL, cero_es_logro = 0, mostrar_no_aplica = 1, activo = 1 WHERE id = 21 AND codigo IS NULL;
 SET IDENTITY_INSERT dbo.tmi_indicador OFF;
+
+/* % Acept inicial de cada indicador (tmi_indicador_acept, fila del año actual; los años siguientes copian su fijo).
+   Solo para indicadores que aún no tienen ninguna fila. En banda, aceptmenos_fijo = el mismo % hacia abajo. */
+INSERT INTO dbo.tmi_indicador_acept (id_indicador, anio, tipo_acept, acept_fijo, aceptmenos_fijo)
+SELECT v.id, YEAR(GETDATE()), v.tipo_acept, v.acept, v.aceptmenos
+FROM (VALUES
+    (1, 'REL', 0.1, NULL),
+    (2, 'REL', 0.1, NULL),
+    (3, 'REL', 0.05, NULL),
+    (4, 'REL', 0.1, NULL),
+    (5, 'REL', 0.2, NULL),
+    (6, 'ABS', 0.05, 0.05),
+    (7, 'REL', 0.2, NULL),
+    (8, 'REL', 0.2, NULL),
+    (9, 'REL', 0.1, NULL),
+    (10, 'REL', 0.2, NULL),
+    (11, 'REL', 0.2, NULL),
+    (12, 'ABS', 0.1, NULL),
+    (13, 'REL', 0.1, NULL),
+    (14, 'REL', 0.1, NULL),
+    (15, 'REL', 0.1, NULL),
+    (16, 'REL', 0.2, NULL),
+    (17, 'REL', 0.1, NULL),
+    (18, 'REL', 0.1, NULL),
+    (19, 'REL', 0.1, NULL),
+    (20, 'REL', 0.05, NULL),
+    (21, 'REL', 0.1, NULL)) v(id, tipo_acept, acept, aceptmenos)
+JOIN dbo.tmi_indicador i ON i.id = v.id
+WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador_acept a WHERE a.id_indicador = v.id);
 GO
 
 /* ---------- Fórmula de cada indicador (términos de TOTALIZADO3, como la columna de fórmulas de TMI_SQL) ----------
-   Los términos (tmi_indicador_termino) y formula_sql los genera el backend al iniciar desde esta columna. */
+   Los términos y la expresión SQL no se guardan: el backend los lee de esta columna cada vez que calcula. */
 UPDATE dbo.tmi_indicador SET formula = N'[1;3] / [1;1]' WHERE codigo = 'CE_Concent' AND formula IS NULL;
 UPDATE dbo.tmi_indicador SET formula = N'[1;3] / [1;6]' WHERE codigo = 'CE_RHrMedico' AND formula IS NULL;
 UPDATE dbo.tmi_indicador SET formula = N'[1;6] / [1;5]' WHERE codigo = 'CE_GCHProg' AND formula IS NULL;
@@ -173,190 +197,122 @@ UPDATE dbo.tmi_indicador SET formula = N'[19;6] / [19;5]' WHERE codigo = 'O_GCHO
 UPDATE dbo.tmi_indicador SET formula = N'([19;60] + [19;605] + [19;165]) / [19;59]' WHERE codigo = 'O_NTOdontS' AND formula IS NULL;
 GO
 
-/* ---------- Fórmula con letras: una variable por letra ----------
-   Solo si el indicador todavía no tiene formula_alias: reemplaza las letras anteriores (varias variables por letra). */
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'CE_Concent' AND formula_alias IS NULL)
+/* ---------- Fórmula con letras y la variable de cada letra ----------
+   Solo si el indicador todavía no tiene formula_alias. formula_variable es la misma fórmula con el id de la variable de
+   cada letra entre llaves: A / B con A = variable 1 y B = variable 2 -> {1} / {2}. Si falta alguna variable, el
+   indicador queda sin fórmula con letras. */
+CREATE TABLE #letra_ini (codigo VARCHAR(20), letra CHAR(1), variable NVARCHAR(200));
+INSERT INTO #letra_ini (codigo, letra, variable) VALUES
+    ('CE_Concent', 'A', N'Consulta Externa - Consultas'),
+    ('CE_Concent', 'B', N'Consulta Externa - Consultantes al Establecimiento'),
+    ('CE_RHrMedico', 'A', N'Consulta Externa - Consultas'),
+    ('CE_RHrMedico', 'B', N'Consulta Externa - Horas Médicas Efectivas'),
+    ('CE_GCHProg', 'A', N'Consulta Externa - Horas Médicas Efectivas'),
+    ('CE_GCHProg', 'B', N'Consulta Externa - Horas Médicas Programadas'),
+    ('CE_Recetas', 'A', N'Actividades Intermedias - Recetas Despachadas de C. E'),
+    ('CE_Recetas', 'B', N'Consulta Externa - Consultas'),
+    ('H_Estancias', 'A', N'Hospitalizacion - Estancias'),
+    ('H_Estancias', 'B', N'Hospitalizacion - Egresos'),
+    ('H_OCama', 'A', N'Hospitalizacion - Pacientes Días'),
+    ('H_OCama', 'B', N'Hospitalizacion - Días Cama Disponible'),
+    ('H_ISust', 'A', N'Hospitalizacion - Días Cama Disponible'),
+    ('H_ISust', 'B', N'Hospitalizacion - Pacientes Días'),
+    ('H_ISust', 'C', N'Hospitalizacion - Egresos'),
+    ('H_RCama', 'A', N'Hospitalizacion - Egresos'),
+    ('H_RCama', 'B', N'Hospitalizacion -  Camas Hospitalarias'),
+    ('H_TBMHosp', 'A', N'Hospitalizacion - Defunciones después de 48 horas'),
+    ('H_TBMHosp', 'B', N'Hospitalizacion - Egresos'),
+    ('H_TBMHosp', 'C', N'Hospitalizacion - Defunciones antes de 48 horas'),
+    ('Qx_IMenor', 'A', N'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento'),
+    ('Qx_IMenor', 'B', N'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'),
+    ('Qx_IMenor', 'C', N'Centro Quirúrgico - A-Cirugía Mayor de Alta Complejidad'),
+    ('Qx_IMenor', 'D', N'Centro Quirúrgico - B-Cirugía Mayor de Mediana Complejidad'),
+    ('Qx_IMenor', 'E', N'Centro Quirúrgico - C-Cirugía Mayor de Baja Complejidad'),
+    ('Qx_IMenor', 'F', N'Centro Quirúrgico - Cirugías sin clasificación de complejidad'),
+    ('Qx_IAlta', 'A', N'Centro Quirúrgico - A-Cirugía Mayor de Alta Complejidad'),
+    ('Qx_IAlta', 'B', N'Centro Quirúrgico - B-Cirugía Mayor de Mediana Complejidad'),
+    ('Qx_IAlta', 'C', N'Centro Quirúrgico - C-Cirugía Mayor de Baja Complejidad'),
+    ('Qx_IAlta', 'D', N'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento'),
+    ('Qx_IAlta', 'E', N'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'),
+    ('Qx_IAlta', 'F', N'Centro Quirúrgico - Cirugías sin clasificación de complejidad'),
+    ('Qx_GCHProg', 'A', N'Centro Quirúrgico - Horas Uso de Sala'),
+    ('Qx_GCHProg', 'B', N'Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas'),
+    ('Qx_RendSO', 'A', N'Centro Quirúrgico - A-Cirugía Mayor de Alta Complejidad'),
+    ('Qx_RendSO', 'B', N'Centro Quirúrgico - B-Cirugía Mayor de Mediana Complejidad'),
+    ('Qx_RendSO', 'C', N'Centro Quirúrgico - C-Cirugía Mayor de Baja Complejidad'),
+    ('Qx_RendSO', 'D', N'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento'),
+    ('Qx_RendSO', 'E', N'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento'),
+    ('Qx_RendSO', 'F', N'Centro Quirúrgico - Cirugías sin clasificación de complejidad'),
+    ('Qx_RendSO', 'G', N'Centro Quirúrgico -  Salas Quirúrgicas Funcionales'),
+    ('Qx_IntSusp', 'A', N'Centro Quirúrgico - Operaciones Suspendidas'),
+    ('Qx_IntSusp', 'B', N'Centro Quirúrgico - Intervenc.Quirurgicas Programadas'),
+    ('Qx_HTCesareas', 'A', N'Centro Obstétrico - Cesáreas'),
+    ('Qx_HTCesareas', 'B', N'Centro Obstétrico - Total de Partos'),
+    ('Em_PrioIV_V', 'A', N'Emergencia - Prioridad IV'),
+    ('Em_PrioIV_V', 'B', N'Emergencia - Prioridad V'),
+    ('Em_PrioIV_V', 'C', N'Emergencia - Total de Atenciones'),
+    ('Em_PrioI_II', 'A', N'Emergencia - Prioridad I'),
+    ('Em_PrioI_II', 'B', N'Emergencia - Prioridad II'),
+    ('Em_PrioI_II', 'C', N'Emergencia - Total de Atenciones'),
+    ('O_Concent', 'A', N'Odontología - Sesiones Odontológicas'),
+    ('O_Concent', 'B', N'Odontología - Consultantes de Odontología'),
+    ('O_HrOdont', 'A', N'Odontología - Sesiones Odontológicas'),
+    ('O_HrOdont', 'B', N'Odontología - Horas Odontológicas Efectivas'),
+    ('O_GCHOdon', 'A', N'Odontología - Horas Odontológicas Efectivas'),
+    ('O_GCHOdon', 'B', N'Odontología - Horas Odontológicas Programadas'),
+    ('O_NTOdontS', 'A', N'Odontología - Trabajos Odontológicos'),
+    ('O_NTOdontS', 'B', N'Odontología - Diagnóstico por imágenes'),
+    ('O_NTOdontS', 'C', N'Odontología - Procedimientos Especiales'),
+    ('O_NTOdontS', 'D', N'Odontología - Sesiones Odontológicas');
+CREATE TABLE #alias_ini (codigo VARCHAR(20), alias NVARCHAR(500), formula_variable NVARCHAR(500));
+INSERT INTO #alias_ini (codigo, alias) VALUES
+    ('CE_Concent', N'A / B'),
+    ('CE_RHrMedico', N'A / B'),
+    ('CE_GCHProg', N'A / B'),
+    ('CE_Recetas', N'A / B'),
+    ('H_Estancias', N'A / B'),
+    ('H_OCama', N'A / B'),
+    ('H_ISust', N'(A - B) / C'),
+    ('H_RCama', N'A / B'),
+    ('H_TBMHosp', N'A / (B - C)'),
+    ('Qx_IMenor', N'(A + B) / (C + D + E + A + B + F)'),
+    ('Qx_IAlta', N'A / (A + B + C + D + E + F)'),
+    ('Qx_GCHProg', N'A / B'),
+    ('Qx_RendSO', N'(A + B + C + D + E + F) / G'),
+    ('Qx_IntSusp', N'A / B'),
+    ('Qx_HTCesareas', N'A / B'),
+    ('Em_PrioIV_V', N'(A + B) / C'),
+    ('Em_PrioI_II', N'(A + B) / C'),
+    ('O_Concent', N'A / B'),
+    ('O_HrOdont', N'A / B'),
+    ('O_GCHOdon', N'A / B'),
+    ('O_NTOdontS', N'(A + B + C) / D');
+UPDATE #alias_ini SET formula_variable = alias;
+DECLARE @letra CHAR(1) = 'A';
+WHILE @letra <= 'Z'
 BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'CE_Concent';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Consultas' WHERE i.codigo = 'CE_Concent';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Consultantes al Establecimiento' WHERE i.codigo = 'CE_Concent';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'CE_Concent';
+    UPDATE a SET formula_variable = REPLACE(a.formula_variable COLLATE Latin1_General_BIN, @letra, N'{' + CAST(v.id AS NVARCHAR(10)) + N'}')
+    FROM #alias_ini a
+    JOIN #letra_ini l ON l.codigo = a.codigo AND l.letra = @letra
+    JOIN dbo.tmi_variable v ON v.nombre = l.variable;
+    SET @letra = CHAR(ASCII(@letra) + 1);
 END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'CE_RHrMedico' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'CE_RHrMedico';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Consultas' WHERE i.codigo = 'CE_RHrMedico';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Horas Médicas Efectivas' WHERE i.codigo = 'CE_RHrMedico';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'CE_RHrMedico';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'CE_GCHProg' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'CE_GCHProg';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Horas Médicas Efectivas' WHERE i.codigo = 'CE_GCHProg';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Horas Médicas Programadas' WHERE i.codigo = 'CE_GCHProg';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'CE_GCHProg';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'CE_Recetas' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'CE_Recetas';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Actividades Intermedias - Recetas Despachadas de C. E' WHERE i.codigo = 'CE_Recetas';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Consulta Externa - Consultas' WHERE i.codigo = 'CE_Recetas';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'CE_Recetas';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'H_Estancias' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'H_Estancias';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Estancias' WHERE i.codigo = 'H_Estancias';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Egresos' WHERE i.codigo = 'H_Estancias';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'H_Estancias';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'H_OCama' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'H_OCama';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Pacientes Días' WHERE i.codigo = 'H_OCama';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Días Cama Disponible' WHERE i.codigo = 'H_OCama';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'H_OCama';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'H_ISust' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'H_ISust';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Días Cama Disponible' WHERE i.codigo = 'H_ISust';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Pacientes Días' WHERE i.codigo = 'H_ISust';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Egresos' WHERE i.codigo = 'H_ISust';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'(A - B) / C' WHERE codigo = 'H_ISust';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'H_RCama' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'H_RCama';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Egresos' WHERE i.codigo = 'H_RCama';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion -  Camas Hospitalarias' WHERE i.codigo = 'H_RCama';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'H_RCama';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'H_TBMHosp' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'H_TBMHosp';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Defunciones después de 48 horas' WHERE i.codigo = 'H_TBMHosp';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Egresos' WHERE i.codigo = 'H_TBMHosp';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Hospitalizacion - Defunciones antes de 48 horas' WHERE i.codigo = 'H_TBMHosp';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / (B - C)' WHERE codigo = 'H_TBMHosp';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Qx_IMenor' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Qx_IMenor';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento' WHERE i.codigo = 'Qx_IMenor';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento' WHERE i.codigo = 'Qx_IMenor';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - A-Cirugía Mayor de Alta Complejidad' WHERE i.codigo = 'Qx_IMenor';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'D', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - B-Cirugía Mayor de Mediana Complejidad' WHERE i.codigo = 'Qx_IMenor';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'E', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - C-Cirugía Mayor de Baja Complejidad' WHERE i.codigo = 'Qx_IMenor';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'F', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Cirugías sin clasificación de complejidad' WHERE i.codigo = 'Qx_IMenor';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'(A + B) / (C + D + E + A + B + F)' WHERE codigo = 'Qx_IMenor';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Qx_IAlta' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Qx_IAlta';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - A-Cirugía Mayor de Alta Complejidad' WHERE i.codigo = 'Qx_IAlta';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - B-Cirugía Mayor de Mediana Complejidad' WHERE i.codigo = 'Qx_IAlta';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - C-Cirugía Mayor de Baja Complejidad' WHERE i.codigo = 'Qx_IAlta';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'D', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento' WHERE i.codigo = 'Qx_IAlta';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'E', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento' WHERE i.codigo = 'Qx_IAlta';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'F', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Cirugías sin clasificación de complejidad' WHERE i.codigo = 'Qx_IAlta';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / (A + B + C + D + E + F)' WHERE codigo = 'Qx_IAlta';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Qx_GCHProg' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Qx_GCHProg';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Horas Uso de Sala' WHERE i.codigo = 'Qx_GCHProg';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Horas Programadas Intervenc.Quirurgicas' WHERE i.codigo = 'Qx_GCHProg';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'Qx_GCHProg';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Qx_RendSO' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - A-Cirugía Mayor de Alta Complejidad' WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - B-Cirugía Mayor de Mediana Complejidad' WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - C-Cirugía Mayor de Baja Complejidad' WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'D', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - D-Cirugía Menor de Alto Requerimiento' WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'E', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - E-Cirugía Menor de Bajo Requerimiento' WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'F', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Cirugías sin clasificación de complejidad' WHERE i.codigo = 'Qx_RendSO';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'G', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico -  Salas Quirúrgicas Funcionales' WHERE i.codigo = 'Qx_RendSO';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'(A + B + C + D + E + F) / G' WHERE codigo = 'Qx_RendSO';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Qx_IntSusp' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Qx_IntSusp';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Operaciones Suspendidas' WHERE i.codigo = 'Qx_IntSusp';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Quirúrgico - Intervenc.Quirurgicas Programadas' WHERE i.codigo = 'Qx_IntSusp';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'Qx_IntSusp';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Qx_HTCesareas' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Qx_HTCesareas';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Obstétrico - Cesáreas' WHERE i.codigo = 'Qx_HTCesareas';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Centro Obstétrico - Total de Partos' WHERE i.codigo = 'Qx_HTCesareas';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'Qx_HTCesareas';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Em_PrioIV_V' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Em_PrioIV_V';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Emergencia - Prioridad IV' WHERE i.codigo = 'Em_PrioIV_V';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Emergencia - Prioridad V' WHERE i.codigo = 'Em_PrioIV_V';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Emergencia - Total de Atenciones' WHERE i.codigo = 'Em_PrioIV_V';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'(A + B) / C' WHERE codigo = 'Em_PrioIV_V';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'Em_PrioI_II' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'Em_PrioI_II';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Emergencia - Prioridad I' WHERE i.codigo = 'Em_PrioI_II';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Emergencia - Prioridad II' WHERE i.codigo = 'Em_PrioI_II';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Emergencia - Total de Atenciones' WHERE i.codigo = 'Em_PrioI_II';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'(A + B) / C' WHERE codigo = 'Em_PrioI_II';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'O_Concent' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'O_Concent';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Sesiones Odontológicas' WHERE i.codigo = 'O_Concent';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Consultantes de Odontología' WHERE i.codigo = 'O_Concent';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'O_Concent';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'O_HrOdont' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'O_HrOdont';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Sesiones Odontológicas' WHERE i.codigo = 'O_HrOdont';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Horas Odontológicas Efectivas' WHERE i.codigo = 'O_HrOdont';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'O_HrOdont';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'O_GCHOdon' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'O_GCHOdon';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Horas Odontológicas Efectivas' WHERE i.codigo = 'O_GCHOdon';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Horas Odontológicas Programadas' WHERE i.codigo = 'O_GCHOdon';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'A / B' WHERE codigo = 'O_GCHOdon';
-END
-IF EXISTS (SELECT 1 FROM dbo.tmi_indicador WHERE codigo = 'O_NTOdontS' AND formula_alias IS NULL)
-BEGIN
-    DELETE iv FROM dbo.tmi_indicador_variable iv JOIN dbo.tmi_indicador i ON i.id = iv.id_indicador WHERE i.codigo = 'O_NTOdontS';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'A', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Trabajos Odontológicos' WHERE i.codigo = 'O_NTOdontS';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'B', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Diagnóstico por imágenes' WHERE i.codigo = 'O_NTOdontS';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'C', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Procedimientos Especiales' WHERE i.codigo = 'O_NTOdontS';
-    INSERT INTO dbo.tmi_indicador_variable (id_indicador, letra, id_variable) SELECT i.id, 'D', v.id FROM dbo.tmi_indicador i JOIN dbo.tmi_variable v ON v.nombre = N'Odontología - Sesiones Odontológicas' WHERE i.codigo = 'O_NTOdontS';
-    UPDATE dbo.tmi_indicador SET formula_alias = N'(A + B + C) / D' WHERE codigo = 'O_NTOdontS';
-END
+UPDATE i SET formula_alias = a.alias, formula_variable = a.formula_variable
+FROM dbo.tmi_indicador i JOIN #alias_ini a ON a.codigo = i.codigo
+WHERE i.formula_alias IS NULL AND PATINDEX(N'%[A-Z]%', a.formula_variable COLLATE Latin1_General_BIN) = 0;
+DROP TABLE #letra_ini;
+DROP TABLE #alias_ini;
 GO
 
 /* ---------- Estándares específicos de centro (notas de la hoja Estándares del Excel y cartas o directivas) ---------- */
--- La columna del indicador se llama id_indicador (indicador_estandar.sql / centros_tmi.sql) o id_estandar (tablas antiguas)
-DECLARE @col SYSNAME = CASE WHEN COL_LENGTH('dbo.tmi_centro_estandar', 'id_indicador') IS NOT NULL THEN 'id_indicador' ELSE 'id_estandar' END,
-        @s NVARCHAR(MAX);
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''19'' AND #COL# = 4 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 19), ''19'', 4, 2026, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 1, 2.5, ''Nota hoja Estándares: Pol. Ancije 2.5'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''701'' AND #COL# = 4 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 701), ''701'', 4, 2026, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1, NULL, ''Carta N° 2223-OCPD-EsSalud-2008 (nota hoja Estándares)'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''507'' AND #COL# = 5 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 507), ''507'', 5, 2026, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 1, 19.4, ''Nota hoja Estándares: estancia 16.2'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''507'' AND #COL# = 8 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 507), ''507'', 8, 2026, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1, 1.39, ''Carta N° 3002-OCPD-EsSalud-2009'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''507'' AND #COL# = 9 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 507), ''507'', 9, 2026, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 1, 0.2, ''Nota hoja Estándares: mortalidad 20%'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''701'' AND #COL# = 2 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 701), ''701'', 2, 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, NULL, ''CNSR - Directiva N° 06-GCOP-ESSALUD-2016'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''700'' AND #COL# = 2 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 700), ''700'', 2, 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, NULL, ''INCOR - Nota N° 000675-DIR-INCOR-ESSALUD-2025'';', '#COL#', @col); EXEC sp_executesql @s;
-SET @s = REPLACE(N'IF NOT EXISTS (SELECT 1 FROM dbo.tmi_centro_estandar WHERE codcentro = ''702'' AND #COL# = 2 AND anio = 2026) INSERT INTO dbo.tmi_centro_estandar (id_centro, codcentro, #COL#, anio, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, acept, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 702), ''702'', 2, 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, NULL, ''IPO - TMI_ESTANDARES_D.csv'';', '#COL#', @col); EXEC sp_executesql @s;
--- Un centro sin estándar ya queda en NA (SIN_ESTANDAR): las filas "No aplica" de TMI_ESTANDARES_D.csv no hacen falta
-DELETE FROM dbo.tmi_centro_estandar WHERE aplica = 0 AND sustento LIKE 'TMI_ESTANDARES_D.csv%';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '19' AND id_indicador = 4 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 19), '19', 4, 2026, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 1, 'Nota hoja Estándares: Pol. Ancije 2.5';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '701' AND id_indicador = 4 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 701), '701', 4, 2026, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1, 'Carta N° 2223-OCPD-EsSalud-2008 (nota hoja Estándares)';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '507' AND id_indicador = 5 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 507), '507', 5, 2026, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 16.2, 1, 'Nota hoja Estándares: estancia 16.2';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '507' AND id_indicador = 8 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 507), '507', 8, 2026, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1, 'Carta N° 3002-OCPD-EsSalud-2009';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '507' AND id_indicador = 9 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 507), '507', 9, 2026, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 1, 'Nota hoja Estándares: mortalidad 20%';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '701' AND id_indicador = 2 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 701), '701', 2, 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 'CNSR - Directiva N° 06-GCOP-ESSALUD-2016';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '700' AND id_indicador = 2 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 700), '700', 2, 2026, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 'INCOR - Nota N° 000675-DIR-INCOR-ESSALUD-2025';
+IF NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_centro WHERE codcentro = '702' AND id_indicador = 2 AND anio = 2026) INSERT INTO dbo.tmi_estandar_centro (id_centro, codcentro, id_indicador, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12, aplica, sustento) SELECT (SELECT MIN(id_centro) FROM dbo.vw_tmi_centro_base WHERE codcentro = 702), '702', 2, 2026, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 'IPO - TMI_ESTANDARES_D.csv';
 GO
 
 
@@ -368,46 +324,7 @@ INSERT INTO dbo.tmi_tipo_estandar (codigo, descripcion, orden)
 SELECT v.codigo, v.descripcion, v.orden
 FROM (VALUES ('NIVEL', 'Nivel', 1), ('NIVEL_TIPO', 'Nivel y Tipo', 2), ('TIPO', 'Tipo', 3), ('CATEGORIA', 'Categoría', 4)) v(codigo, descripcion, orden)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_estandar t WHERE t.codigo = v.codigo);
-UPDATE dbo.tmi_tipo_estandar SET descripcion = 'Nivel'        WHERE codigo = 'NIVEL'      AND descripcion <> 'Nivel';
-UPDATE dbo.tmi_tipo_estandar SET descripcion = 'Nivel y Tipo' WHERE codigo = 'NIVEL_TIPO' AND descripcion <> 'Nivel y Tipo';
-
--- la base temporal "Nivel (I, II, III)" ya no hace falta: Nivel es I, II, III
-UPDATE dbo.tmi_indicador SET base_estandar = 'NIVEL' WHERE base_estandar = 'NIVEL_ATENCION';
-DELETE dbo.tmi_estandar WHERE tipo_estandar = 'NIVEL_ATENCION';
-DELETE dbo.tmi_tipo_estandar WHERE codigo = 'NIVEL_ATENCION';
 GO
-
-/* ---------- Migración: valores por nivel_estandar en tmi_estandar_nivel -> I, II, III ----------
-   Cada nivel toma el valor del nivel_estandar que tienen más centros de ese nivel (I = C.M., II = H.I, III = H.N.).
-   Los institutos (CNSR, IPO, INCOR) siguen en tmi_estandar_tipo. Si ya no hay claves de nivel_estandar no hace nada. */
-IF OBJECT_ID('dbo.tmi_estandar_nivel') IS NOT NULL AND OBJECT_ID('dbo.tmi_centro') IS NOT NULL
-   AND COL_LENGTH('dbo.tmi_centro', 'nivel_estandar') IS NOT NULL
-   AND EXISTS (SELECT 1 FROM dbo.tmi_estandar_nivel WHERE LTRIM(RTRIM(nivel_centro)) NOT IN ('I', 'II', 'III'))
-BEGIN
-    ;WITH cnt AS (
-        SELECT c.nivel, c.nivel_estandar, COUNT(*) AS n
-        FROM dbo.tmi_centro c
-        WHERE c.nivel IN ('I', 'II', 'III') AND c.nivel_estandar IS NOT NULL
-        GROUP BY c.nivel, c.nivel_estandar),
-    src AS (
-        SELECT e.*, k.nivel AS nivel_nuevo,
-               ROW_NUMBER() OVER (PARTITION BY e.id_indicador, e.anio, k.nivel ORDER BY k.n DESC, e.nivel_centro) AS rn
-        FROM dbo.tmi_estandar_nivel e
-        JOIN cnt k ON k.nivel_estandar = LTRIM(RTRIM(e.nivel_centro))
-        WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar_nivel x
-                          WHERE x.id_indicador = e.id_indicador AND x.anio = e.anio AND x.nivel_centro = k.nivel))
-    INSERT INTO dbo.tmi_estandar_nivel (id_indicador, nivel_centro, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12)
-    SELECT id_indicador, nivel_nuevo, anio, est_fijo, est_01, est_02, est_03, est_04, est_05, est_06, est_07, est_08, est_09, est_10, est_11, est_12
-    FROM src WHERE rn = 1;
-    DELETE dbo.tmi_estandar_nivel WHERE LTRIM(RTRIM(nivel_centro)) NOT IN ('I', 'II', 'III');
-END
-GO
-
--- claves anteriores: Nivel por nivel_estandar y Tipo C.A.P. (tmi_centro.tipo)
-DELETE dbo.tmi_estandar WHERE fuente = 'NIVEL' AND tipo_estandar IN ('NIVEL', 'NIVEL_TIPO') AND clave NOT IN ('I', 'II', 'III');
-DELETE dbo.tmi_estandar WHERE fuente = 'TIPO' AND clave LIKE 'C.A.P.%';
-IF OBJECT_ID('dbo.tmi_estandar_tipo') IS NOT NULL
-    DELETE dbo.tmi_estandar_tipo WHERE tipo_centro LIKE 'C.A.P.%';
 
 INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
 SELECT v.tipo_estandar, v.orden, v.fuente, v.clave, v.descripcion, v.prioridad
@@ -466,7 +383,6 @@ GO
    Tipo = catálogo tmi_nivel_estandar_centro (tmi_centro.nivel_estandar). Un código nuevo del catálogo aparece solo en
    la pestaña Estándares (sin valor: los centros con esa clave quedan sin estándar hasta cargarlo). En Nivel y Tipo,
    la parte Tipo son solo los institutos (CNSR, IPO, INCOR), que ganan sobre el nivel. */
-IF OBJECT_ID('dbo.tmi_nivel_centro') IS NOT NULL
 INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
 SELECT t.tipo_estandar, 100 + n.orden, 'NIVEL', n.codigo, n.codigo, 1
 FROM dbo.tmi_nivel_centro n
@@ -474,7 +390,6 @@ CROSS JOIN (VALUES ('NIVEL'), ('NIVEL_TIPO')) t(tipo_estandar)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_estandar e
                   WHERE e.tipo_estandar = t.tipo_estandar AND e.fuente = 'NIVEL' AND e.clave = n.codigo);
 
-IF OBJECT_ID('dbo.tmi_nivel_estandar_centro') IS NOT NULL
 INSERT INTO dbo.tmi_estandar (tipo_estandar, orden, fuente, clave, descripcion, prioridad)
 SELECT 'TIPO', 100 + c.orden, 'TIPO', c.codigo, c.codigo, 1
 FROM dbo.tmi_nivel_estandar_centro c
@@ -492,28 +407,6 @@ IF OBJECT_ID('dbo.FK_tmi_indicador_base_estandar') IS NULL
             FOREIGN KEY (base_estandar) REFERENCES dbo.tmi_tipo_estandar (codigo)');
 GO
 
-/* ---------- Estándares de cada indicador por Nivel / Categoría / Tipo y por Periodo (inicializados desde vw_tmi_std) ---------- */
-IF OBJECT_ID('dbo.tmi_indicador_estandar') IS NOT NULL
-   AND NOT EXISTS (SELECT 1 FROM dbo.tmi_indicador_estandar)
-BEGIN
-    INSERT INTO dbo.tmi_indicador_estandar (id_indicador, nivel, categoria, tipo, periodo_desde, periodo_hasta, estandar, activo)
-    SELECT s.id_estandar,
-           CASE WHEN s.fuente = 'NIVEL'     THEN s.clave END AS nivel,
-           CASE WHEN s.fuente = 'CATEGORIA' THEN s.clave END AS categoria,
-           CASE WHEN s.fuente = 'TIPO'      THEN s.clave END AS tipo,
-           ISNULL(s.anio, 2026) * 100 + 1 AS periodo_desde,
-           ISNULL(s.anio, 2026) * 100 + 12 AS periodo_hasta,
-           COALESCE(s.m08, s.m01, s.m07, s.m06) AS estandar,
-           1
-    FROM dbo.vw_tmi_std s
-    JOIN dbo.tmi_indicador i ON i.id = s.id_estandar
-    WHERE COALESCE(s.m08, s.m01, s.m07, s.m06, 0) > 0
-      AND ((s.fuente = 'NIVEL'     AND i.base_estandar LIKE '%NIVEL%')
-        OR (s.fuente = 'TIPO'      AND i.base_estandar LIKE '%TIPO%')
-        OR (s.fuente = 'CATEGORIA' AND i.base_estandar LIKE '%CATEGORIA%'));
-END
-GO
-
 
 /* ---------- Catálogos de centro (solo agrega lo que falta) ----------
    codigo = valor que se guarda en tmi_centro; orden = orden en filtros y listas.
@@ -521,13 +414,11 @@ GO
      tmi_nivel_estandar_centro -> tmi_centro.nivel_estandar: une el centro con los estándares de fuente TIPO
      tmi_tipo_centro           -> tmi_centro.tipo: informativo (ya no une estándares)
    El cálculo une por nivel y nivel_estandar; la categoría no tiene catálogo. */
-IF OBJECT_ID('dbo.tmi_nivel_centro') IS NOT NULL
 INSERT INTO dbo.tmi_nivel_centro (codigo, descripcion, orden)
 SELECT v.codigo, v.descripcion, v.orden
 FROM (VALUES ('I', 'Primer nivel', 1), ('II', 'Segundo nivel', 2), ('III', 'Tercer nivel', 3)) v(codigo, descripcion, orden)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_nivel_centro n WHERE n.codigo = v.codigo);
 
-DELETE dbo.tmi_nivel_estandar_centro WHERE codigo IN ('I', 'II', 'III');
 INSERT INTO dbo.tmi_nivel_estandar_centro (codigo, descripcion, orden)
 SELECT v.codigo, v.descripcion, v.orden
 FROM (VALUES
@@ -564,4 +455,37 @@ FROM (VALUES
     ('C.A.P.I',   'C.A.P. I',                      14)) v(codigo, descripcion, orden)
 WHERE NOT EXISTS (SELECT 1 FROM dbo.tmi_tipo_centro t WHERE t.codigo = v.codigo);
 
+GO
 
+/* ---------- % Acept hacia abajo en banda: se guarda siempre ----------
+   Un indicador que pasa a banda puede tener vacío el % hacia abajo: toma el mismo % que hacia arriba. */
+UPDATE a
+SET    aceptmenos_fijo = ISNULL(a.aceptmenos_fijo, a.acept_fijo),
+       aceptmenos_01 = ISNULL(a.aceptmenos_01, a.acept_01),
+       aceptmenos_02 = ISNULL(a.aceptmenos_02, a.acept_02),
+       aceptmenos_03 = ISNULL(a.aceptmenos_03, a.acept_03),
+       aceptmenos_04 = ISNULL(a.aceptmenos_04, a.acept_04),
+       aceptmenos_05 = ISNULL(a.aceptmenos_05, a.acept_05),
+       aceptmenos_06 = ISNULL(a.aceptmenos_06, a.acept_06),
+       aceptmenos_07 = ISNULL(a.aceptmenos_07, a.acept_07),
+       aceptmenos_08 = ISNULL(a.aceptmenos_08, a.acept_08),
+       aceptmenos_09 = ISNULL(a.aceptmenos_09, a.acept_09),
+       aceptmenos_10 = ISNULL(a.aceptmenos_10, a.acept_10),
+       aceptmenos_11 = ISNULL(a.aceptmenos_11, a.acept_11),
+       aceptmenos_12 = ISNULL(a.aceptmenos_12, a.acept_12)
+FROM   dbo.tmi_indicador_acept a
+JOIN   dbo.tmi_indicador i ON i.id = a.id_indicador
+WHERE  i.sentido = 'BANDA'
+  AND ((a.aceptmenos_fijo IS NULL AND a.acept_fijo IS NOT NULL)
+    OR (a.aceptmenos_01 IS NULL AND a.acept_01 IS NOT NULL)
+    OR (a.aceptmenos_02 IS NULL AND a.acept_02 IS NOT NULL)
+    OR (a.aceptmenos_03 IS NULL AND a.acept_03 IS NOT NULL)
+    OR (a.aceptmenos_04 IS NULL AND a.acept_04 IS NOT NULL)
+    OR (a.aceptmenos_05 IS NULL AND a.acept_05 IS NOT NULL)
+    OR (a.aceptmenos_06 IS NULL AND a.acept_06 IS NOT NULL)
+    OR (a.aceptmenos_07 IS NULL AND a.acept_07 IS NOT NULL)
+    OR (a.aceptmenos_08 IS NULL AND a.acept_08 IS NOT NULL)
+    OR (a.aceptmenos_09 IS NULL AND a.acept_09 IS NOT NULL)
+    OR (a.aceptmenos_10 IS NULL AND a.acept_10 IS NOT NULL)
+    OR (a.aceptmenos_11 IS NULL AND a.acept_11 IS NOT NULL)
+    OR (a.aceptmenos_12 IS NULL AND a.acept_12 IS NOT NULL));

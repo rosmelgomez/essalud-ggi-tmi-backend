@@ -12,16 +12,6 @@ CIERRE_TABLA = f"{name_server}.tmi_cierre"
 CALENDARIO_TABLA = f"{name_server}.tmi_cierre_calendario"
 COLS_DIAS = ", ".join(f"dia_{m:02d}" for m in range(1, 13))
 
-# Tablas que se copian del periodo anterior en el cierre (solo lectura aquí)
-TABLAS_CIERRE = {
-    #"tmi_centro": f"{name_server}.tmi_centro",
-    #"tmi_estandar_tipo": f"{name_server}.tmi_estandar_tipo",
-    #"tmi_estandar_nivel": f"{name_server}.tmi_estandar_nivel",
-    # desactivado por ahora: tmi_estandar_categoria aún no tiene datos
-    # "tmi_estandar_categoria": f"{name_server}.tmi_estandar_categoria",
-}
-
-
 ### insertar fecha de cierre por defecto del periodo si no existe
 def queryInsertCierreDefault(db: Session, periodo: str, fecha_cierre: date) -> bool:
     query = f"""
@@ -150,30 +140,6 @@ def queryFinalizarCierre(db: Session, id_cierre: int, estado: str, filas: int | 
     """
     db.execute(text(query), {"id": id_cierre, "estado": estado, "filas": filas, "mensaje": (mensaje or "")[:4000] or None})
     db.commit()
-
-
-### contar filas de un periodo en una tabla del cierre
-def queryContarPeriodo(db: Session, tabla: str, periodo: str) -> int:
-    query = f"SELECT COUNT(1) FROM {TABLAS_CIERRE[tabla]} WHERE periodo = :periodo"
-    return db.execute(text(query), {"periodo": periodo}).scalar() or 0
-
-
-### filas por periodo de una tabla del cierre (hasta el periodo indicado)
-def queryConteoPorPeriodo(db: Session, tabla: str, hasta: str) -> dict[str, int]:
-    query = f"""
-    SELECT LTRIM(RTRIM(periodo)) AS periodo, COUNT(1) AS filas
-    FROM {TABLAS_CIERRE[tabla]}
-    WHERE periodo <= :hasta
-    GROUP BY LTRIM(RTRIM(periodo))
-    """
-    return {row.periodo: row.filas for row in db.execute(text(query), {"hasta": hasta})}
-
-
-### último periodo cuya fecha de cierre ya llegó
-def queryUltimoPeriodoCierre(db: Session, hoy: date) -> str | None:
-    query = f"SELECT MAX(periodo) FROM {CIERRE_TABLA} WHERE fecha_cierre <= :hoy"
-    periodo = db.execute(text(query), {"hoy": hoy}).scalar()
-    return periodo.strip() if periodo else None
 
 
 ### volver a PENDIENTE un cierre (datos nuevos o datos borrados)

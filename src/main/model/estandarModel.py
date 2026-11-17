@@ -1,7 +1,7 @@
 """Estándares: tablas maestras, valores por tipo, nivel y categoría, estándares por indicador y % Acept."""
 
 from sqlalchemy import CheckConstraint, Column, Float, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects.mssql import BIT, DATETIME
+from sqlalchemy.dialects.mssql import BIT
 
 from src.main.model.base import TMI_SCHEMA, Base, defecto
 from src.main.model.indicadorModel import TmiIndicador
@@ -70,7 +70,7 @@ class TmiEstandarNivel(_EstandarMensual, Base):
                       {"schema": TMI_SCHEMA})
     id = Column(Integer, primary_key=True)
     id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    nivel_centro = Column(String(50), nullable=False)          # valor de tmi_centro.nivel_estandar (H.I, C.M., ...)
+    nivel_centro = Column(String(50), nullable=False)          # valor de tmi_centro.nivel (I, II, III)
     anio = Column(Integer, nullable=False)
 
 
@@ -83,39 +83,44 @@ class TmiEstandarCategoria(_EstandarMensual, Base):
     anio = Column(Integer, nullable=False)
 
 
-class TmiIndicadorEstandar(Base):
-    """Estándares del indicador por nivel, categoría, tipo o combinación de ellos, y por periodo (AAAAMM)."""
-    __tablename__ = "tmi_indicador_estandar"
-    __table_args__ = {"schema": TMI_SCHEMA}
-    id = Column(Integer, primary_key=True)
-    id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
-    nivel = Column(String(50))                                 # valor de tmi_centro.nivel_estandar
-    categoria = Column(String(50))
-    tipo = Column(String(50))
-    periodo_desde = Column(Integer, nullable=False, server_default=defecto(200001))
-    periodo_hasta = Column(Integer, nullable=False, server_default=defecto(999912))
-    estandar = Column(Float, nullable=False)
-    acept = Column(Float)                                      # % Acept (en banda, el de arriba)
-    aceptmenos = Column(Float)                                 # % Aceptmenos (solo banda, el de abajo)
-    activo = Column(BIT, nullable=False, server_default=defecto(1))
 
-
-class TmiIndicadorTolerancia(Base):
-    """% Acept por año: mes = 0 es el fijo del año; mes = 1..12 el valor de cada mes, que toma el fijo en su
-    fecha de cierre."""
-    __tablename__ = "tmi_indicador_tolerancia"
+class TmiIndicadorAcept(Base):
+    """% Acept del indicador por año, como los estándares: acept_fijo / aceptmenos_fijo es el del año y cada mes
+    (acept_MM / aceptmenos_MM) toma el fijo en su fecha de cierre; mientras está vacío, el mes usa el fijo.
+    acept = hacia arriba (en MAYOR, hacia abajo); aceptmenos = hacia abajo en banda (NULL = el mismo que acept)."""
+    __tablename__ = "tmi_indicador_acept"
     __table_args__ = (
-        CheckConstraint("mes BETWEEN 0 AND 12", name="CK_tmi_indicador_tolerancia_mes"),
-        CheckConstraint("tipo_tolerancia IN ('REL', 'ABS')", name="CK_tmi_indicador_tolerancia_tipo"),
-        UniqueConstraint("id_indicador", "anio", "mes", name="UX_tmi_indicador_tolerancia"),
+        CheckConstraint("tipo_acept IN ('REL', 'ABS')", name="CK_tmi_indicador_acept_tipo"),
+        UniqueConstraint("id_indicador", "anio", name="UX_tmi_indicador_acept"),
         {"schema": TMI_SCHEMA},
     )
     id = Column(Integer, primary_key=True)
     id_indicador = Column(Integer, ForeignKey(TmiIndicador.id), nullable=False)
     anio = Column(Integer, nullable=False)
-    mes = Column(Integer, nullable=False)
-    tipo_tolerancia = Column(String(3), nullable=False, server_default=defecto("REL"))
-    tolerancia = Column(Float, nullable=False)
-    tolerancia_menos = Column(Float)
-    usuario_modificacion = Column(String(200))
-    fecha_modificacion = Column(DATETIME)
+    tipo_acept = Column(String(3), nullable=False, server_default=defecto("REL"))
+    acept_fijo = Column(Float)
+    acept_01 = Column(Float)
+    acept_02 = Column(Float)
+    acept_03 = Column(Float)
+    acept_04 = Column(Float)
+    acept_05 = Column(Float)
+    acept_06 = Column(Float)
+    acept_07 = Column(Float)
+    acept_08 = Column(Float)
+    acept_09 = Column(Float)
+    acept_10 = Column(Float)
+    acept_11 = Column(Float)
+    acept_12 = Column(Float)
+    aceptmenos_fijo = Column(Float)
+    aceptmenos_01 = Column(Float)
+    aceptmenos_02 = Column(Float)
+    aceptmenos_03 = Column(Float)
+    aceptmenos_04 = Column(Float)
+    aceptmenos_05 = Column(Float)
+    aceptmenos_06 = Column(Float)
+    aceptmenos_07 = Column(Float)
+    aceptmenos_08 = Column(Float)
+    aceptmenos_09 = Column(Float)
+    aceptmenos_10 = Column(Float)
+    aceptmenos_11 = Column(Float)
+    aceptmenos_12 = Column(Float)

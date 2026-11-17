@@ -69,3 +69,8 @@ def queryUpdateExclusionCentroEstandarServ(db: Session, dto:tmiExclusionCentroEs
         return queryUpdateExclusionCentroEstandar(db, dto)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def queryDeleteExclusionCentroEstandarServ(db: Session, id: int, mes: int | None = None):
+    from src.main.repositories.centroRep import queryDeleteExclusionCentroEstandar
+    return queryDeleteExclusionCentroEstandar(db, id, mes)

@@ -7,13 +7,15 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.main.core.serverConfig import CONTEXT_PATH
+
 load_dotenv()
 logger = logging.getLogger(__name__)
 
 # Rutas que no exigen sesión (permitAll). Se compara el inicio de la ruta: "/x/" equivale a "/x/**" en Spring.
 # Solo lectura: nunca poner aquí rutas que creen, modifiquen o borren datos.
 RUTAS_PUBLICAS = [
-    ("GET", "/tmi/dinamico/dashboard/"),
+    ("GET", f"{CONTEXT_PATH}/dashboard/"),
 ]
 
 
@@ -24,7 +26,7 @@ AUTORIDAD_ACCESO_TMI = "ACCESS_TMI"
 
 # Peticiones que no son GET pero solo leen: no exigen rol de administrador.
 RUTAS_POST_LECTURA = [
-    ("POST", "/tmi/dinamico/formula/analizar"),   # valida la fórmula sin guardarla
+    ("POST", f"{CONTEXT_PATH}/indicador/formula/analizar"),   # valida la fórmula sin guardarla
 ]
 
 _METODOS_LECTURA = {"GET", "HEAD", "OPTIONS"}
