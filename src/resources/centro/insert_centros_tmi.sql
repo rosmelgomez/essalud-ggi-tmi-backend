@@ -388,7 +388,7 @@ INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '852', 'UBAP LOS OLIVOS', NULL, 'I', 'POL.', 'POL.');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '679', 'EL RETABLO', NULL, 'I', 'POL.', 'POL.');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '13', 'FIORI', NULL, 'I', 'POL.', 'POL.');
-INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '824', 'SAN NICOLAS', NULL, NULL, 'POL.', 'POL.');
+INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '824', 'SAN NICOLAS', NULL, 'I', 'POL.', 'POL.');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '36', 'SAYAN', NULL, 'I', 'C.M.', 'C.A.P.II');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '30', 'PARAMONGA', NULL, 'I', 'C.M.', 'C.A.P.II');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '31', 'CHANCAY', NULL, 'I', 'C.M.', 'C.A.P.II');
@@ -399,5 +399,5 @@ INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL - APP', '526', 'ALBERTO LEOPOLDO BARTON THOMPSON', NULL, 'I', 'POL.', 'POL.');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'INSTITUTO NACIONAL DEL CORAZÓN', '700', 'INSTITUTO NACIONAL CARDIOVASCULAR "CARLOS ALBERTO PESCHIERA CARRILLO"', NULL, 'III', 'INCOR', 'INCOR');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'CENTRO NACIONAL DE SALUD RENAL', '701', 'CENTRO NACIONAL DE SALUD RENAL', NULL, 'II', 'CNSR', 'CNSR');
-INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL REBAGLIATI', '781', 'H.E.Q.S.J.MIRAF', NULL, 'II', 'H.I', 'H.I');
+INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL REBAGLIATI', '781', 'H. DE ESPEC. QUIRURGICAS SAN J. DE MIRAFLORES', NULL, 'II', 'H.I', 'H.I');
 INSERT INTO tmi_centro (codred, red, codcentro, centro, categoria, nivel, nivel_estandar, tipo) VALUES (NULL, 'RED PRESTACIONAL SABOGAL', '780', 'HOSPITAL ESPECIALIDADES QUIRURGICAS CANTA CALLAO', NULL, 'II', 'H.I', 'H.I');
