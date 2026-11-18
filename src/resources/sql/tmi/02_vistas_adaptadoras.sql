@@ -19,32 +19,32 @@ IF OBJECT_ID('dbo.vw_tmi_std', 'V') IS NULL EXEC (N'CREATE VIEW dbo.vw_tmi_std A
 GO
 ALTER VIEW dbo.vw_tmi_std AS
 SELECT id_indicador AS id_estandar, 'TIPO' AS fuente, LTRIM(RTRIM(tipo_centro)) AS clave, anio,
-       CASE WHEN est_01 IS NOT NULL THEN COALESCE(NULLIF(est_01, 0), est_fijo) END AS m01, CASE WHEN est_02 IS NOT NULL THEN COALESCE(NULLIF(est_02, 0), est_fijo) END AS m02,
-       CASE WHEN est_03 IS NOT NULL THEN COALESCE(NULLIF(est_03, 0), est_fijo) END AS m03, CASE WHEN est_04 IS NOT NULL THEN COALESCE(NULLIF(est_04, 0), est_fijo) END AS m04,
-       CASE WHEN est_05 IS NOT NULL THEN COALESCE(NULLIF(est_05, 0), est_fijo) END AS m05, CASE WHEN est_06 IS NOT NULL THEN COALESCE(NULLIF(est_06, 0), est_fijo) END AS m06,
-       CASE WHEN est_07 IS NOT NULL THEN COALESCE(NULLIF(est_07, 0), est_fijo) END AS m07, CASE WHEN est_08 IS NOT NULL THEN COALESCE(NULLIF(est_08, 0), est_fijo) END AS m08,
-       CASE WHEN est_09 IS NOT NULL THEN COALESCE(NULLIF(est_09, 0), est_fijo) END AS m09, CASE WHEN est_10 IS NOT NULL THEN COALESCE(NULLIF(est_10, 0), est_fijo) END AS m10,
-       CASE WHEN est_11 IS NOT NULL THEN COALESCE(NULLIF(est_11, 0), est_fijo) END AS m11, CASE WHEN est_12 IS NOT NULL THEN COALESCE(NULLIF(est_12, 0), est_fijo) END AS m12,
+       est_01 AS m01, est_02 AS m02,
+       est_03 AS m03, est_04 AS m04,
+       est_05 AS m05, est_06 AS m06,
+       est_07 AS m07, est_08 AS m08,
+       est_09 AS m09, est_10 AS m10,
+       est_11 AS m11, est_12 AS m12,
        est_fijo AS m00
 FROM dbo.tmi_estandar_tipo
 UNION ALL
 SELECT id_indicador AS id_estandar, 'NIVEL' AS fuente, LTRIM(RTRIM(nivel_centro)) AS clave, anio,
-       CASE WHEN est_01 IS NOT NULL THEN COALESCE(NULLIF(est_01, 0), est_fijo) END AS m01, CASE WHEN est_02 IS NOT NULL THEN COALESCE(NULLIF(est_02, 0), est_fijo) END AS m02,
-       CASE WHEN est_03 IS NOT NULL THEN COALESCE(NULLIF(est_03, 0), est_fijo) END AS m03, CASE WHEN est_04 IS NOT NULL THEN COALESCE(NULLIF(est_04, 0), est_fijo) END AS m04,
-       CASE WHEN est_05 IS NOT NULL THEN COALESCE(NULLIF(est_05, 0), est_fijo) END AS m05, CASE WHEN est_06 IS NOT NULL THEN COALESCE(NULLIF(est_06, 0), est_fijo) END AS m06,
-       CASE WHEN est_07 IS NOT NULL THEN COALESCE(NULLIF(est_07, 0), est_fijo) END AS m07, CASE WHEN est_08 IS NOT NULL THEN COALESCE(NULLIF(est_08, 0), est_fijo) END AS m08,
-       CASE WHEN est_09 IS NOT NULL THEN COALESCE(NULLIF(est_09, 0), est_fijo) END AS m09, CASE WHEN est_10 IS NOT NULL THEN COALESCE(NULLIF(est_10, 0), est_fijo) END AS m10,
-       CASE WHEN est_11 IS NOT NULL THEN COALESCE(NULLIF(est_11, 0), est_fijo) END AS m11, CASE WHEN est_12 IS NOT NULL THEN COALESCE(NULLIF(est_12, 0), est_fijo) END AS m12,
+       est_01 AS m01, est_02 AS m02,
+       est_03 AS m03, est_04 AS m04,
+       est_05 AS m05, est_06 AS m06,
+       est_07 AS m07, est_08 AS m08,
+       est_09 AS m09, est_10 AS m10,
+       est_11 AS m11, est_12 AS m12,
        est_fijo AS m00
 FROM dbo.tmi_estandar_nivel
 UNION ALL
 SELECT id_indicador AS id_estandar, 'CATEGORIA' AS fuente, LTRIM(RTRIM(categoria_centro)) AS clave, anio,
-       CASE WHEN est_01 IS NOT NULL THEN COALESCE(NULLIF(est_01, 0), est_fijo) END AS m01, CASE WHEN est_02 IS NOT NULL THEN COALESCE(NULLIF(est_02, 0), est_fijo) END AS m02,
-       CASE WHEN est_03 IS NOT NULL THEN COALESCE(NULLIF(est_03, 0), est_fijo) END AS m03, CASE WHEN est_04 IS NOT NULL THEN COALESCE(NULLIF(est_04, 0), est_fijo) END AS m04,
-       CASE WHEN est_05 IS NOT NULL THEN COALESCE(NULLIF(est_05, 0), est_fijo) END AS m05, CASE WHEN est_06 IS NOT NULL THEN COALESCE(NULLIF(est_06, 0), est_fijo) END AS m06,
-       CASE WHEN est_07 IS NOT NULL THEN COALESCE(NULLIF(est_07, 0), est_fijo) END AS m07, CASE WHEN est_08 IS NOT NULL THEN COALESCE(NULLIF(est_08, 0), est_fijo) END AS m08,
-       CASE WHEN est_09 IS NOT NULL THEN COALESCE(NULLIF(est_09, 0), est_fijo) END AS m09, CASE WHEN est_10 IS NOT NULL THEN COALESCE(NULLIF(est_10, 0), est_fijo) END AS m10,
-       CASE WHEN est_11 IS NOT NULL THEN COALESCE(NULLIF(est_11, 0), est_fijo) END AS m11, CASE WHEN est_12 IS NOT NULL THEN COALESCE(NULLIF(est_12, 0), est_fijo) END AS m12,
+       est_01 AS m01, est_02 AS m02,
+       est_03 AS m03, est_04 AS m04,
+       est_05 AS m05, est_06 AS m06,
+       est_07 AS m07, est_08 AS m08,
+       est_09 AS m09, est_10 AS m10,
+       est_11 AS m11, est_12 AS m12,
        est_fijo AS m00
 FROM dbo.tmi_estandar_categoria;
 GO

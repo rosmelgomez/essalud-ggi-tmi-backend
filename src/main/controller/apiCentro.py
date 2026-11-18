@@ -22,7 +22,9 @@ router = APIRouter(
 
 # Catálogos de nivel, tipo y categoría del centro (tmi_nivel_centro, tmi_nivel_estandar_centro, tmi_tipo_centro)
 @router.get("/catalogos-centro")
-async def listaCatalogosCentro(db: Session = Depends(get_db)):
+async def listaCatalogosCentro(
+    db: Session = Depends(get_db)
+):
     return centroRep.queryCatalogosCentroTMI(db)
 
 

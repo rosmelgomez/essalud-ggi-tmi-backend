@@ -110,7 +110,7 @@ def aplicarCierrePeriodoTMI(db: Session, periodo: str) -> int:
                SET {col_mes} = est_fijo
              WHERE anio = :anio
                AND est_fijo IS NOT NULL
-               AND ({col_mes} IS NULL OR {col_mes} = 0)"""), {"anio": anio})
+               AND {col_mes} IS NULL"""), {"anio": anio})
         afectadas += r_est.rowcount or 0
     afectadas += _cierre_estandar_centro(db, anio, col_mes)
 
@@ -221,7 +221,7 @@ def queryAceptacionTMI(db: Session, anio: int, mes: int):
     mes_valor = " ".join(f"WHEN {m} THEN s.m{m:02d}" for m in range(1, 13))
     claves = _consulta(db, f"""
         SELECT i.id AS id_indicador, e.orden, e.fuente, e.clave, e.descripcion,
-               NULLIF(CASE :mes {mes_valor} END, 0) AS estandar
+               CASE :mes {mes_valor} END AS estandar
         FROM {name_server}.tmi_indicador i
         JOIN {name_server}.tmi_estandar e ON e.tipo_estandar = i.base_estandar AND e.activo = 1
         OUTER APPLY (SELECT TOP 1 * FROM {name_server}.vw_tmi_std x
@@ -370,15 +370,16 @@ def queryGuardarEstandarPeriodoTMI(db: Session, id_indicador: int, datos: dict):
             if fuente not in tablas:
                 raise HTTPException(status_code=400, detail=f"La tabla de estándares por {fuente.lower()} no admite este guardado.")
             tabla, col_clave, col_ind = tablas[fuente]
+            # 0 es un estándar válido; vacío (None) = sin estándar
             fijo = v.get("fijo")
             valor_mes = v.get("mes")
             # mes cerrado: vacío = no cambia; mes abierto: el valor enviado (vacío = vuelve a usar el fijo)
             poner_mes = valor_mes is not None if cerrado else "mes" in v
-            sets = (["est_fijo = :fijo"] if fijo is not None else []) + ([f"{col_mes} = :mes"] if poner_mes else [])
+            sets = (["est_fijo = :fijo"] if "fijo" in v else []) + ([f"{col_mes} = :mes"] if poner_mes else [])
             if not sets:
                 continue
             cols = [col_ind, col_clave, "anio", "est_fijo"] + ([col_mes] if valor_mes is not None else [])
-            vals = [":id", ":clave", ":anio", "COALESCE(:fijo, :mes)"] + ([":mes"] if valor_mes is not None else [])
+            vals = [":id", ":clave", ":anio", ":fijo"] + ([":mes"] if valor_mes is not None else [])
             r = db.execute(text(f"""
                 UPDATE {name_server}.{tabla} SET {', '.join(sets)}
                 WHERE {col_ind} = :id AND LTRIM(RTRIM({col_clave})) = :clave AND anio = :anio;

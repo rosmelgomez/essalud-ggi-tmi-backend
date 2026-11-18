@@ -15,6 +15,7 @@ from fastapi import APIRouter, FastAPI, Request
 from src.main.controller import (apiBackup, apiCalculo, apiCatalogo, apiCentro, apiCierre, apiConfiguracion,
                                  apiDashboard, apiEstandar, apiExcel, apiHistorial, apiIndicador, apiJustificacion,
                                  apiResultado, apiVariable)
+from src.main.controller.establecimiento import establecimientoCon
 from src.main.core.serverConfig import CONTEXT_PATH
 from src.main.core.tmiConfig import TMI_EJECUTAR_SQL
 from src.main.db.auditoria import USUARIO_ACTUAL
@@ -70,7 +71,8 @@ async def usuario_para_historial(request: Request, call_next):
 # essalud-gcpp-backend: cada controlador solo declara el suyo, por ejemplo /variable -> /tmi/variable/...
 api = APIRouter(prefix=CONTEXT_PATH)
 for controlador in (apiCatalogo, apiCentro, apiEstandar, apiIndicador, apiVariable, apiConfiguracion, apiCalculo,
-                    apiBackup, apiJustificacion, apiResultado, apiDashboard, apiExcel, apiHistorial, apiCierre):
+                    apiBackup, apiJustificacion, apiResultado, apiDashboard, apiExcel, apiHistorial, apiCierre,
+                    establecimientoCon):
     api.include_router(controlador.router)
 app.include_router(api)
 
